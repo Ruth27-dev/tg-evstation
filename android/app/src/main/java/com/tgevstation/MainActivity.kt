@@ -1,4 +1,4 @@
-package com.tgevstation
+package com.tg.evstation
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

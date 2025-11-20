@@ -1,4 +1,4 @@
-package com.tgevstation
+package com.tg.evstation
 
 import android.app.Application
 import com.facebook.react.PackageList
