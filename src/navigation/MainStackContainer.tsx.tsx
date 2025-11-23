@@ -4,9 +4,6 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import SplashScreen from '@/containers/SplashScreen';
 import LoginScreen from '@/containers/LoginScreen';
-import { screenSizes } from '@/constants/GeneralConstants';
-import CustomDrawer from '@/components/CustomDrawer';
-import ConfirmScreen from '@/containers/ConfirmScreen';
 import BaseViewScreen from '@/containers/BaseViewScreen';
 import ForgetPasswordScreen from '@/containers/ForgetPasswordScreen';
 import VerifyScreen from '@/containers/VerifyScreen';
@@ -18,6 +15,8 @@ import WalletScreen from '@/containers/main/WalletScreen';
 import SettingScreen from '@/containers/main/SettingScreen';
 import CustomBottomMenu from '@/components/CustomBottomMenu';
 import HomeScreen from '@/containers/main/HomeScreen';
+import StationDetailScreen from '@/containers/home/StationDetailScreen';
+import HistoryDetailScreen from '@/containers/history/HistoryDetailScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const MainStackContainer = () => {
@@ -41,6 +40,8 @@ const MainStackContainer = () => {
         <Stack.Screen name={'CreateAccount'} component={CreateAccountScreen} />
         <Stack.Screen name={'Main'} component={BottomTabContainer} />
         <Stack.Screen name={'BaseViewScreen'} component={BaseViewScreen} />
+        <Stack.Screen name={'StationDetail'} component={StationDetailScreen} />
+        <Stack.Screen name={'HistoryDetail'} component={HistoryDetailScreen} />
       </Stack.Navigator>
     </>
   );

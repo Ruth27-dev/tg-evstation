@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import { View, StyleSheet,Text } from 'react-native';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
 import { Colors } from '@/theme';
-import { useMeStore } from '@/store/useMeStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -14,7 +13,7 @@ const MainHeader: React.FC = () => {
     return (
         <View style={[styles.headerContainer,{paddingTop: insets.top,height:55 + insets.top}]}>
             <View style={{flex:1,flexDirection:'row',alignItems:'center'}}>
-                <HeaderLogo width={60} height={60} />
+                <HeaderLogo width={55} height={55} />
                 <View>
                     <Text style={[styles.headerText,{color:Colors.mainColor,fontSize:FontSize.medium}]}>TG EV</Text>
                     <Text style={[styles.headerText,{color:Colors.secondaryColor,fontSize:FontSize.small}]}>STATION</Text>
