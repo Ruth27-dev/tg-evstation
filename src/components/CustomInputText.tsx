@@ -30,6 +30,7 @@ type CustomInputTextProps = {
   name: string;
   errors?: any;
   required?: boolean;
+  editable?: boolean;
 };
 
 function CustomInputText(props: CustomInputTextProps) {
@@ -86,6 +87,7 @@ function CustomInputText(props: CustomInputTextProps) {
               selectionColor={Colors.mainColor}
               keyboardType={keyboardType}
               autoCapitalize="none"
+              editable={props.editable !== false}
             />
           )}
           name={name}

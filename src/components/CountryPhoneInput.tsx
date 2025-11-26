@@ -16,12 +16,14 @@ interface Props {
   value: string;
   onChange: (value: string) => void;
   onCountryChange?: (country: Country) => void;
+  editable?: boolean;
 }
 
 const CountryPhoneInput: React.FC<Props> = ({
   value,
   onChange,
   onCountryChange,
+  editable = true,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
@@ -54,6 +56,7 @@ const CountryPhoneInput: React.FC<Props> = ({
           placeholderTextColor={Colors.dividerColor}
           selectionColor={Colors.mainColor}
           maxLength={10}
+          editable={editable}
         />
       </View>
 

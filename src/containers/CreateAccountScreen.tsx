@@ -19,6 +19,7 @@ import EnglishIcon from '@/assets/icon/en.svg';
 import ChinaIcon from '@/assets/icon/china.svg';
 import AppLogo from '@/assets/logo/logo.svg';
 import BaseComponent from '@/components/BaseComponent';
+import { formatPhoneNumber } from '@/utils';
 
 interface CreateAccountFormData {
   phone: string;
@@ -34,7 +35,8 @@ const createAccountSchema = yup.object().shape({
 	confirmPassword: yup.string().required('Please confirm your password').oneOf([yup.ref('password')], 'Passwords must match'),
 });
   
-const CreateAccountScreen = () => {
+const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: string } } }) => {
+  const phoneNumberFromRoute = route?.params?.phoneNumber || '';
 	const languageModalRef = useRef<{
 		showModal: () => void;
 		hideModal: () => void;
@@ -58,8 +60,6 @@ const CreateAccountScreen = () => {
 	const onSubmit: SubmitHandler<CreateAccountFormData> = (data) => {
 		const { phone, fullName, password } = data;
 		Keyboard.dismiss();
-		// Handle account creation
-		console.log('Creating account:', { phone, fullName });
 	};
 
 	const isFormValid = watch('phone') && watch('fullName') && watch('password') && watch('confirmPassword');
@@ -78,78 +78,77 @@ const CreateAccountScreen = () => {
                     <View style={styles.container}>
                         <View style={styles.contentWrapper}>
 
-                            {/* Header Section */}
                             <View style={styles.headerSection}>
                                 <Text style={styles.welcomeTitle}>Create Account</Text>
                                 <Text style={styles.welcomeSubtitle}>Complete your profile to get started</Text>
                             </View>
 
-                            {/* Form Section */}
                             <View style={styles.formContainer}>
-                                {/* Phone Input */}
-                                <CustomPhoneInput
-                                    control={control}
-                                    name="phone"
-                                    errors={errors}
-                                />
-                                <View style={{height:10}}/>
-                                {/* Full Name Input */}
-                                <CustomInputText
-                                    placeHolderText="Enter your full name"
-                                    labelText="Full Name"
-                                    control={control}
-                                    name="fullName"
-                                    errors={errors}
-                                    isLeftIcon
-                                    renderLeftIcon={
-                                        <Ionicons name="person-outline" style={styles.inputIcon} size={22}/>
-                                    }
-                                />
-                                <View style={{height:10}}/>
-                                {/* Password Input */}
-                                <CustomInputText
-                                    placeHolderText="Create a password"
-                                    labelText="Password"
-                                    isRightIcon
-                                    control={control}
-                                    name="password"
-                                    errors={errors}
-                                    isLeftIcon
-                                    isPassword
-                                    renderLeftIcon={
-                                        <Ionicons name="lock-closed-outline" style={styles.inputIcon} size={22}/>
-                                    }
-                                />
-                                <View style={{height:10}}/>
-                                <CustomInputText
-                                    placeHolderText="Confirm your password"
-                                    labelText="Confirm Password"
-                                    isRightIcon
-                                    control={control}
-                                    name="confirmPassword"
-                                    errors={errors}
-                                    isLeftIcon
-                                    isPassword
-                                    renderLeftIcon={
-                                        <Ionicons name="lock-closed-outline" style={styles.inputIcon} size={22}/>
-                                    }
-                                />
-                                {/* Terms & Conditions */}
-                                <View style={styles.termsContainer}>
-                                    <Text style={styles.termsText}>By creating an account, you agree to our </Text>
-                                    <TouchableOpacity>
-                                        <Text style={styles.termsLink}>Terms & Conditions</Text>
-                                    </TouchableOpacity>
-                                </View>
+                              <CustomPhoneInput
+                                control={control}
+                                name="phone"
+                                errors={errors}
+                                editable={false}
+                                defaultValue={formatPhoneNumber(phoneNumberFromRoute)}
+                              />
 
-                                {/* Submit Button */}
-                                <CustomButton
-                                    buttonTitle="Create Account"
-                                    onPress={handleSubmit(onSubmit)}
-                                    isLoading={isLoading}
-                                    buttonColor={isFormValid ? Colors.mainColor : Colors.disableColor}
-                                    disabled={!isFormValid}
-                                />
+                              <View style={{height:10}}/>
+                              <CustomInputText
+                                placeHolderText="Enter your full name"
+                                labelText="Full Name"
+                                control={control}
+                                name="fullName"
+                                errors={errors}
+                                isLeftIcon
+                                renderLeftIcon={
+                                  <Ionicons name="person-outline" style={styles.inputIcon} size={22}/>
+                                }
+                              />
+                              <View style={{height:10}}/>
+                              {/* Password Input */}
+                              <CustomInputText
+                                placeHolderText="Create a password"
+                                labelText="Password"
+                                isRightIcon
+                                control={control}
+                                name="password"
+                                errors={errors}
+                                isLeftIcon
+                                isPassword
+                                renderLeftIcon={
+                                  <Ionicons name="lock-closed-outline" style={styles.inputIcon} size={22}/>
+                                }
+                              />
+                              <View style={{height:10}}/>
+                              <CustomInputText
+                                placeHolderText="Confirm your password"
+                                labelText="Confirm Password"
+                                isRightIcon
+                                control={control}
+                                name="confirmPassword"
+                                errors={errors}
+                                isLeftIcon
+                                isPassword
+                                renderLeftIcon={
+                                  <Ionicons name="lock-closed-outline" style={styles.inputIcon} size={22}/>
+                                }
+                              />
+                              {/* Terms & Conditions */}
+                              <View style={styles.termsContainer}>
+                                <Text style={styles.termsText}>By creating an account, you agree to our </Text>
+                                <TouchableOpacity>
+                                  <Text style={styles.termsLink}>Terms & Conditions</Text>
+                                </TouchableOpacity>
+                              </View>
+
+                              {/* Submit Button */}
+                              <CustomButton
+                                buttonTitle="Create Account"
+                                onPress={handleSubmit(onSubmit)}
+                                isLoading={isLoading}
+                                buttonColor={isFormValid ? Colors.mainColor : Colors.disableColor}
+                                disabled={!isFormValid}
+                              />
                             </View>
 
                             {/* Footer */}

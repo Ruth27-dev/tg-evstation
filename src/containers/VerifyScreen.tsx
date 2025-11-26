@@ -69,16 +69,7 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
             const credential:any = await confirmation.confirm(code);
             
             if (credential.user) {
-                Alert.alert(
-                    'Success',
-                    'Phone number verified successfully!',
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => navigate('Main')
-                        }
-                    ]
-                );
+                navigate('CreateAccount', { phoneNumber: phoneNumber });
             }
         } catch (error: any) {
             console.error('Verification error:', error);

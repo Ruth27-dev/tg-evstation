@@ -10,6 +10,8 @@ interface Props {
   name: string;
   errors?: any;
   onCountryChange?: (country: Country) => void;
+  editable?: boolean;
+  defaultValue?: string;
 }
 
 const CustomPhoneInput: React.FC<Props> = ({
@@ -17,6 +19,8 @@ const CustomPhoneInput: React.FC<Props> = ({
   name,
   errors,
   onCountryChange,
+  editable = true,
+  defaultValue = '',
 }) => {
   return (
     <View style={{ width: "100%" }}>
@@ -32,9 +36,10 @@ const CustomPhoneInput: React.FC<Props> = ({
         }}
         render={({ field: { onChange, value } }) => (
           <CountryPhoneInput
-            value={value}
+            value={value || defaultValue}
             onChange={onChange}
             onCountryChange={onCountryChange}
+            editable={editable}
           />
         )}
       />

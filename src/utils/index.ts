@@ -26,3 +26,18 @@ export const validatePhoneNumber = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, '');
   return cleaned.replace(/^0+/, '');
 };
+
+export const cleanPhoneNumber = (phone: string): string => {
+  return phone.replace(/^\+/, '').replace(/^0+/, '');
+};
+
+export const formatPhoneNumber = (phone: string): string => {
+  const cleaned = cleanPhoneNumber(phone);
+  
+  // If it starts with country code 855 (Cambodia), remove it
+  if (cleaned.startsWith('855')) {
+    return cleaned.substring(3);
+  }
+  
+  return cleaned;
+};

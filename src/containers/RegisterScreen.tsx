@@ -1,24 +1,18 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useRef } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Images from '@/assets/images';
 import { Colors } from '@/theme';
-import { CustomFontConstant, FontSize, safePadding, safePaddingAndroid } from '@/constants/GeneralConstants';
+import { CustomFontConstant, FontSize, safePaddingAndroid } from '@/constants/GeneralConstants';
 import CustomButton from '@/components/CustomButton';
-import CustomInputText from '@/components/CustomInputText';
-import CustomModal from '@/components/CustomModal';
 import { navigate } from '@/navigation/NavigationService';
-import DeviceInfo from 'react-native-device-info';
 import { useAuth } from '@/hooks/useAuth';
 import CustomPhoneInput from '@/components/CustomPhoneInput';
-import KhmerIcon from '@/assets/icon/kh.svg';
-import EnglishIcon from '@/assets/icon/en.svg';
-import ChinaIcon from '@/assets/icon/china.svg';
 import AppLogo from '@/assets/logo/logo.svg';
 import BaseComponent from '@/components/BaseComponent';
+import { cleanPhoneNumber, validatePhoneNumber } from '@/utils';
+import ErrorBanner from '@/components/ErrorBanner';
 
 interface LoginFormData {
   phone: string;
@@ -29,11 +23,8 @@ const loginSchema = yup.object().shape({
 });
   
 const RegisterScreen = () => {
-	const languageModalRef = useRef<{
-		showModal: () => void;
-		hideModal: () => void;
-	} | null>(null);
-	const { login,isLoading } = useAuth();
+	const [countryCode, setCountryCode] = React.useState('+855');
+
 	const {
 		control,
 		handleSubmit,
@@ -42,12 +33,20 @@ const RegisterScreen = () => {
 	} = useForm<LoginFormData>({
 		resolver: yupResolver(loginSchema),
 	});
+	
+  	const { login,isLoading, error,showError,setShowError,checkPhoneNumber } = useAuth();
 
 	const onSubmit: SubmitHandler<LoginFormData> = (data) => {
 		const { phone } = data;
-        navigate('CreateAccount');
 		Keyboard.dismiss();
+		const formattedPhone = `${countryCode}${validatePhoneNumber(phone)}`;
+		const phone_number = cleanPhoneNumber(formattedPhone);
+		checkPhoneNumber(phone_number,formattedPhone);
 	};
+
+	const onCountryChange = (country: any) => {
+		setCountryCode(country.dial_code);
+	}
 
 	return (
         <BaseComponent isBack={true} title="Sign Up">
@@ -62,7 +61,17 @@ const RegisterScreen = () => {
                 >
                     <View style={styles.container}>
                         <View style={styles.contentWrapper}>
-
+							<ErrorBanner
+								visible={showError}
+								message={error || 'Invalid phone number or password. Please try again.'}
+								title="Login Failed"
+								onDismiss={() => {
+									setShowError(false);
+								}}
+								autoDismiss={true}
+								autoDismissDelay={3000}
+							/>
+					
                             {/* Logo Section */}
                             <View style={styles.headerSection}>
                                 <AppLogo width={180} height={180} />
@@ -75,10 +84,11 @@ const RegisterScreen = () => {
                                     control={control}
                                     name="phone"
                                     errors={errors}
+									onCountryChange={onCountryChange}
                                 />
                                 <View style={{ height: 5 }} />
                                 <CustomButton
-                                    buttonTitle="Register"
+                                    buttonTitle="Continue"
                                     onPress={handleSubmit(onSubmit)}
                                     isLoading={isLoading}
                                     buttonColor={

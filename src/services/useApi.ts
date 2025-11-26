@@ -86,7 +86,9 @@ const api = {
     request({method: 'DELETE', endpoint, onError}),
 };
 
-export const userLogin = (data: object, onError?: (err: any) => void) => api.post('user/login', data, onError);
+export const userLogin = (data: object, onError?: (err: any) => void) => api.post('v1/auth/login', data, onError);
+export const checkPhone = (data: object, onError?: (err: any) => void) => api.post('v1/auth/exist-phone-number', data, onError);
+
 export const fetchUserDetail = async (onError?: (err: any) => void) => {
   const token = await getToken();
   return api.get(`me/detail?s_id=${token}`, undefined, onError);

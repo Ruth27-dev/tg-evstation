@@ -20,7 +20,7 @@ function CustomButton(props: CustomButtonProps) {
     return(
         <TouchableOpacity disabled={disabled} activeOpacity={0.7} onPress={onPress} style={[styles.buttonContainer,{backgroundColor:buttonColor,width:buttonWidth,height:buttonHeight}]}>
             {
-                isLoading?<ActivityIndicator color={Colors.mainColor} size={30}/>
+                isLoading?<ActivityIndicator color={Colors.white} size={30}/>
                 :
                 <Text style={{color:textColor,fontSize:FontSize.medium,fontFamily:CustomFontConstant.EnRegular,textAlign:'center'}}>{buttonTitle}</Text>
             }

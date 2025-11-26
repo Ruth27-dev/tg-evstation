@@ -12,7 +12,7 @@ const SplashScreen = () => {
             if (isAuthenticated) {
                 reset('Main');
             } else {
-                reset('Main');
+                reset('Login');
             }
         }, 1500);
         
