@@ -17,6 +17,12 @@ import CustomBottomMenu from '@/components/CustomBottomMenu';
 import HomeScreen from '@/containers/main/HomeScreen';
 import StationDetailScreen from '@/containers/home/StationDetailScreen';
 import HistoryDetailScreen from '@/containers/history/HistoryDetailScreen';
+import ProfileScreen from '@/containers/settings/ProfileScreen';
+import ChangePasswordScreen from '@/containers/settings/ChangePasswordScreen';
+import ChangeLanguageScreen from '@/containers/settings/ChangeLanguageScreen';
+import CustomerSupportScreen from '@/containers/settings/CustomerSupportScreen';
+import PrivacyScreen from '@/containers/settings/PrivacyScreen';
+import AboutUsScreen from '@/containers/settings/AboutUsScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const MainStackContainer = () => {
@@ -42,6 +48,12 @@ const MainStackContainer = () => {
         <Stack.Screen name={'BaseViewScreen'} component={BaseViewScreen} />
         <Stack.Screen name={'StationDetail'} component={StationDetailScreen} />
         <Stack.Screen name={'HistoryDetail'} component={HistoryDetailScreen} />
+        <Stack.Screen name={'ProfileScreen'} component={ProfileScreen} />
+        <Stack.Screen name={'ChangePasswordScreen'} component={ChangePasswordScreen} />
+        <Stack.Screen name={'ChangeLanguageScreen'} component={ChangeLanguageScreen} />
+        <Stack.Screen name={'CustomerSupportScreen'} component={CustomerSupportScreen} />
+        <Stack.Screen name={'PrivacyScreen'} component={PrivacyScreen} />
+        <Stack.Screen name={'AboutUsScreen'} component={AboutUsScreen} />
       </Stack.Navigator>
     </>
   );

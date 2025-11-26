@@ -7,6 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Images } from "@/assets/images";
+import { navigate } from '@/navigation/NavigationService';
 
 interface SettingItem {
     id: string;
@@ -27,15 +28,15 @@ const SettingScreen = () => {
     });
 
     const handleProfilePress = () => {
-        console.log('Navigate to Profile');
+        navigate('ProfileScreen');
     };
 
     const handleChangePassword = () => {
-        console.log('Navigate to Change Password');
+        navigate('ChangePasswordScreen');
     };
 
     const handleChangeLanguage = () => {
-        console.log('Navigate to Change Language');
+        navigate('ChangeLanguageScreen');
     };
 
     const handleLogout = () => {
@@ -61,15 +62,15 @@ const SettingScreen = () => {
     };
 
     const handleCustomerSupport = () => {
-        console.log('Navigate to Customer Support');
+        navigate('CustomerSupportScreen');
     };
 
     const handlePrivacy = () => {
-        console.log('Navigate to Privacy Policy');
+        navigate('PrivacyScreen');
     };
 
     const handleAboutUs = () => {
-        console.log('Navigate to About Us');
+        navigate('AboutUsScreen');
     };
 
     const accountSettings: SettingItem[] = [
@@ -194,13 +195,9 @@ const SettingScreen = () => {
                     <View style={styles.profileHeader}>
                         <View style={styles.avatarContainer}>
                             <Image source={Images.user} style={styles.avatar} />
-                            <TouchableOpacity style={styles.editAvatarButton} activeOpacity={0.8}>
-                                <Ionicons name="camera" size={16} color={Colors.white} />
-                            </TouchableOpacity>
                         </View>
                         <View style={styles.profileInfo}>
                             <Text style={styles.userName}>{userData.name}</Text>
-                            <Text style={styles.userEmail}>{userData.email}</Text>
                             <Text style={styles.userPhone}>{userData.phone}</Text>
                         </View>
                     </View>
@@ -237,26 +234,22 @@ const styles = StyleSheet.create({
     profileCard: {
         backgroundColor: Colors.mainColor,
         marginBottom: 24,
-        padding: 20,
+        padding: safePadding,
         borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 5,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     profileHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
     },
     avatarContainer: {
         position: 'relative',
         marginRight: 16,
     },
     avatar: {
-        width: 80,
-        height: 80,
+        width: 50,
+        height: 50,
         borderRadius: 40,
         backgroundColor: 'rgba(255,255,255,0.2)',
     },

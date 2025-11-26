@@ -1,27 +1,119 @@
 import BaseComponent from "@/components/BaseComponent";
 import { CustomFontConstant, FontSize, safePadding, safePaddingAndroid } from "@/constants/GeneralConstants";
 import { Colors } from "@/theme";
-import React, { useState } from "react";
-import { Keyboard, StyleSheet, Text, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Keyboard, StyleSheet, Text, View, Alert, ActivityIndicator, TouchableOpacity } from "react-native";
 import {
   CodeField,
   Cursor,
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { navigate } from '@/navigation/NavigationService';
+import CustomButton from "@/components/CustomButton";
 
 let interval: any;
 const CELL_COUNT: number = 6;
 
-const VerifyScreen = () => {
+interface VerifyScreenProps {
+    route?: {
+        params?: {
+            phoneNumber?: string;
+            confirmation?: FirebaseAuthTypes.ConfirmationResult;
+        };
+    };
+}
+
+const VerifyScreen = ({ route }: VerifyScreenProps) => {
     const [code, setCode] = useState('');
-    const [verifiedID, setVerifiedID] = useState('');
+    const [confirmation, setConfirmation] = useState<FirebaseAuthTypes.ConfirmationResult | null>(
+        route?.params?.confirmation || null
+    );
+    const [phoneNumber, setPhoneNumber] = useState<string>(route?.params?.phoneNumber || '+855 12 284 294');
     const [DurationCode, setDurationCode] = useState<number>(60);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isResending, setIsResending] = useState(false);
+    
     const ref = useBlurOnFulfill({value: code, cellCount: CELL_COUNT});
     const [props, getCellOnLayoutHandler] = useClearByFocusCell({
         value: code,
         setValue: setCode,
     });
+
+    // Timer countdown
+    useEffect(() => {
+        if (DurationCode > 0) {
+            interval = setInterval(() => {
+                setDurationCode(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [DurationCode]);
+
+    // Auto verify when code is complete
+    useEffect(() => {
+        if (code.length === CELL_COUNT) {
+            handleVerifyOTP();
+        }
+    }, [code]);
+
+    const handleVerifyOTP = async () => {
+        if (!confirmation) {
+            Alert.alert('Error', 'Verification session expired. Please request a new code.');
+            return;
+        }
+
+        try {
+            setIsVerifying(true);
+            const credential:any = await confirmation.confirm(code);
+            
+            if (credential.user) {
+                Alert.alert(
+                    'Success',
+                    'Phone number verified successfully!',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigate('Main')
+                        }
+                    ]
+                );
+            }
+        } catch (error: any) {
+            console.error('Verification error:', error);
+            if (error.code === 'auth/invalid-verification-code') {
+                Alert.alert('Error', 'Invalid verification code. Please try again.');
+            } else if (error.code === 'auth/code-expired') {
+                Alert.alert('Error', 'Verification code has expired. Please request a new code.');
+            } else {
+                Alert.alert('Error', 'Verification failed. Please try again.');
+            }
+            setCode('');
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
+    const handleResendCode = async () => {
+        if (DurationCode > 0 || isResending) return;
+
+        try {
+            setIsResending(true);
+            const formattedPhone = phoneNumber.replace(/\s/g, '');
+            const newConfirmation = await auth().signInWithPhoneNumber(formattedPhone);
+            
+            setConfirmation(newConfirmation);
+            setDurationCode(60);
+            setCode('');
+            Alert.alert('Success', 'Verification code sent successfully!');
+        } catch (error: any) {
+            console.error('Resend error:', error);
+            Alert.alert('Error', 'Failed to resend code. Please try again.');
+        } finally {
+            setIsResending(false);
+        }
+    };
 
     return (
         <BaseComponent isBack={true} title="Verify">
@@ -67,13 +159,35 @@ const VerifyScreen = () => {
 
                 <View style={style.footerSection}>
                     <Text style={style.resendText}>Didn't receive the code?</Text>
-                    <Text style={style.resendLink}>Resend Code</Text>
+                    <TouchableOpacity 
+                        onPress={handleResendCode}
+                        disabled={DurationCode > 0 || isResending}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={[
+                            style.resendLink,
+                            (DurationCode > 0 || isResending) && style.resendLinkDisabled
+                        ]}>
+                            {isResending ? 'Sending...' : 'Resend Code'}
+                        </Text>
+                    </TouchableOpacity>
                     {DurationCode > 0 && (
                         <Text style={style.timerText}>
                             Resend in {DurationCode}s
                         </Text>
                     )}
                 </View>
+
+                {/* Verify Button */}
+                {code.length === CELL_COUNT && (
+                    <View style={style.buttonContainer}>
+                        <CustomButton
+                            onPress={handleVerifyOTP}
+                            isLoading={isVerifying}
+                            buttonTitle="Verify"
+                        />
+                    </View>
+                )}
             </View>
         </BaseComponent>
     );
@@ -177,6 +291,14 @@ const style = StyleSheet.create({
         fontWeight: '700',
         textDecorationLine: 'underline',
         marginBottom: 12,
+    },
+    resendLinkDisabled: {
+        color: '#9CA3AF',
+        opacity: 0.5,
+    },
+    buttonContainer: {
+        marginTop: 24,
+        paddingHorizontal: 24,
     },
     timerText: {
         fontSize: FontSize.small,

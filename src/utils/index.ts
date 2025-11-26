@@ -20,3 +20,9 @@ export const query = (data:any) =>{
     }, {} as Record<string, string>)
   ).toString();
 }
+
+export const validatePhoneNumber = (phone: string): string => {
+  // Remove all non-digit characters and leading zero
+  const cleaned = phone.replace(/\D/g, '');
+  return cleaned.replace(/^0+/, '');
+};

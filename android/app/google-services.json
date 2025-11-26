@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1091991246017",
+    "project_id": "tg-evstation",
+    "storage_bucket": "tg-evstation.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091991246017:android:a76c3c6c5a357bb94b7040",
+        "android_client_info": {
+          "package_name": "com.tg.evstation"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmG1ymjLxoXX3A44v7pdEe8QaNV9b_bgU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

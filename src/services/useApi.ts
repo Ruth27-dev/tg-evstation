@@ -1,6 +1,6 @@
 import * as Keychain from 'react-native-keychain';
 
-export const BASE_URL = 'https://lt7777.net/api/';
+export const BASE_URL = 'https://tgevstation.com/api/';
 
 const TIMEOUT = 60000;
 

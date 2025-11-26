@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: Colors.dividerColor,
     borderRadius: 10,
     flexDirection: 'row',

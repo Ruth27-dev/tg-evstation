@@ -14,10 +14,12 @@ import { navigate } from '@/navigation/NavigationService';
 import DeviceInfo from 'react-native-device-info';
 import { useAuth } from '@/hooks/useAuth';
 import CustomPhoneInput from '@/components/CustomPhoneInput';
+import auth from '@react-native-firebase/auth';
 import KhmerIcon from '@/assets/icon/kh.svg';
 import EnglishIcon from '@/assets/icon/en.svg';
 import ChinaIcon from '@/assets/icon/china.svg';
 import AppLogo from '@/assets/logo/logo.svg';
+import { validatePhoneNumber } from '@/utils';
 
 interface LoginFormData {
   phone: string;
@@ -31,6 +33,8 @@ const loginSchema = yup.object().shape({
   
 const LoginScreen = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
+  const [isOTPLoading, setIsOTPLoading] = useState(false);
+  const [countryCode, setCountryCode] = useState('+855');
 
 	const languageModalRef = useRef<{
 		showModal: () => void;
@@ -46,11 +50,81 @@ const LoginScreen = () => {
 		resolver: yupResolver(loginSchema),
 	});
 
-	const onSubmit: SubmitHandler<LoginFormData> = (data) => {
+	const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
+    console.log(data)
 		const { phone, password } = data;
 		Keyboard.dismiss();
-    navigate('Main');
+    	try {
+			setIsOTPLoading(true);
+			Keyboard.dismiss();
+			const formattedPhone = `${countryCode}${validatePhoneNumber(phone)}`;
+			const confirmation = await auth().signInWithPhoneNumber(formattedPhone);
+			navigate('Verify', { 
+				phoneNumber: formattedPhone,
+				confirmation: confirmation 
+			});
+		} catch (error: any) {
+			console.error('OTP Error:', error);
+			let errorMessage = 'Failed to send OTP. Please try again.';
+			
+			if (error.code === 'auth/invalid-phone-number') {
+				errorMessage = 'Invalid phone number format.';
+			} else if (error.code === 'auth/too-many-requests') {
+				errorMessage = 'Too many requests. Please try again later.';
+			} else if (error.code === 'auth/network-request-failed') {
+				errorMessage = 'Network error. Please check your connection.';
+			}
+			
+			// You can show a toast or alert here
+			console.warn(errorMessage);
+		} finally {
+			setIsOTPLoading(false);
+		}
+    // navigate('Main');
 	};
+
+	const handleSignInWithOTP = async () => {
+		const phone = watch('phone');
+		if (!phone || phone.length < 8) {
+			return;
+		}
+
+		try {
+			setIsOTPLoading(true);
+			Keyboard.dismiss();
+			
+			// Format phone number (assuming it needs country code)
+			const formattedPhone = phone.startsWith('+') ? phone : `${countryCode}${phone}`;
+			
+			const confirmation = await auth().signInWithPhoneNumber(formattedPhone);
+			
+			// Navigate to verify screen with confirmation object
+			navigate('Verify', { 
+				phoneNumber: formattedPhone,
+				confirmation: confirmation 
+			});
+		} catch (error: any) {
+			console.error('OTP Error:', error);
+			let errorMessage = 'Failed to send OTP. Please try again.';
+			
+			if (error.code === 'auth/invalid-phone-number') {
+				errorMessage = 'Invalid phone number format.';
+			} else if (error.code === 'auth/too-many-requests') {
+				errorMessage = 'Too many requests. Please try again later.';
+			} else if (error.code === 'auth/network-request-failed') {
+				errorMessage = 'Network error. Please check your connection.';
+			}
+			
+			// You can show a toast or alert here
+			console.warn(errorMessage);
+		} finally {
+			setIsOTPLoading(false);
+		}
+	};
+  const onCountryChange = (country: any) => {
+    setCountryCode(country.dial_code);
+  }
+
 	const renderTranslateIcon = useCallback(() => {
 		return (
 		<TouchableOpacity
@@ -151,6 +225,7 @@ const LoginScreen = () => {
 								control={control}
 								name="phone"
 								errors={errors}
+                onCountryChange={onCountryChange}
 							/>
 							<CustomInputText
 								placeHolderText="Enter password"
@@ -173,17 +248,17 @@ const LoginScreen = () => {
 								<Text style={styles.forgotPasswordText}>Forgot Password?</Text>
 							</TouchableOpacity>
 
-							<CustomButton
-								buttonTitle="Login"
-								onPress={handleSubmit(onSubmit)}
-								isLoading={isLoading}
-								buttonColor={
-									!watch('phone') || watch('phone').length < 8 || !watch('password')
-									? Colors.disableColor
-									: Colors.mainColor
-								}
-								disabled={!watch('phone') || watch('phone').length < 8 || !watch('password')}
-							/>
+						<CustomButton
+							buttonTitle="Login"
+							onPress={handleSubmit(onSubmit)}
+							isLoading={isLoading}
+							buttonColor={
+								!watch('phone') || watch('phone').length < 8 || !watch('password')
+								? Colors.disableColor
+								: Colors.mainColor
+							}
+							disabled={!watch('phone') || watch('phone').length < 8 || !watch('password')}
+						/>
 						</View>
 
 						{/* Footer */}
@@ -305,6 +380,24 @@ const styles = StyleSheet.create({
     color: Colors.mainColor,
     fontFamily: CustomFontConstant.EnBold,
 
+  },
+  otpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.mainColor,
+    marginTop: 16,
+  },
+  otpButtonText: {
+    fontSize: FontSize.medium,
+    fontFamily: CustomFontConstant.EnBold,
+    color: Colors.mainColor,
   },
   languageButton: {
     flexDirection: 'row',

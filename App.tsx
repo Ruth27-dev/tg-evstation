@@ -9,11 +9,28 @@ import RouteContainer from './src/navigation/RouteContainer';
 import { navigationRef } from './src/navigation/NavigationService';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/components/ToastProvider';
+import { useEffect } from 'react';
+import FirebaseMessagingService from '@/services/FirebaseMessagingService';
+import DeviceRegistrationService from '@/services/DeviceRegistrationService';
 
 function App() {
   if (__DEV__) {
     require("./ReactotronConfig");
   }
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      DeviceRegistrationService.setApiBaseUrl('https://tgevstation.com');
+      await FirebaseMessagingService.initialize();
+    };
+
+    initializeApp();
+
+    return () => {
+      FirebaseMessagingService.cleanup();
+    };
+  }, []);
+
   return (
     <SafeAreaProvider>
       <AuthProvider>
