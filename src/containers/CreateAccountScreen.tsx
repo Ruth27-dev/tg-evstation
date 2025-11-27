@@ -1,47 +1,41 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Images from '@/assets/images';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors } from '@/theme';
-import { CustomFontConstant, FontSize, safePadding, safePaddingAndroid } from '@/constants/GeneralConstants';
+import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
 import CustomButton from '@/components/CustomButton';
 import CustomInputText from '@/components/CustomInputText';
-import CustomModal from '@/components/CustomModal';
 import { navigate } from '@/navigation/NavigationService';
-import DeviceInfo from 'react-native-device-info';
 import { useAuth } from '@/hooks/useAuth';
-import CustomPhoneInput from '@/components/CustomPhoneInput';
-import KhmerIcon from '@/assets/icon/kh.svg';
-import EnglishIcon from '@/assets/icon/en.svg';
-import ChinaIcon from '@/assets/icon/china.svg';
-import AppLogo from '@/assets/logo/logo.svg';
 import BaseComponent from '@/components/BaseComponent';
-import { formatPhoneNumber } from '@/utils';
+import { cleanPhoneNumber, formatPhoneNumber } from '@/utils';
+import ErrorBanner from '@/components/ErrorBanner';
 
 interface CreateAccountFormData {
   phone: string;
   fullName: string;
   password: string;
-  confirmPassword: string;
 }
 
 const createAccountSchema = yup.object().shape({
-	phone: yup.string().required('Phone number is required').min(8, 'Phone must be at least 8 digits'),
-	fullName: yup.string().required('Full name is required').min(3, 'Name must be at least 3 characters'),
-	password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
-	confirmPassword: yup.string().required('Please confirm your password').oneOf([yup.ref('password')], 'Passwords must match'),
+	phone: yup.string().required('Phone number is required').min(12, 'Phone must be at least 8 digits'),
+	fullName: yup.string().required('Full name is required').min(2, 'Name must be at least 2 characters'),
+	password: yup
+		.string()
+		.required('Password is required')
 });
   
 const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: string } } }) => {
   const phoneNumberFromRoute = route?.params?.phoneNumber || '';
-	const languageModalRef = useRef<{
-		showModal: () => void;
-		hideModal: () => void;
-	} | null>(null);
-	const { login,isLoading } = useAuth();
+	const [showPassword, setShowPassword] = useState(false);
+	const [acceptTerms, setAcceptTerms] = useState(false);
+	
+  const { login,isLoading, error,showError,setShowError,checkPhoneNumber, register } = useAuth();
+  
 	const {
 		control,
 		handleSubmit,
@@ -50,22 +44,25 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
 	} = useForm<CreateAccountFormData>({
 		resolver: yupResolver(createAccountSchema),
 		defaultValues: {
-			phone: '',
+			phone: phoneNumberFromRoute,
 			fullName: '',
 			password: '',
-			confirmPassword: '',
 		},
 	});
 
 	const onSubmit: SubmitHandler<CreateAccountFormData> = (data) => {
+		if (!acceptTerms) {
+			return;
+		}
 		const { phone, fullName, password } = data;
 		Keyboard.dismiss();
+		register(cleanPhoneNumber(phone), fullName, password);
 	};
 
-	const isFormValid = watch('phone') && watch('fullName') && watch('password') && watch('confirmPassword');
+	const isFormValid = watch('phone') && watch('fullName') && watch('password') && acceptTerms;
 
 	return (
-        <BaseComponent isBack={true} title="Sign Up">
+        <BaseComponent isBack={true} title="">
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -77,69 +74,95 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                 >
                     <View style={styles.container}>
                         <View style={styles.contentWrapper}>
-
+                            {/* Header Section */}
                             <View style={styles.headerSection}>
-                                <Text style={styles.welcomeTitle}>Create Account</Text>
-                                <Text style={styles.welcomeSubtitle}>Complete your profile to get started</Text>
+                                <Text style={styles.welcomeTitle}>Create Your Account</Text>
+                                <Text style={styles.welcomeSubtitle}>
+									Join us today and start your EV charging journey
+								</Text>
                             </View>
-
-                            <View style={styles.formContainer}>
-                              <CustomPhoneInput
+							<ErrorBanner
+								visible={showError}
+								message={error || 'Invalid phone number or password. Please try again.'}
+								title="Create Account Failed"
+								onDismiss={() => {
+									setShowError(false);
+								}}
+								autoDismiss={true}
+								autoDismissDelay={3000}
+							/>
+					
+                            {/* Form Card */}
+                            <View style={styles.formCard}>
+                              {/* Phone Number */}
+                              <CustomInputText
+                                labelText="Phone Number"
+                                placeHolderText="Your phone number"
                                 control={control}
                                 name="phone"
                                 errors={errors}
+                                isLeftIcon
                                 editable={false}
-                                defaultValue={formatPhoneNumber(phoneNumberFromRoute)}
+                                keyboardType="phone-pad"
+                                renderLeftIcon={
+                                  <Ionicons name="call" size={20} color={Colors.mainColor} />
+                                }
                               />
 
-                              <View style={{height:10}}/>
+                              {/* Full Name */}
                               <CustomInputText
-                                placeHolderText="Enter your full name"
                                 labelText="Full Name"
+                                placeHolderText="Enter your full name"
                                 control={control}
                                 name="fullName"
                                 errors={errors}
                                 isLeftIcon
                                 renderLeftIcon={
-                                  <Ionicons name="person-outline" style={styles.inputIcon} size={22}/>
+                                  <Ionicons name="person" size={20} color={Colors.mainColor} />
                                 }
                               />
-                              <View style={{height:10}}/>
-                              {/* Password Input */}
-                              <CustomInputText
-                                placeHolderText="Create a password"
-                                labelText="Password"
-                                isRightIcon
-                                control={control}
-                                name="password"
-                                errors={errors}
-                                isLeftIcon
-                                isPassword
-                                renderLeftIcon={
-                                  <Ionicons name="lock-closed-outline" style={styles.inputIcon} size={22}/>
-                                }
-                              />
-                              <View style={{height:10}}/>
-                              <CustomInputText
-                                placeHolderText="Confirm your password"
-                                labelText="Confirm Password"
-                                isRightIcon
-                                control={control}
-                                name="confirmPassword"
-                                errors={errors}
-                                isLeftIcon
-                                isPassword
-                                renderLeftIcon={
-                                  <Ionicons name="lock-closed-outline" style={styles.inputIcon} size={22}/>
-                                }
-                              />
-                              {/* Terms & Conditions */}
-                              <View style={styles.termsContainer}>
-                                <Text style={styles.termsText}>By creating an account, you agree to our </Text>
-                                <TouchableOpacity>
-                                  <Text style={styles.termsLink}>Terms & Conditions</Text>
-                                </TouchableOpacity>
+
+                              {/* Password */}
+                              <View>
+                                <CustomInputText
+                                  labelText="Password"
+                                  placeHolderText="Create a strong password"
+                                  control={control}
+                                  name="password"
+                                  errors={errors}
+                                  isLeftIcon
+                                  isRightIcon
+                                  isPassword={!showPassword}
+                                  renderLeftIcon={
+                                    <Ionicons name="lock-closed" size={20} color={Colors.mainColor} />
+                                  }
+                                  renderRightIcon={
+                                    <Ionicons 
+                                      name={showPassword ? "eye-off" : "eye"} 
+                                      size={20} 
+                                      color="#9CA3AF"
+                                      onPress={() => setShowPassword(!showPassword)}
+                                    />
+                                  }
+                                />
                               </View>
+
+                              {/* Terms Checkbox */}
+                              <TouchableOpacity 
+                                style={styles.checkboxContainer}
+                                onPress={() => setAcceptTerms(!acceptTerms)}
+                                activeOpacity={0.7}
+                              >
+                                <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
+                                  {acceptTerms && <Ionicons name="checkmark" size={16} color={Colors.white} />}
+                                </View>
+                                <Text style={styles.checkboxText}>
+                                  I agree to the{' '}
+                                  <Text style={styles.checkboxLink}>Terms & Conditions</Text>
+                                  {' '}and{' '}
+                                  <Text style={styles.checkboxLink}>Privacy Policy</Text>
+                                </Text>
+                              </TouchableOpacity>
 
                               {/* Submit Button */}
                               <CustomButton
@@ -153,10 +176,10 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
 
                             {/* Footer */}
                             <View style={styles.footer}>
-                                <View style={styles.signUpContainer}>
-                                    <Text style={styles.signUpText}>Already have an account? </Text>
+                                <View style={styles.signInContainer}>
+                                    <Text style={styles.signInText}>Already have an account? </Text>
                                     <TouchableOpacity onPress={() => navigate('Login')}>
-                                        <Text style={styles.signUpLink}>Sign In</Text>
+                                        <Text style={styles.signInLink}>Sign In</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -173,11 +196,11 @@ export default CreateAccountScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFBFC',
+    backgroundColor: '#F9FAFB',
   },
   contentWrapper: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 30,
   },
@@ -189,183 +212,100 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#EBF5F8',
+    backgroundColor: `${Colors.mainColor}15`,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  iconText: {
-    fontSize: 40,
+    marginBottom: 20,
   },
   welcomeTitle: {
-    fontSize: 28,
-    fontFamily: CustomFontConstant.EnRegular,
-    fontWeight: '700',
+    fontSize: FontSize.large + 2,
+    fontFamily: CustomFontConstant.EnBold,
     color: Colors.mainColor,
     marginBottom: 8,
-    letterSpacing: -0.5,
+    textAlign: 'center',
   },
   welcomeSubtitle: {
     fontSize: FontSize.medium,
     fontFamily: CustomFontConstant.EnRegular,
     color: '#6B7280',
     textAlign: 'center',
-    letterSpacing: 0.2,
+    paddingHorizontal: 20,
+    lineHeight: 22,
   },
-  formContainer: {
-    width: '100%',
-    gap: 4,
+  formCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 10,
+    gap: 20,
   },
-  inputGroup: {
-    marginBottom: 16,
+  requirementsContainer: {
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    gap: 8,
   },
-  inputLabel: {
-    fontSize: FontSize.small + 1,
+  requirement: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  requirementText: {
+    fontSize: FontSize.small,
     fontFamily: CustomFontConstant.EnRegular,
-    fontWeight: '600',
-    color: Colors.mainColor,
-    marginBottom: 8,
-    marginLeft: 2,
-  },
-  inputIcon: {
-    textAlign: 'center',
     color: '#9CA3AF',
   },
-  termsContainer: {
+  requirementMet: {
+    color: '#10B981',
+  },
+  checkboxContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginTop: 4,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: 2,
   },
-  termsText: {
+  checkboxChecked: {
+    backgroundColor: Colors.mainColor,
+    borderColor: Colors.mainColor,
+  },
+  checkboxText: {
+    flex: 1,
     fontSize: FontSize.small,
     fontFamily: CustomFontConstant.EnRegular,
     color: '#6B7280',
-    textAlign: 'center',
+    lineHeight: 20,
   },
-  termsLink: {
-    fontSize: FontSize.small,
-    fontFamily: CustomFontConstant.EnRegular,
+  checkboxLink: {
     color: Colors.mainColor,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
-  forgotPasswordContainer: {
-    alignSelf: 'flex-end',
-    marginTop: -4,
-    marginBottom: 8,
-  },
-  forgotPasswordText: {
-    color: Colors.mainColor,
-    fontSize: FontSize.small,
     fontFamily: CustomFontConstant.EnBold,
-	textDecorationLine: 'underline'
   },
   footer: {
     marginTop: 24,
     alignItems: 'center',
   },
-  signUpContainer: {
+  signInContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  signUpText: {
+  signInText: {
     fontSize: FontSize.medium,
     fontFamily: CustomFontConstant.EnRegular,
     color: '#6B7280',
   },
-  signUpLink: {
+  signInLink: {
     fontSize: FontSize.medium,
     color: Colors.mainColor,
-    fontFamily: CustomFontConstant.EnRegular,
-    fontWeight: '700',
-  },
-  languageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    backgroundColor: Colors.white,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    gap: 6,
-  },
-  flagIcon: {
-    fontSize: 18,
-  },
-  languageText: {
-    color: Colors.mainColor,
-    fontSize: FontSize.small,
-    fontFamily: CustomFontConstant.EnRegular,
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  modalContent: {
-    width: '90%',
-    padding: 28,
-    borderRadius: 20,
-    backgroundColor: Colors.white,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modalTitle: {
-    fontSize: FontSize.large,
     fontFamily: CustomFontConstant.EnBold,
-    color: Colors.mainColor,
-  },
-  closeButton: {
-    padding: 4,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-  },
-  languageOption: {
-    padding: 5,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'transparent',
-    marginBottom: 12,
-  },
-  languageOptionActive: {
-    borderColor: Colors.mainColor,
-    backgroundColor: '#EBF5F8',
-  },
-  languageOptionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  flagIconLarge: {
-    fontSize: 32,
-  },
-  languageOptionText: {
-    fontSize: FontSize.medium,
-    fontFamily: CustomFontConstant.EnRegular,
-    color: Colors.mainColor,
-  },
-  englishText: {
-    fontFamily: CustomFontConstant.EnRegular,
-  },
-  checkmarkPlaceholder: {
-    width: 24,
-    height: 24,
   },
 });

@@ -1,13 +1,13 @@
 import { navigate, reset } from "@/navigation/NavigationService";
-import { checkPhone, fetchUserDetail, postLogout, userLogin } from "@/services/useApi";
+import { checkPhone, fetchUserDetail, postLogout, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useState } from "react";
 import { Alert, Platform } from "react-native";
 import DeviceInfo from "react-native-device-info";
-import auth from '@react-native-firebase/auth';
-
+import { getAuth, onAuthStateChanged, signInWithPhoneNumber } from '@react-native-firebase/auth';
+import * as Keychain from 'react-native-keychain';
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -16,7 +16,8 @@ export const useAuth = () => {
     
     const { setUserData } = useMeStore();
     const { setIsUserLogin } = useAuthStore();
-   
+
+
     const login = useCallback(async (phoneNumber: string, password: string) => {
         setIsLoading(true);
         const data = {
@@ -26,7 +27,9 @@ export const useAuth = () => {
         try {
             const response = await userLogin(data);
             if(response?.data?.code === '000'){
-                // navigate('ConfirmScreen',{loginPhone:phoneNumber,loginResponse:response.data});
+                await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
+                setIsUserLogin(true);
+                navigate("Main");
                 setIsLoading(false);
                 return response;
             } else {
@@ -50,7 +53,8 @@ export const useAuth = () => {
             const response = await checkPhone(data);
             if (response?.data?.code === '000') {
                 try {
-                    const confirmation = await auth().signInWithPhoneNumber(formattedPhone);
+                   const confirmation = await signInWithPhoneNumber(getAuth(), formattedPhone);
+
                     navigate('Verify', { 
                         phoneNumber: formattedPhone,
                         confirmation: confirmation,
@@ -83,6 +87,35 @@ export const useAuth = () => {
         }
     };
 
+    const register = async (phoneNumber: string, name:string ,password: string) => {
+        setIsLoading(true);
+        const data = {
+            phone_number: phoneNumber,
+            user_name: name,
+            password: password,
+        }
+        try {
+            const response = await userRegister(data);
+            if(response?.data?.code === '000'){
+                setIsLoading(false);
+                await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
+                setIsUserLogin(true);
+                navigate("Main");
+                return response;
+            } else {
+                setIsLoading(false);
+                setShowError(true);
+                const errorData = response?.data?.data;
+                const errorMessage = errorData 
+                    ? Object.values(errorData).flat().join(', ') 
+                    : 'Registration failed. Please try again.';
+                setError(errorMessage);}
+        } catch (error: any) {
+            setIsLoading(false);
+            setShowError(true);
+            setError(error?.message || 'Registration failed. Please try again.');
+        }
+    }
 
     const fetchUser = async () =>{
         const res = await fetchUserDetail();
@@ -111,6 +144,7 @@ export const useAuth = () => {
         error,
         showError,
         setShowError,
-        checkPhoneNumber
+        checkPhoneNumber,
+        register
     };
 }

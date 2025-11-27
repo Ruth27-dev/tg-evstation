@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FirebaseMessagingService from './FirebaseMessagingService';
 import * as Keychain from 'react-native-keychain';
-import { generateKeyPairSync } from 'react-native-quick-crypto';
+import Crypto from 'react-native-quick-crypto';
 
 const DEVICE_REGISTERED_KEY = '@device_registered';
 const DEVICE_ID_KEY = '@device_id';
@@ -174,7 +174,7 @@ class DeviceRegistrationService {
       }
 
       // Generate RSA 2048-bit keypair using quick-crypto
-      const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+      const { publicKey, privateKey } = Crypto.generateKeyPairSync('rsa', {
       modulusLength: 2048,
       publicKeyEncoding: {
         type: 'spki',
@@ -189,7 +189,7 @@ class DeviceRegistrationService {
     // Save private key securely in system Keychain
     await Keychain.setGenericPassword(
       'device_rsa',
-      privateKey,
+      String(privateKey),
       {
         service: 'device_rsa_keypair',
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
@@ -197,9 +197,9 @@ class DeviceRegistrationService {
     );
 
     // Save public key for registration
-    await AsyncStorage.setItem('@device_public_key', publicKey);
+    await AsyncStorage.setItem('@device_public_key', String(publicKey));
 
-    return publicKey;
+    return String(publicKey);
 
   } catch (error) {
     console.error('RSA keypair generation failed:', error);

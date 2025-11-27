@@ -5,6 +5,7 @@ import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import BalanceCard from "@/components/BalanceCard";
+import { useWallet } from "@/hooks/useWallet";
 
 interface Transaction {
     id: string;
@@ -17,6 +18,8 @@ interface Transaction {
 
 const WalletScreen = () => {
     const [walletBalance] = useState(1250.50);
+    const { getMeWallet,userWalletBalance } = useWallet();
+    
     const [transactions] = useState<Transaction[]>([
         {
             id: '1',
@@ -104,7 +107,7 @@ const WalletScreen = () => {
     return (
         <BaseComponent isBack={false}>
             <View style={styles.container}>
-                <BalanceCard amount={walletBalance} />
+                <BalanceCard amount={Number(userWalletBalance?.balance) || 0} currency={userWalletBalance?.currency ?? '$'} />
 
                 <View style={styles.transactionsSection}>
                     <View style={styles.transactionsHeader}>

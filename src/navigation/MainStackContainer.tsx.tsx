@@ -24,6 +24,7 @@ import CustomerSupportScreen from '@/containers/settings/CustomerSupportScreen';
 import PrivacyScreen from '@/containers/settings/PrivacyScreen';
 import AboutUsScreen from '@/containers/settings/AboutUsScreen';
 import TopUpScreen from '@/containers/main/TopUpScreen';
+import MapScreen from '@/containers/main/MapScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const MainStackContainer = () => {
@@ -56,6 +57,7 @@ const MainStackContainer = () => {
         <Stack.Screen name={'PrivacyScreen'} component={PrivacyScreen} />
         <Stack.Screen name={'AboutUsScreen'} component={AboutUsScreen} />
         <Stack.Screen name={'TopUp'} component={TopUpScreen} />
+        <Stack.Screen name={'MapScreen'} component={MapScreen} />
       </Stack.Navigator>
     </>
   );

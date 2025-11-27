@@ -36,7 +36,7 @@ function App() {
       <AuthProvider>
         <ToastProvider>
           <NavigationContainer ref={navigationRef}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle="dark-content" />
             <RouteContainer />
           </NavigationContainer>
         </ToastProvider>

@@ -114,7 +114,7 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                     <Text style={style.description}>
                         We've sent a 6-digit verification code to
                     </Text>
-                    <Text style={style.phoneNumber}>+855 12 284 294</Text>
+                    <Text style={style.phoneNumber}>{phoneNumber}</Text>
                 </View>
 
                 <View style={style.codeSection}>
@@ -168,17 +168,6 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                         </Text>
                     )}
                 </View>
-
-                {/* Verify Button */}
-                {code.length === CELL_COUNT && (
-                    <View style={style.buttonContainer}>
-                        <CustomButton
-                            onPress={handleVerifyOTP}
-                            isLoading={isVerifying}
-                            buttonTitle="Verify"
-                        />
-                    </View>
-                )}
             </View>
         </BaseComponent>
     );

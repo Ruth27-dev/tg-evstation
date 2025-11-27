@@ -12,7 +12,20 @@
           "package_name": "com.tg.evstation"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1091991246017-i66enl7ur0v9789umvnji6ju9n0jjbbp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tg.evstation",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "1091991246017-hg63vv23u8d38ttej19qe2dscn4u3m7m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAmG1ymjLxoXX3A44v7pdEe8QaNV9b_bgU"
@@ -20,7 +33,20 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1091991246017-hg63vv23u8d38ttej19qe2dscn4u3m7m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1091991246017-e20tcipmarv4biiqs2uf5csaimaonjlh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tg.evstation.app",
+                "app_store_id": "6755755811"
+              }
+            }
+          ]
         }
       }
     }

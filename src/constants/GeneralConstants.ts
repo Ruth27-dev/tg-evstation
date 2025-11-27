@@ -20,7 +20,7 @@ export const CustomFontConstant = {
     EnRegular: "Lato-Regular",
     EnBold: "Lato-Bold",
 }
-export const safePadding = '4%';
+export const safePadding = '5%';
 export const safePaddingAndroid = '8%';
 
 export const mainRadius = 16;

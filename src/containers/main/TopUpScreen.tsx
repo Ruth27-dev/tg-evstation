@@ -2,7 +2,7 @@ import BaseComponent from "@/components/BaseComponent";
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
 import { Colors } from "@/theme";
-import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
+import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { goBack } from "@/navigation/NavigationService";
@@ -20,7 +20,7 @@ const TopUpScreen = () => {
     const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
     const [currentBalance] = useState(1250.50);
 
-    const quickAmounts = [10, 20, 50, 100, 200, 500];
+    const quickAmounts = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100];
 
     const paymentMethods: PaymentMethod[] = [
         { id: '1', name: 'Credit/Debit Card', icon: 'credit-card', type: 'card' },
@@ -91,20 +91,7 @@ const TopUpScreen = () => {
                             <Text style={styles.balanceAmount}>${currentBalance.toFixed(2)}</Text>
                         </View>
                     </View>
-                    
-                    {selectedAmount && selectedAmount > 0 && (
-                        <>
-                            <View style={styles.dividerLine} />
-                            <View style={styles.newBalanceRow}>
-                                <Text style={styles.newBalanceLabel}>New Balance</Text>
-                                <Text style={styles.newBalanceAmount}>
-                                    ${getTotalAmount().toFixed(2)}
-                                </Text>
-                            </View>
-                        </>
-                    )}
                 </View>
-
                 {/* Select Amount Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Select Amount</Text>
@@ -144,79 +131,7 @@ const TopUpScreen = () => {
                             onChangeText={handleCustomAmountChange}
                         />
                     </View>
-                    <View style={styles.amountLimits}>
-                        <View style={styles.limitItem}>
-                            <Ionicons name="information-circle" size={16} color="#6B7280" />
-                            <Text style={styles.limitText}>Min: $10</Text>
-                        </View>
-                        <View style={styles.limitItem}>
-                            <Ionicons name="information-circle" size={16} color="#6B7280" />
-                            <Text style={styles.limitText}>Max: $10,000</Text>
-                        </View>
-                    </View>
                 </View>
-
-                {/* Payment Method Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Payment Method</Text>
-                    <View style={styles.paymentMethodsContainer}>
-                        {paymentMethods.map((method) => (
-                            <TouchableOpacity
-                                key={method.id}
-                                style={[
-                                    styles.paymentMethodCard,
-                                    selectedPayment === method.id && styles.paymentMethodCardSelected
-                                ]}
-                                onPress={() => setSelectedPayment(method.id)}
-                                activeOpacity={0.7}
-                            >
-                                <View style={styles.paymentMethodContent}>
-                                    <View style={[
-                                        styles.paymentIconContainer,
-                                        selectedPayment === method.id && styles.paymentIconContainerSelected
-                                    ]}>
-                                        <MaterialCommunityIcons 
-                                            name={method.icon as any} 
-                                            size={24} 
-                                            color={selectedPayment === method.id ? Colors.white : Colors.mainColor}
-                                        />
-                                    </View>
-                                    <Text style={[
-                                        styles.paymentMethodName,
-                                        selectedPayment === method.id && styles.paymentMethodNameSelected
-                                    ]}>
-                                        {method.name}
-                                    </Text>
-                                </View>
-                                {selectedPayment === method.id && (
-                                    <View style={styles.checkIconContainer}>
-                                        <Ionicons name="checkmark-circle" size={24} color={Colors.secondaryColor} />
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Summary Section */}
-                {selectedAmount && selectedAmount > 0 && selectedPayment && (
-                    <View style={styles.summaryCard}>
-                        <Text style={styles.summaryTitle}>Transaction Summary</Text>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Top Up Amount</Text>
-                            <Text style={styles.summaryValue}>${selectedAmount.toFixed(2)}</Text>
-                        </View>
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>Processing Fee</Text>
-                            <Text style={styles.summaryValue}>$0.00</Text>
-                        </View>
-                        <View style={styles.summaryDivider} />
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryTotalLabel}>Total Amount</Text>
-                            <Text style={styles.summaryTotalValue}>${selectedAmount.toFixed(2)}</Text>
-                        </View>
-                    </View>
-                )}
             </ScrollView>
 
             {/* Bottom Action Button */}
@@ -245,7 +160,8 @@ export default TopUpScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 20,
+        paddingHorizontal: safePadding,
+        backgroundColor: Colors.backGroundColor,
     },
     // Balance Card
     balanceCard: {
@@ -253,12 +169,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 20,
         marginTop: 20,
-        marginBottom: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 5,
+        marginBottom: 24
     },
     balanceHeader: {
         flexDirection: 'row',
@@ -328,18 +239,13 @@ const styles = StyleSheet.create({
     },
     amountButton: {
         width: '31%',
-        paddingVertical: 16,
-        borderRadius: 12,
+        paddingVertical: 7,
+        borderRadius: 10,
         backgroundColor: Colors.white,
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: '#E5E7EB',
         alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        justifyContent: 'center'
     },
     amountButtonSelected: {
         backgroundColor: Colors.mainColor,
@@ -367,12 +273,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#E5E7EB',
         paddingHorizontal: 20,
-        paddingVertical: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        paddingVertical: 16
     },
     currencySymbol: {
         fontSize: FontSize.large + 4,
@@ -415,13 +316,6 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white,
         borderRadius: 12,
         padding: 16,
-        borderWidth: 2,
-        borderColor: '#E5E7EB',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
     },
     paymentMethodCardSelected: {
         borderColor: Colors.secondaryColor,
@@ -535,11 +429,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        shadowColor: Colors.mainColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
     },
     topUpButtonDisabled: {
         backgroundColor: '#D1D5DB',

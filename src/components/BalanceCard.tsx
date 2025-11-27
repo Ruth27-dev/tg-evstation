@@ -6,14 +6,15 @@ import { navigate } from "@/navigation/NavigationService";
 
 interface BalanceCardProps{
     amount?:number;
+    currency?:string;
 }
-const BalanceCard = ({amount}: BalanceCardProps) => {
+const BalanceCard = ({amount, currency = '$'}: BalanceCardProps) => {
     return (
         <View style={styles.balanceCard}>
             <View style={styles.balanceContent}>
                 <View>
                     <Text style={styles.balanceLabel}>Current Balance</Text>
-                    <Text style={styles.balanceAmount}>${amount?.toFixed(2)}</Text>
+                    <Text style={styles.balanceAmount}>{currency} {amount?.toFixed(2)}</Text>
                 </View>
                 <TouchableOpacity 
                     style={styles.topUpButton} 
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     balanceAmount: {
-        fontSize: 25,
+        fontSize: 22,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.white
     },

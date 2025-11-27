@@ -1,4 +1,5 @@
 import * as Keychain from 'react-native-keychain';
+import DeviceInfo from 'react-native-device-info';
 
 export const BASE_URL = 'https://tgevstation.com/api/';
 
@@ -11,6 +12,15 @@ const getToken = async (): Promise<string | null> => {
   } catch (error) {
     console.error('Error retrieving token:', error);
     return null;
+  }
+};
+
+const getDeviceId = async (): Promise<string> => {
+  try {
+    return await DeviceInfo.getUniqueId();
+  } catch (error) {
+    console.error('Error retrieving device ID:', error);
+    return '';
   }
 };
 
@@ -30,10 +40,13 @@ const request = async ({
   onError,
 }: RequestType) => {
   const isFormData = body instanceof FormData;
-
+  const deviceId = await getDeviceId();
+  const token = await getToken();
   const headers: HeadersInit_ = {
     'Cache-Control': 'no-cache',
     Accept: 'application/json',
+    'X-Device-Id': deviceId,
+    Authorization: token ? `Bearer ${token}` : '',
     ...(isFormData
       ? {'Content-Type': 'multipart/form-data'}
       : {'Content-Type': 'application/json'}),
@@ -88,11 +101,10 @@ const api = {
 
 export const userLogin = (data: object, onError?: (err: any) => void) => api.post('v1/auth/login', data, onError);
 export const checkPhone = (data: object, onError?: (err: any) => void) => api.post('v1/auth/exist-phone-number', data, onError);
-
-export const fetchUserDetail = async (onError?: (err: any) => void) => {
-  const token = await getToken();
-  return api.get(`me/detail?s_id=${token}`, undefined, onError);
-};
+export const userRegister = (data: object, onError?: (err: any) => void) => api.post('v1/auth/register', data, onError);
+export const fetchUserDetail = async (onError?: (err: any) => void) => api.get(`v1/users/me`, undefined, onError);
+export const fetchMeWallet = async (onError?: (err: any) => void) => api.get(`v1/wallet`, undefined, onError);
+export const fetchStation = async (data: object, onError?: (err: any) => void) => api.post(`v1/location/list`, data, onError);
 
 export const postLogout = (data: object, onError?: (err: any) => void) => api.post('user/logout', data, onError);
 

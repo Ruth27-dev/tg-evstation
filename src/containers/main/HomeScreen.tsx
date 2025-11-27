@@ -1,13 +1,16 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, TextInput } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, TextInput, ActivityIndicator } from "react-native";
 import { Colors } from "@/theme";
-import { Images } from "@/assets/images";
 import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BalanceCard from "@/components/BalanceCard";
 import { navigate } from "@/navigation/NavigationService";
+import { useWallet } from "@/hooks/useWallet";
+import { useStation } from "@/hooks/useStation";
+import { Content } from "@/types";
+import useStoreLocation from "@/store/useStoreLocation";
 
 interface EVStation {
     id: string;
@@ -23,108 +26,87 @@ interface EVStation {
 }
 
 const HomeScreen = () => {
-    const [balance] = useState(1250.50);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilter, setSelectedFilter] = useState<'all' | 'fast' | 'standard'>('all');
-    const [stations] = useState<EVStation[]>([
-        {
-            id: '1',
-            name: 'Central Station Plaza',
-            address: 'Street 51, Phnom Penh',
-            distance: '0.5 km',
-            availableChargers: 3,
-            totalChargers: 5,
-            price: '$0.25/kWh',
-            rating: 4.8,
-            type: 'fast',
-            imageUrl: "https://www.khmertimeskh.com/wp-content/uploads/2025/08/IMG_7566-750x440.jpg"
-        },
-        {
-            id: '2',
-            name: 'Riverside EV Hub',
-            address: 'Sisowath Quay, Phnom Penh',
-            distance: '1.2 km',
-            availableChargers: 2,
-            totalChargers: 4,
-            price: '$0.20/kWh',
-            rating: 4.6,
-            type: 'standard',
-            imageUrl: "https://www.khmertimeskh.com/wp-content/uploads/2025/08/IMG_7566-750x440.jpg"
-        },
-        {
-            id: '3',
-            name: 'Mall Charging Point',
-            address: 'Aeon Mall, Phnom Penh',
-            distance: '2.3 km',
-            availableChargers: 5,
-            totalChargers: 8,
-            price: '$0.22/kWh',
-            rating: 4.9,
-            type: 'fast',
-            imageUrl: "https://www.khmertimeskh.com/wp-content/uploads/2025/08/IMG_7566-750x440.jpg"
-        },
-        {
-            id: '4',
-            name: 'Airport Express Charge',
-            address: 'National Road 4, Phnom Penh',
-            distance: '3.8 km',
-            availableChargers: 1,
-            totalChargers: 3,
-            price: '$0.28/kWh',
-            rating: 4.5,
-            type: 'fast',
-            imageUrl: "https://www.khmertimeskh.com/wp-content/uploads/2025/08/IMG_7566-750x440.jpg"
-        },
-    ]);
+    const { getMeWallet,userWalletBalance } = useWallet();
+    const { getStation, stationData, isLoading } = useStation();
+    const { currentLocation } = useStoreLocation();
 
-    const filteredStations = stations.filter(station => {
-        const matchesSearch = station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            station.address.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = selectedFilter === 'all' || station.type === selectedFilter;
-        return matchesSearch && matchesFilter;
-    });
+    useEffect(()=>{
+        getMeWallet();
+        getStation();
+    },[])
 
-    const getAvailabilityStatus = (available: number, total: number) => {
-        const percentage = (available / total) * 100;
-        if (percentage >= 50) return { color: '#10B981', label: 'Available' };
-        if (percentage > 0) return { color: '#F59E0B', label: 'Limited' };
-        return { color: '#EF4444', label: 'Full' };
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371; // Radius of the Earth in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c; // Distance in kilometers
+        return distance;
     };
 
-    const renderStationCard = ({ item }: { item: EVStation }) => {
-        const availability = getAvailabilityStatus(item.availableChargers, item.totalChargers);
+    const sortedStationData = React.useMemo(() => {
+        if (!currentLocation || !stationData.length) return stationData;
+
+        return [...stationData].sort((a, b) => {
+            const distanceA = calculateDistance(
+                currentLocation.latitude,
+                currentLocation.longitude,
+                parseFloat(a.latitude),
+                parseFloat(a.longitude)
+            );
+            const distanceB = calculateDistance(
+                currentLocation.latitude,
+                currentLocation.longitude,
+                parseFloat(b.latitude),
+                parseFloat(b.longitude)
+            );
+            return distanceA - distanceB;
+        });
+    }, [stationData, currentLocation]);
+
+    const renderStationCard = ({ item }: { item: Content }) => {
+        const totalConnectors = item.chargers.reduce((total, charger) => 
+            total + (charger.connector?.length || 0), 0
+        );
+        
+        const availableConnectors = item.chargers.reduce((available, charger) => {
+            const availableInCharger = charger.connector?.filter(
+                conn => conn.status === 'AVAILABLE' || conn.status === 'PREPARING'
+            ).length || 0;
+            return available + availableInCharger;
+        }, 0);
+
+        let distance = 'N/A';
+        if (currentLocation) {
+            const distanceInKm = calculateDistance(
+                currentLocation.latitude,
+                currentLocation.longitude,
+                parseFloat(item.latitude),
+                parseFloat(item.longitude)
+            );
+            distance = distanceInKm < 1 
+                ? `${(distanceInKm * 1000).toFixed(0)} m` 
+                : `${distanceInKm.toFixed(1)} km`;
+        }
+        
+        const price = item.price || '$0.25/kWh';
         
         return (
             <TouchableOpacity 
                 style={styles.stationCard} 
                 activeOpacity={0.8} 
-                onPress={() => navigate('StationDetail')}
+                onPress={() => navigate('StationDetail', { stationId: item.id })}
             >
                 <View style={styles.cardShadow}>
                     <View style={styles.imageContainer}>
-                        <Image source={{ uri: item.imageUrl }} style={styles.stationImage} resizeMode="cover" />
-                        <View style={styles.imageOverlay}>
-                            <View style={[styles.typeBadge, { backgroundColor: item.type === 'fast' ? Colors.secondaryColor : Colors.mainColor }]}>
-                                <MaterialCommunityIcons 
-                                    name={item.type === 'fast' ? "lightning-bolt" : "ev-station"} 
-                                    size={14} 
-                                    color={Colors.white} 
-                                />
-                                <Text style={styles.typeText}>
-                                    {item.type === 'fast' ? 'Fast Charge' : 'Standard'}
-                                </Text>
-                            </View>
-                            <View style={[styles.statusBadge, { backgroundColor: availability.color }]}>
-                                <View style={styles.statusDot} />
-                                <Text style={styles.statusText}>{availability.label}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.ratingContainer}>
-                            <Ionicons name="star" size={14} color="#FCD34D" />
-                            <Text style={styles.ratingText}>{item.rating}</Text>
-                        </View>
+                        <Image source={{ uri: item.image }} style={styles.stationImage} resizeMode="cover" />
                     </View>
-                    
                     <View style={styles.stationContent}>
                         <View style={styles.headerRow}>
                             <View style={styles.nameContainer}>
@@ -136,7 +118,7 @@ const HomeScreen = () => {
                             </View>
                             <View style={styles.distanceBadge}>
                                 <Ionicons name="navigate-outline" size={12} color={Colors.mainColor} />
-                                <Text style={styles.distanceText}>{item.distance}</Text>
+                                <Text style={styles.distanceText}>{distance}</Text>
                             </View>
                         </View>
 
@@ -150,8 +132,8 @@ const HomeScreen = () => {
                                 <View>
                                     <Text style={styles.statLabel}>Chargers</Text>
                                     <Text style={styles.statValue}>
-                                        <Text style={styles.statHighlight}>{item.availableChargers}</Text>
-                                        <Text style={styles.statTotal}>/{item.totalChargers}</Text>
+                                        <Text style={styles.statHighlight}>{availableConnectors}</Text>
+                                        <Text style={styles.statTotal}>/{totalConnectors}</Text>
                                     </Text>
                                 </View>
                             </View>
@@ -164,7 +146,7 @@ const HomeScreen = () => {
                                 </View>
                                 <View>
                                     <Text style={styles.statLabel}>Price</Text>
-                                    <Text style={styles.statPrice}>{item.price}</Text>
+                                    <Text style={styles.statPrice}>{price}</Text>
                                 </View>
                             </View>
                             
@@ -177,32 +159,31 @@ const HomeScreen = () => {
             </TouchableOpacity>
         );
     };
+    if(isLoading) return <ActivityIndicator color={Colors.mainColor}/>
 
     return (
         <BaseComponent isBack={false}>
             <View style={styles.container}>
-                <BalanceCard amount={balance} />
+                <BalanceCard amount={Number(userWalletBalance?.balance) || 0} currency={userWalletBalance?.currency ?? '$'} />
+
                 <View style={styles.stationsSection}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>
-                            {filteredStations.length} {filteredStations.length === 1 ? 'Station' : 'Stations'} Nearby
+                            {sortedStationData.length} {sortedStationData.length === 1 ? 'Station' : 'Stations'} Nearby
                         </Text>
-                        <TouchableOpacity activeOpacity={0.7}>
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => navigate('MapScreen')}>
                             <Text style={styles.viewAllText}>View Map</Text>
                         </TouchableOpacity>
                     </View>
 
                     <FlatList
-                        data={filteredStations}
+                        data={sortedStationData}
                         renderItem={renderStationCard}
-                        keyExtractor={(item) => item.id}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.stationsList}
                         ListEmptyComponent={
                             <View style={styles.emptyContainer}>
-                                <Ionicons name="search" size={64} color="#D1D5DB" />
                                 <Text style={styles.emptyText}>No stations found</Text>
-                                <Text style={styles.emptySubtext}>Try adjusting your search or filters</Text>
                             </View>
                         }
                     />
