@@ -6,6 +6,7 @@ import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
+import { useEVConnector } from "@/hooks/useEVConnector";
 
 const { width } = Dimensions.get('window');
 const SCAN_FRAME_SIZE = width * 0.8;
@@ -16,8 +17,8 @@ const ConnectorScreen = () => {
     const device: any = useCameraDevice('back');
     const [flash, setFlash] = useState(false);
     const [scannedCode, setScannedCode] = useState<string | null>(null);
+    const { postStart, isLoading } = useEVConnector();
     const camera = useRef(null);
-
     useEffect(() => {
         if (!hasPermission) requestPermission();
     }, [hasPermission]);
@@ -29,7 +30,7 @@ const ConnectorScreen = () => {
             if (codes[0].value && !scannedCode) {
                 setScannedCode(codes[0].value);
                 console.log('Scanned:', codes[0].value);
-                // Navigate to station or show success
+                postStart(codes[0].value, "85512284294");
             }
         }
     })

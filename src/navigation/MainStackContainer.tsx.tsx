@@ -25,6 +25,7 @@ import PrivacyScreen from '@/containers/settings/PrivacyScreen';
 import AboutUsScreen from '@/containers/settings/AboutUsScreen';
 import TopUpScreen from '@/containers/main/TopUpScreen';
 import MapScreen from '@/containers/main/MapScreen';
+import KHQRViewScreen from '@/containers/wallet/KHQRViewScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const MainStackContainer = () => {
@@ -58,6 +59,7 @@ const MainStackContainer = () => {
         <Stack.Screen name={'AboutUsScreen'} component={AboutUsScreen} />
         <Stack.Screen name={'TopUp'} component={TopUpScreen} />
         <Stack.Screen name={'MapScreen'} component={MapScreen} />
+        <Stack.Screen name={'KHQRView'} component={KHQRViewScreen} />
       </Stack.Navigator>
     </>
   );

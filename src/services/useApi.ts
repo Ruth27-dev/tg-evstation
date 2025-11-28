@@ -105,6 +105,8 @@ export const userRegister = (data: object, onError?: (err: any) => void) => api.
 export const fetchUserDetail = async (onError?: (err: any) => void) => api.get(`v1/users/me`, undefined, onError);
 export const fetchMeWallet = async (onError?: (err: any) => void) => api.get(`v1/wallet`, undefined, onError);
 export const fetchStation = async (data: object, onError?: (err: any) => void) => api.post(`v1/location/list`, data, onError);
+export const evtStart = async (data: object, onError?: (err: any) => void) => api.post(`v1/chargers/remote-start`, data, onError);
+export const topUp = async (data: object, onError?: (err: any) => void) => api.post(`v1/wallet/topup`, data, onError);
 
 export const postLogout = (data: object, onError?: (err: any) => void) => api.post('user/logout', data, onError);
 

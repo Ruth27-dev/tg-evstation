@@ -31,6 +31,15 @@ const HomeScreen = () => {
     const { getMeWallet,userWalletBalance } = useWallet();
     const { getStation, stationData, isLoading } = useStation();
     const { currentLocation } = useStoreLocation();
+    const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await Promise.all([
+            getMeWallet(),
+            getStation()
+        ]);
+        setRefreshing(false);
+    };
 
     useEffect(()=>{
         getMeWallet();
@@ -159,17 +168,19 @@ const HomeScreen = () => {
             </TouchableOpacity>
         );
     };
-    if(isLoading) return <ActivityIndicator color={Colors.mainColor}/>
+    if(isLoading) return <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color={Colors.mainColor} />
+    </View>
 
     return (
         <BaseComponent isBack={false}>
             <View style={styles.container}>
-                <BalanceCard amount={Number(userWalletBalance?.balance) || 0} currency={userWalletBalance?.currency ?? '$'} />
+                <BalanceCard amount={Number(userWalletBalance?.balanceCents) || 0} currency={userWalletBalance?.currency ?? '$'} />
 
                 <View style={styles.stationsSection}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>
-                            {sortedStationData.length} {sortedStationData.length === 1 ? 'Station' : 'Stations'} Nearby
+                            {sortedStationData?.length} {sortedStationData.length === 1 ? 'Station' : 'Stations'} Nearby
                         </Text>
                         <TouchableOpacity activeOpacity={0.7} onPress={() => navigate('MapScreen')}>
                             <Text style={styles.viewAllText}>View Map</Text>
@@ -181,6 +192,8 @@ const HomeScreen = () => {
                         renderItem={renderStationCard}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.stationsList}
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
                         ListEmptyComponent={
                             <View style={styles.emptyContainer}>
                                 <Text style={styles.emptyText}>No stations found</Text>

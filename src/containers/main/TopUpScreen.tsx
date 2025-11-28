@@ -6,6 +6,9 @@ import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralCo
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { goBack } from "@/navigation/NavigationService";
+import { useTopUp } from "@/hooks/useTopUp";
+import { useWallet } from "@/hooks/useWallet";
+import BalanceCard from "@/components/BalanceCard";
 
 interface PaymentMethod {
     id: string;
@@ -19,6 +22,8 @@ const TopUpScreen = () => {
     const [customAmount, setCustomAmount] = useState('');
     const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
     const [currentBalance] = useState(1250.50);
+    const { postTopUp } = useTopUp();
+    const { getMeWallet,userWalletBalance } = useWallet();
 
     const quickAmounts = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100];
 
@@ -31,6 +36,7 @@ const TopUpScreen = () => {
 
     const handleAmountSelect = (amount: number) => {
         setSelectedAmount(amount);
+        postTopUp(amount.toString());
         setCustomAmount('');
     };
 
@@ -81,17 +87,7 @@ const TopUpScreen = () => {
         <BaseComponent isBack={true} title="Top Up Wallet">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Current Balance Card */}
-                <View style={styles.balanceCard}>
-                    <View style={styles.balanceHeader}>
-                        <View style={styles.balanceIconContainer}>
-                            <MaterialCommunityIcons name="wallet" size={24} color={Colors.white} />
-                        </View>
-                        <View style={styles.balanceInfo}>
-                            <Text style={styles.balanceLabel}>Current Balance</Text>
-                            <Text style={styles.balanceAmount}>${currentBalance.toFixed(2)}</Text>
-                        </View>
-                    </View>
-                </View>
+                <BalanceCard amount={Number(userWalletBalance?.balanceCents) || 0} currency={userWalletBalance?.currency ?? '$'} />
                 {/* Select Amount Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Select Amount</Text>
@@ -160,7 +156,6 @@ export default TopUpScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: safePadding,
         backgroundColor: Colors.backGroundColor,
     },
     // Balance Card
@@ -223,6 +218,7 @@ const styles = StyleSheet.create({
     // Section
     section: {
         marginBottom: 28,
+        paddingHorizontal: safePadding,
     },
     sectionTitle: {
         fontSize: FontSize.medium + 2,
@@ -431,7 +427,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     topUpButtonDisabled: {
-        backgroundColor: '#D1D5DB',
+        backgroundColor: Colors.mainColor,
         shadowColor: '#000',
         shadowOpacity: 0.1,
     },
