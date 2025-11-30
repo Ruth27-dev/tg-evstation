@@ -192,7 +192,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.large + 8,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.white,
-        fontWeight: '700',
     },
     dividerLine: {
         height: 1,
@@ -213,7 +212,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.large + 4,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.primaryColor,
-        fontWeight: '700',
     },
     // Section
     section: {
@@ -224,7 +222,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        fontWeight: '700',
         marginBottom: 16,
     },
     // Amount Grid
@@ -255,7 +252,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.large,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        fontWeight: '700',
     },
     amountTextSelected: {
         color: Colors.white,
@@ -275,7 +271,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.large + 4,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        fontWeight: '700',
         marginRight: 8,
     },
     customAmountInput: {
@@ -342,7 +337,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
-        fontWeight: '600',
     },
     paymentMethodNameSelected: {
         fontFamily: CustomFontConstant.EnBold,
@@ -362,7 +356,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        fontWeight: '700',
         marginBottom: 16,
     },
     summaryRow: {
@@ -380,7 +373,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
-        fontWeight: '600',
     },
     summaryDivider: {
         height: 1,
@@ -391,13 +383,11 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        fontWeight: '700',
     },
     summaryTotalValue: {
         fontSize: FontSize.large + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.secondaryColor,
-        fontWeight: '700',
     },
     // Bottom Action
     bottomContainer: {
@@ -413,8 +403,6 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 10,
     },
     topUpButton: {
         flexDirection: 'row',
@@ -435,6 +423,5 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.white,
-        fontWeight: '700',
     },
 });

@@ -11,55 +11,20 @@ import { useWallet } from "@/hooks/useWallet";
 import { useStation } from "@/hooks/useStation";
 import { Content } from "@/types";
 import useStoreLocation from "@/store/useStoreLocation";
-
-interface EVStation {
-    id: string;
-    name: string;
-    address: string;
-    distance: string;
-    availableChargers: number;
-    totalChargers: number;
-    price: string;
-    rating: number;
-    type: 'fast' | 'standard';
-    imageUrl: any;
-}
+import { calculateDistance } from "@/utils";
 
 const HomeScreen = () => {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedFilter, setSelectedFilter] = useState<'all' | 'fast' | 'standard'>('all');
     const { getMeWallet,userWalletBalance } = useWallet();
     const { getStation, stationData, isLoading } = useStation();
     const { currentLocation } = useStoreLocation();
-    const [refreshing, setRefreshing] = useState(false);
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await Promise.all([
-            getMeWallet(),
-            getStation()
-        ]);
-        setRefreshing(false);
-    };
 
     useEffect(()=>{
         getMeWallet();
         getStation();
     },[])
 
-    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-        const R = 6371; // Radius of the Earth in kilometers
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = 
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c; // Distance in kilometers
-        return distance;
-    };
-
-    const sortedStationData = React.useMemo(() => {
+    // Sort stations by distance
+    const sortedStations = React.useMemo(() => {
         if (!currentLocation || !stationData.length) return stationData;
 
         return [...stationData].sort((a, b) => {
@@ -103,9 +68,6 @@ const HomeScreen = () => {
                 ? `${(distanceInKm * 1000).toFixed(0)} m` 
                 : `${distanceInKm.toFixed(1)} km`;
         }
-        
-        const price = item.price || '$0.25/kWh';
-        
         return (
             <TouchableOpacity 
                 style={styles.stationCard} 
@@ -135,32 +97,16 @@ const HomeScreen = () => {
 
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>
-                                <View style={styles.iconCircle}>
-                                    <MaterialCommunityIcons name="ev-plug-type2" size={18} color={Colors.mainColor} />
-                                </View>
-                                <View>
-                                    <Text style={styles.statLabel}>Chargers</Text>
-                                    <Text style={styles.statValue}>
-                                        <Text style={styles.statHighlight}>{availableConnectors}</Text>
-                                        <Text style={styles.statTotal}>/{totalConnectors}</Text>
-                                    </Text>
-                                </View>
-                            </View>
-                            
-                            <View style={styles.statDivider} />
-                            
-                            <View style={styles.statItem}>
-                                <View style={[styles.iconCircle, { backgroundColor: '#FEF3C7' }]}>
-                                    <MaterialCommunityIcons name="cash" size={18} color={Colors.primaryColor} />
-                                </View>
-                                <View>
-                                    <Text style={styles.statLabel}>Price</Text>
-                                    <Text style={styles.statPrice}>{price}</Text>
-                                </View>
+                                <MaterialCommunityIcons name="ev-plug-type2" size={20} color={Colors.mainColor} />
+                                <Text style={styles.statValueCompact}>
+                                    <Text style={styles.statHighlight}>{availableConnectors}</Text>
+                                    <Text style={styles.statTotal}>/{totalConnectors}</Text>
+                                    <Text style={styles.statLabelInline}> Available</Text>
+                                </Text>
                             </View>
                             
                             <TouchableOpacity style={styles.navigateButton}>
-                                <Ionicons name="arrow-forward" size={20} color={Colors.white} />
+                                <Ionicons name="arrow-forward" size={18} color={Colors.white} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -178,22 +124,24 @@ const HomeScreen = () => {
                 <BalanceCard amount={Number(userWalletBalance?.balanceCents) || 0} currency={userWalletBalance?.currency ?? '$'} />
 
                 <View style={styles.stationsSection}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>
-                            {sortedStationData?.length} {sortedStationData.length === 1 ? 'Station' : 'Stations'} Nearby
-                        </Text>
-                        <TouchableOpacity activeOpacity={0.7} onPress={() => navigate('MapScreen')}>
-                            <Text style={styles.viewAllText}>View Map</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <Text style={styles.sectionTitle}>Nearby Stations</Text>
+                    
+                    <TouchableOpacity 
+                        style={styles.mapButton} 
+                        activeOpacity={0.9} 
+                        onPress={() => navigate('MapScreen')}
+                    >
+                        <Ionicons name="map-outline" size={20} color={Colors.mainColor} />
+                        <Text style={styles.mapButtonSimpleText}>View on Map</Text>
+                        <Ionicons name="chevron-forward" size={18} color={Colors.mainColor} />
+                    </TouchableOpacity>
 
                     <FlatList
-                        data={sortedStationData}
+                        data={sortedStations}
                         renderItem={renderStationCard}
-                        showsVerticalScrollIndicator={false}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.stationsList}
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
                         ListEmptyComponent={
                             <View style={styles.emptyContainer}>
                                 <Text style={styles.emptyText}>No stations found</Text>
@@ -230,12 +178,7 @@ const styles = StyleSheet.create({
         height: 56,
         borderRadius: 16,
         justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
+        alignItems: 'center'
     },
     actionText: {
         fontSize: FontSize.small,
@@ -248,77 +191,36 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 20,
     },
-    // Search Bar
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12
-    },
-    searchIcon: {
-        marginRight: 8,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-        padding: 0,
-    },
-    // Filter Tabs
-    filterContainer: {
-        flexDirection: 'row',
-        gap: 10,
-        marginBottom: 20,
-    },
-    filterTab: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: Colors.white,
-        borderWidth: 1.5,
-        borderColor: '#E5E7EB',
-        gap: 6,
-    },
-    filterTabActive: {
-        backgroundColor: Colors.mainColor,
-        borderColor: Colors.mainColor,
-    },
-    filterText: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-        fontWeight: '600',
-    },
-    filterTextActive: {
-        color: Colors.white,
-    },
-    // Section Header
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
+    // Section Title
     sectionTitle: {
-        fontSize: FontSize.large,
+        fontSize: FontSize.large + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        fontWeight: '700',
+        marginBottom: 16,
     },
-    viewAllText: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.secondaryColor,
-        fontWeight: '600',
+    // Map Button
+    mapButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderRadius: 12,
+        marginBottom:30,
+        gap: 10,
+        shadowRadius: 4,
+        elevation: 1,
+    },
+    mapButtonSimpleText: {
+        flex: 1,
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
     },
     // Station List
     stationsList: {
-        paddingBottom: 80,
+        paddingBottom: 20,
+        paddingRight: 4,
     },
     emptyContainer: {
         alignItems: 'center',
@@ -339,83 +241,24 @@ const styles = StyleSheet.create({
     },
     // Station Card
     stationCard: {
-        marginBottom: 20,
+        marginRight: 16,
+        width: 320,
     },
     cardShadow: {
         backgroundColor: Colors.white,
         borderRadius: 16,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        elevation: 1,
     },
     imageContainer: {
         position: 'relative',
         width: '100%',
-        height: 200,
+        height: 160,
     },
     stationImage: {
         width: '100%',
         height: '100%',
         backgroundColor: '#F3F4F6',
-    },
-    imageOverlay: {
-        position: 'absolute',
-        top: 12,
-        left: 12,
-        right: 12,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    typeBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-        gap: 4
-    },
-    typeText: {
-        fontSize: FontSize.small - 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
-        fontWeight: '700',
-    },
-    statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 16,
-        gap: 6
-    },
-    statusDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: Colors.white,
-    },
-    statusText: {
-        fontSize: FontSize.small - 2,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
-        fontWeight: '700',
-    },
-    ratingContainer: {
-        position: 'absolute',
-        bottom: 12,
-        right: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 12,
-        gap: 4,
-    },
-    ratingText: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
-        fontWeight: '700',
     },
     // Card Content
     stationContent: {
@@ -478,28 +321,13 @@ const styles = StyleSheet.create({
     statItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        gap: 8,
         flex: 1,
     },
-    iconCircle: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#DBEAFE',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    statLabel: {
-        fontSize: FontSize.small - 2,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: '#9CA3AF',
-        marginBottom: 2,
-    },
-    statValue: {
+    statValueCompact: {
         fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnBold,
+        fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
-        fontWeight: '700',
     },
     statHighlight: {
         fontSize: FontSize.medium + 2,
@@ -508,27 +336,21 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     statTotal: {
-        fontSize: FontSize.small,
+        fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
         color: '#9CA3AF',
     },
-    statDivider: {
-        width: 1,
-        height: 40,
-        backgroundColor: '#E5E7EB',
-    },
-    statPrice: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.primaryColor,
-        fontWeight: '700',
+    statLabelInline: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#6B7280',
     },
     navigateButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         backgroundColor: Colors.mainColor,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
 });
