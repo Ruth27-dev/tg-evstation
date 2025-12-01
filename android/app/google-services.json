@@ -1,52 +1,26 @@
 {
   "project_info": {
-    "project_number": "1091991246017",
-    "project_id": "tg-evstation",
-    "storage_bucket": "tg-evstation.firebasestorage.app"
+    "project_number": "437520296446",
+    "project_id": "tgev-station",
+    "storage_bucket": "tgev-station.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1091991246017:android:a76c3c6c5a357bb94b7040",
+        "mobilesdk_app_id": "1:437520296446:android:63d4e6b4455542c117b8af",
         "android_client_info": {
           "package_name": "com.tg.evstation"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "1091991246017-i66enl7ur0v9789umvnji6ju9n0jjbbp.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.tg.evstation",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
-          }
-        },
-        {
-          "client_id": "1091991246017-hg63vv23u8d38ttej19qe2dscn4u3m7m.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAmG1ymjLxoXX3A44v7pdEe8QaNV9b_bgU"
+          "current_key": "AIzaSyDXXE4A_rAmCMbOiLg7aAVHJk2bb6GFT0k"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1091991246017-hg63vv23u8d38ttej19qe2dscn4u3m7m.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "1091991246017-e20tcipmarv4biiqs2uf5csaimaonjlh.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.tg.evstation.app",
-                "app_store_id": "6755755811"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
