@@ -1,47 +1,25 @@
 import BaseComponent from "@/components/BaseComponent";
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { goBack } from "@/navigation/NavigationService";
-import { useTopUp } from "@/hooks/useTopUp";
+import { navigate } from "@/navigation/NavigationService";
 import { useWallet } from "@/hooks/useWallet";
-import BalanceCard from "@/components/BalanceCard";
+import CustomButton from "@/components/CustomButton";
 
-interface PaymentMethod {
-    id: string;
-    name: string;
-    icon: string;
-    type: 'card' | 'bank' | 'ewallet';
-}
 
 const TopUpScreen = () => {
     const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
     const [customAmount, setCustomAmount] = useState('');
-    const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
-    const [currentBalance] = useState(1250.50);
-    const { postTopUp } = useTopUp();
-    const { getMeWallet,userWalletBalance } = useWallet();
+    const { userWalletBalance } = useWallet();
 
     const quickAmounts = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100];
-
-    const paymentMethods: PaymentMethod[] = [
-        { id: '1', name: 'Credit/Debit Card', icon: 'credit-card', type: 'card' },
-        { id: '2', name: 'Bank Transfer', icon: 'bank', type: 'bank' },
-        { id: '3', name: 'ABA Bank', icon: 'wallet', type: 'ewallet' },
-        { id: '4', name: 'Wing Money', icon: 'cash', type: 'ewallet' },
-    ];
-
     const handleAmountSelect = (amount: number) => {
         setSelectedAmount(amount);
-        postTopUp(amount.toString());
         setCustomAmount('');
     };
 
     const handleCustomAmountChange = (text: string) => {
-        // Only allow numbers
         const numericValue = text.replace(/[^0-9]/g, '');
         setCustomAmount(numericValue);
         if (numericValue) {
@@ -52,100 +30,61 @@ const TopUpScreen = () => {
     };
 
     const handleTopUp = () => {
-        if (!selectedAmount || selectedAmount <= 0) {
-            Alert.alert('Error', 'Please select or enter an amount');
-            return;
-        }
-        if (!selectedPayment) {
-            Alert.alert('Error', 'Please select a payment method');
-            return;
-        }
-        
-        Alert.alert(
-            'Confirm Top Up',
-            `Top up $${selectedAmount.toFixed(2)} using ${paymentMethods.find(p => p.id === selectedPayment)?.name}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Confirm',
-                    onPress: () => {
-                        // Handle top up logic here
-                        Alert.alert('Success', 'Top up successful!', [
-                            { text: 'OK', onPress: () => goBack() }
-                        ]);
-                    }
-                }
-            ]
-        );
-    };
-
-    const getTotalAmount = () => {
-        return selectedAmount ? currentBalance + selectedAmount : currentBalance;
+        navigate('PaymentMethod', {
+            amount: selectedAmount,
+            currency: userWalletBalance?.currency ?? '$'
+        });
     };
 
     return (
-        <BaseComponent isBack={true} title="Top Up Wallet">
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {/* Current Balance Card */}
-                <BalanceCard amount={Number(userWalletBalance?.balanceCents) || 0} currency={userWalletBalance?.currency ?? '$'} />
-                {/* Select Amount Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Select Amount</Text>
-                    <View style={styles.amountGrid}>
-                        {quickAmounts.map((amount) => (
-                            <TouchableOpacity
-                                key={amount}
-                                style={[
-                                    styles.amountButton,
-                                    selectedAmount === amount && !customAmount && styles.amountButtonSelected
-                                ]}
-                                onPress={() => handleAmountSelect(amount)}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={[
-                                    styles.amountText,
-                                    selectedAmount === amount && !customAmount && styles.amountTextSelected
-                                ]}>
-                                    ${amount}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+        <BaseComponent isBack={true} title="Top Up">
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Select Amount</Text>
+                <View style={styles.amountGrid}>
+                    {quickAmounts.map((amount) => (
+                        <TouchableOpacity
+                            key={amount}
+                            style={[
+                                styles.amountButton,
+                                selectedAmount === amount && !customAmount && styles.amountButtonSelected
+                            ]}
+                            onPress={() => handleAmountSelect(amount)}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={[
+                                styles.amountText,
+                                selectedAmount === amount && !customAmount && styles.amountTextSelected
+                            ]}>
+                                ${amount?.toFixed(1)}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
+            </View>
 
-                {/* Custom Amount Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Or Enter Custom Amount</Text>
-                    <View style={styles.customAmountContainer}>
-                        <Text style={styles.currencySymbol}>$</Text>
-                        <TextInput
-                            style={styles.customAmountInput}
-                            placeholder="0.00"
-                            placeholderTextColor="#9CA3AF"
-                            keyboardType="numeric"
-                            value={customAmount}
-                            onChangeText={handleCustomAmountChange}
-                        />
-                    </View>
+            {/* Custom Amount Section */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Or Enter Custom Amount</Text>
+                <View style={styles.customAmountContainer}>
+                    <Text style={styles.currencySymbol}>$</Text>
+                    <TextInput
+                        style={styles.customAmountInput}
+                        placeholder="0.00"
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="numeric"
+                        value={customAmount}
+                        onChangeText={handleCustomAmountChange}
+                    />
                 </View>
-            </ScrollView>
-
-            {/* Bottom Action Button */}
+                </View>
             <View style={styles.bottomContainer}>
-                <TouchableOpacity
-                    style={[
-                        styles.topUpButton,
-                        (!selectedAmount || selectedAmount <= 0 || !selectedPayment) && styles.topUpButtonDisabled
-                    ]}
+                <CustomButton
+                    buttonTitle={`Continue ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount.toFixed(2)}` : ''}`}
+                    buttonColor={selectedAmount && selectedAmount > 0  ? Colors.mainColor : Colors.gray}
                     onPress={handleTopUp}
-                    activeOpacity={0.8}
-                    disabled={!selectedAmount || selectedAmount <= 0 || !selectedPayment}
-                >
-                    <Text style={styles.topUpButtonText}>
-                        Top Up {selectedAmount && selectedAmount > 0 ? `$${selectedAmount.toFixed(2)}` : 'Wallet'}
-                    </Text>
-                    <Ionicons name="arrow-forward" size={20} color={Colors.white} />
-                </TouchableOpacity>
+                    disabled={!selectedAmount || selectedAmount <= 0}
+                />
+
             </View>
         </BaseComponent>
     );
@@ -216,10 +155,11 @@ const styles = StyleSheet.create({
     // Section
     section: {
         marginBottom: 28,
+        marginTop: safePadding,
         paddingHorizontal: safePadding,
     },
     sectionTitle: {
-        fontSize: FontSize.medium + 2,
+        fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
         marginBottom: 16,
@@ -232,8 +172,8 @@ const styles = StyleSheet.create({
     },
     amountButton: {
         width: '31%',
-        paddingVertical: 7,
-        borderRadius: 10,
+        paddingVertical: 10,
+        borderRadius: 5,
         backgroundColor: Colors.white,
         borderWidth: 1,
         borderColor: '#E5E7EB',
@@ -296,100 +236,6 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnRegular,
         color: '#6B7280',
     },
-    // Payment Methods
-    paymentMethodsContainer: {
-        gap: 12,
-    },
-    paymentMethodCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        padding: 16,
-    },
-    paymentMethodCardSelected: {
-        borderColor: Colors.secondaryColor,
-        backgroundColor: '#F0FDF4',
-        shadowColor: Colors.secondaryColor,
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    paymentMethodContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    paymentIconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#EFF6FF',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    paymentIconContainerSelected: {
-        backgroundColor: Colors.mainColor,
-    },
-    paymentMethodName: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-    },
-    paymentMethodNameSelected: {
-        fontFamily: CustomFontConstant.EnBold,
-        fontWeight: '700',
-    },
-    checkIconContainer: {
-        marginLeft: 8,
-    },
-    // Summary Card
-    summaryCard: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 100,
-    },
-    summaryTitle: {
-        fontSize: FontSize.medium + 2,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-        marginBottom: 16,
-    },
-    summaryRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    summaryLabel: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: '#6B7280',
-    },
-    summaryValue: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-    },
-    summaryDivider: {
-        height: 1,
-        backgroundColor: '#E5E7EB',
-        marginVertical: 12,
-    },
-    summaryTotalLabel: {
-        fontSize: FontSize.medium + 2,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-    },
-    summaryTotalValue: {
-        fontSize: FontSize.large + 2,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.secondaryColor,
-    },
-    // Bottom Action
     bottomContainer: {
         position: 'absolute',
         bottom: 0,

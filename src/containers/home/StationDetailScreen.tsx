@@ -1,100 +1,146 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Linking } from "react-native";
 import BaseComponent from "@/components/BaseComponent";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { Content, Charger, Connector } from "@/types";
+import { useStationStore } from "@/store/useStationStore";
 
-const { width } = Dimensions.get('window');
 
-interface ChargerType {
-    id: string;
-    type: string;
-    power: string;
-    available: number;
-    total: number;
-    price: string;
-}
+const StationDetailScreen = ({ route }: any) => {
+    const { selectedStation, clearStation } = useStationStore();
 
-const StationDetailScreen = () => {
-    const [isFavorite, setIsFavorite] = useState(false);
-    
-    // Mock data - replace with actual data from navigation params or API
-    const stationData = {
-        name: 'Central Station Plaza',
-        image: 'https://www.khmertimeskh.com/wp-content/uploads/2025/08/IMG_7566-750x440.jpg',
-        rating: 4.8,
-        reviews: 124,
-        address: 'Street 51, Sangkat Srah Chork, Khan Daun Penh, Phnom Penh',
-        distance: '0.5 km',
-        isOpen: true,
-        openTime: '24/7',
-        phone: '+855 12 345 678',
-        chargerTypes: [
-            { id: '1', type: 'CCS Type 2', power: '150 kW', available: 3, total: 5, price: '$0.25/kWh' },
-            { id: '2', type: 'CHAdeMO', power: '100 kW', available: 1, total: 2, price: '$0.22/kWh' },
-            { id: '3', type: 'Type 2 AC', power: '22 kW', available: 4, total: 6, price: '$0.18/kWh' },
-        ],
-        amenities: ['WiFi', 'Cafe', 'Restroom', 'Parking', 'ATM', 'Shopping'],
-        description: 'Modern EV charging station located in the heart of Phnom Penh. Features fast charging capabilities and comfortable waiting area with amenities.',
+    // Clear station when component unmounts
+    useEffect(() => {
+        return () => {
+            clearStation();
+        };
+    }, []);
+
+    const isStationOpen = selectedStation?.status === 'ACTIVE';
+
+    // Process chargers data
+    const processedChargers: any= selectedStation?.chargers.map((charger: Charger) => {
+        const availableConnectors = charger.connector.filter(
+            (conn: Connector) => conn.status === 'AVAILABLE' || conn.status === 'PREPARING'
+        );
+        
+        return {
+            id: charger.id,
+            model: charger.model,
+            vendor: charger.vendor,
+            status: charger.status,
+            connectors: charger.connector,
+            availableCount: availableConnectors.length,
+            totalCount: charger.connector.length
+        };
+    });
+
+    // Get amenities list
+    const amenitiesList = [
+        { key: 'wifi', label: 'WiFi', icon: 'wifi', value: selectedStation?.wifi },
+        { key: 'cafe', label: 'Cafe', icon: 'cafe', value: selectedStation?.cafe },
+        { key: 'restrooms', label: 'Restroom', icon: 'man', value: selectedStation?.restrooms },
+        { key: 'parking_fee', label: 'Parking', icon: 'car', value: selectedStation?.parking_fee },
+        { key: 'shopping', label: 'Shopping', icon: 'storefront', value: selectedStation?.shopping },
+        { key: 'playground', label: 'Playground', icon: 'game-controller', value: selectedStation?.playground },
+    ].filter(amenity => amenity.value);
+
+    const handleNavigate = () => {
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedStation?.latitude},${selectedStation?.longitude}`;
+        Linking.openURL(url);
     };
 
-    const renderChargerType = (charger: ChargerType) => (
-        <View key={charger.id} style={styles.chargerCard}>
-            <View style={styles.chargerHeader}>
-                <View style={styles.chargerLeft}>
-                    <MaterialCommunityIcons name="ev-plug-type2" size={24} color={Colors.mainColor} />
-                    <View style={styles.chargerInfo}>
-                        <Text style={styles.chargerType}>{charger.type}</Text>
-                        <Text style={styles.chargerPower}>{charger.power}</Text>
+    const handleCall = () => {
+        if (selectedStation?.phone_number) {
+            Linking.openURL(`tel:${selectedStation.phone_number}`);
+        }
+    };
+
+    const renderChargerType = (charger: any) => {
+        const maxKw = charger.connectors.find((c:any) => c.max_kw)?.max_kw || 0;
+        const chargerType = charger.connectors.find((c:any) => c.type)?.type || 'Unknown';
+        
+        return (
+            <View key={charger.id} style={styles.chargerCard}>
+                <View style={styles.chargerHeader}>
+                    <View style={styles.chargerLeft}>
+                        <MaterialCommunityIcons name="ev-plug-type2" size={24} color={Colors.mainColor} />
+                        <View style={styles.chargerInfo}>
+                            <Text style={styles.chargerType}>{charger.model}</Text>
+                            <Text style={styles.chargerPower}>
+                                {maxKw > 0 ? `${maxKw} kW` : chargerType} • {charger.vendor}
+                            </Text>
+                            <View style={[
+                                styles.statusChip,
+                                { backgroundColor: charger.status === 'ONLINE' ? '#10B98115' : '#9CA3AF15' }
+                            ]}>
+                                <Text style={[
+                                    styles.statusChipText,
+                                    { color: charger.status === 'ONLINE' ? Colors.secondaryColor : '#6B7280' }
+                                ]}>
+                                    {charger.status}
+                                </Text>
+                            </View>
+                        </View>
                     </View>
-                </View>
-                <View style={styles.chargerRight}>
-                    <View style={[
-                        styles.availabilityBadge,
-                        { backgroundColor: charger.available > 0 ? '#10B98115' : '#EF444415' }
-                    ]}>
-                        <Text style={[
-                            styles.availabilityText,
-                            { color: charger.available > 0 ? Colors.secondaryColor : '#EF4444' }
+                    <View style={styles.chargerRight}>
+                        <View style={[
+                            styles.availabilityBadge,
+                            { backgroundColor: charger.availableCount > 0 ? '#10B98115' : '#EF444415' }
                         ]}>
-                            {charger.available}/{charger.total} Available
-                        </Text>
+                            <Text style={[
+                                styles.availabilityText,
+                                { color: charger.availableCount > 0 ? Colors.secondaryColor : '#EF4444' }
+                            ]}>
+                                {charger.availableCount}/{charger.totalCount} Available
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     return (
         <BaseComponent isBack={true} title="Station Details">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Station Image */}
                 <View style={styles.imageContainer}>
-                    <Image source={{ uri: stationData.image }} style={styles.stationImage} resizeMode="cover" />
+                    <Image source={{ uri: selectedStation?.image }} style={styles.stationImage} resizeMode="cover" />
                     <View style={styles.statusBadge}>
-                        <View style={[styles.statusDot, { backgroundColor: stationData.isOpen ? Colors.secondaryColor : '#EF4444' }]} />
-                        <Text style={styles.statusText}>{stationData.isOpen ? 'Open' : 'Closed'} • {stationData.openTime}</Text>
+                        <View style={[styles.statusDot, { backgroundColor: isStationOpen ? Colors.secondaryColor : '#EF4444' }]} />
+                        <Text style={styles.statusText}>{isStationOpen ? 'Open' : 'Closed'} • 24/7</Text>
                     </View>
                 </View>
 
                 {/* Station Info */}
                 <View style={styles.content}>
                     <View style={styles.headerSection}>
-                        <Text style={styles.stationName}>{stationData.name}</Text>
+                        <Text style={styles.stationName}>{selectedStation?.name}</Text>
                     </View>
 
                     {/* Quick Actions */}
                     <View style={styles.actionsContainer}>
-                        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                        <TouchableOpacity 
+                            style={styles.actionButton} 
+                            activeOpacity={0.7}
+                            onPress={handleNavigate}
+                        >
                             <View style={styles.actionIconContainer}>
                                 <Ionicons name="navigate" size={20} color={Colors.mainColor} />
                             </View>
                             <Text style={styles.actionText}>Navigate</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                        <TouchableOpacity 
+                            style={styles.actionButton} 
+                            activeOpacity={0.7}
+                            onPress={handleCall}
+                            disabled={!selectedStation?.phone_number}
+                        >
                             <View style={styles.actionIconContainer}>
                                 <Ionicons name="call" size={20} color={Colors.mainColor} />
                             </View>
@@ -113,14 +159,29 @@ const StationDetailScreen = () => {
                         <Text style={styles.sectionTitle}>Location</Text>
                         <View style={[styles.locationCard,{alignItems:'center'}]}>
                             <Ionicons name="location" size={20} color={Colors.mainColor} />
-                            <Text style={styles.addressText}>{stationData.address}</Text>
+                            <Text style={styles.addressText}>{selectedStation?.address}</Text>
                         </View>
                     </View>
+
+                    {/* Amenities */}
+                    {amenitiesList.length > 0 && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Amenities</Text>
+                            <View style={styles.amenitiesContainer}>
+                                {amenitiesList.map((amenity) => (
+                                    <View key={amenity.key} style={styles.amenityChip}>
+                                        <Ionicons name={amenity.icon as any} size={16} color={Colors.mainColor} />
+                                        <Text style={styles.amenityText}>{amenity.label}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    )}
 
                     {/* Charger Types */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Available Chargers</Text>
-                        {stationData.chargerTypes.map(renderChargerType)}
+                        {processedChargers.map(renderChargerType)}
                     </View>
 
                     {/* Start Charging Button */}
@@ -369,5 +430,28 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.white
+    },
+    favoriteButton: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    statusChip: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 8,
+        marginTop: 4,
+        alignSelf: 'flex-start',
+    },
+    statusChipText: {
+        fontSize: FontSize.small - 2,
+        fontFamily: CustomFontConstant.EnBold,
+        textTransform: 'uppercase',
     },
 });

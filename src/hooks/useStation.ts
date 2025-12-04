@@ -1,5 +1,5 @@
 import { fetchMeWallet, fetchStation } from "@/services/useApi";
-import { useStationStore } from "@/store/useStation";
+import { useStationStore } from "@/store/useStationStore";
 import { useState } from "react";
 
 export const useStation = () => {

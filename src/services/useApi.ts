@@ -103,11 +103,12 @@ export const userLogin = (data: object, onError?: (err: any) => void) => api.pos
 export const checkPhone = (data: object, onError?: (err: any) => void) => api.post('v1/auth/exist-phone-number', data, onError);
 export const userRegister = (data: object, onError?: (err: any) => void) => api.post('v1/auth/register', data, onError);
 export const fetchUserDetail = async (onError?: (err: any) => void) => api.get(`v1/users/me`, undefined, onError);
-export const fetchMeWallet = async (onError?: (err: any) => void) => api.get(`v1/wallet`, undefined, onError);
+export const fetchMeWallet = async (onError?: (err: any) => void) => api.post(`v1/wallet`, undefined, onError);
+export const fetchMeWalletTransactions = async (page: number = 0, onError?: (err: any) => void) => api.post(`v1/wallet/transactions?page=${page}&size=10`, {}, onError);
 export const fetchStation = async (data: object, onError?: (err: any) => void) => api.post(`v1/location/list`, data, onError);
 export const evtStart = async (data: object, onError?: (err: any) => void) => api.post(`v1/chargers/remote-start`, data, onError);
 export const topUp = async (data: object, onError?: (err: any) => void) => api.post(`v1/wallet/topup`, data, onError);
-
-export const postLogout = (data: object, onError?: (err: any) => void) => api.post('user/logout', data, onError);
+export const postLogout = (data: object, onError?: (err: any) => void) => api.post('v1/auth/logout', data, onError);
+export const fetchHistory = (data: object, onError?: (err: any) => void) => api.post('v1/chargers/charging-history', data, onError);
 
 export default api;

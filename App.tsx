@@ -12,6 +12,7 @@ import { ToastProvider } from '@/components/ToastProvider';
 import { useEffect } from 'react';
 import FirebaseMessagingService from '@/services/FirebaseMessagingService';
 import DeviceRegistrationService from '@/services/DeviceRegistrationService';
+import { WebSocketProvider } from '@/context/WebSocketProvider';
 
 function App() {
   if (__DEV__) {
@@ -35,10 +36,12 @@ function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <ToastProvider>
-          <NavigationContainer ref={navigationRef}>
-            <StatusBar barStyle="dark-content" />
-            <RouteContainer />
-          </NavigationContainer>
+          <WebSocketProvider>
+             <NavigationContainer ref={navigationRef}>
+              <StatusBar barStyle="dark-content" />
+              <RouteContainer />
+            </NavigationContainer>
+          </WebSocketProvider>
         </ToastProvider>
       </AuthProvider>
     </SafeAreaProvider>

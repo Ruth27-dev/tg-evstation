@@ -60,3 +60,47 @@ export interface Connector {
     max_kw:           null;
     type:             null;
 }
+
+export interface Transaction {
+    id:             string;
+    amount:         number;
+    amount_display: string;
+    type:           string;
+    status:         string;
+    external_ref:   string;
+    created_at:     Date;
+}
+
+export interface Pagination {
+    page:           number;
+    size:           number;
+    total_elements: number;
+    total_pages:    number;
+    last:           boolean;
+}
+
+export type NotificationType = 'normal' | 'announcement';
+
+export interface Notification {
+    id:             string;
+    type:           NotificationType;
+    title:          string;
+    message:        string;
+    created_at:     Date;
+    read:           boolean;
+    icon?:          string;
+    action?:        string;
+}
+
+export interface History {
+    session_id:            string;
+    status:                string;
+    energy_kwh:            number;
+    current_soc:           number;
+    minutes_remaining:     null;
+    estimated_finish_time: null;
+    started_at:            Date;
+    last_update_at:        Date;
+    price_so_far:          number;
+    max_amount_cents:      null;
+}

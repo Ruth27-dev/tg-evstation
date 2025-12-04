@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		5C70E9A42ED74AEA00ACE990 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5C70E9A32ED74AEA00ACE990 /* GoogleService-Info.plist */; };
+		5C920C472EDDDE4800F3374F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5C920C462EDDDE4800F3374F /* GoogleService-Info.plist */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		E3C0F65E80080C65ABE1AEA8 /* Pods_tgevstation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06A2D384A7F06805EBC30159 /* Pods_tgevstation.framework */; };
@@ -24,7 +24,7 @@
 		3B4392A12AC88292D35C810B /* Pods-tgevstation.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tgevstation.debug.xcconfig"; path = "Target Support Files/Pods-tgevstation/Pods-tgevstation.debug.xcconfig"; sourceTree = "<group>"; };
 		505FCBFE2ED6E0C800DDD789 /* tgevstation.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = tgevstation.entitlements; path = tgevstation/tgevstation.entitlements; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-tgevstation.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tgevstation.release.xcconfig"; path = "Target Support Files/Pods-tgevstation/Pods-tgevstation.release.xcconfig"; sourceTree = "<group>"; };
-		5C70E9A32ED74AEA00ACE990 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		5C920C462EDDDE4800F3374F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = tgevstation/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = tgevstation/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -59,7 +59,7 @@
 		13B07FAE1A68108700A75B9A /* tgevstation */ = {
 			isa = PBXGroup;
 			children = (
-				5C70E9A32ED74AEA00ACE990 /* GoogleService-Info.plist */,
+				5C920C462EDDDE4800F3374F /* GoogleService-Info.plist */,
 				505FCBFE2ED6E0C800DDD789 /* tgevstation.entitlements */,
 				5C7661832ECB897200F920E4 /* fonts */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -182,7 +182,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5C70E9A42ED74AEA00ACE990 /* GoogleService-Info.plist in Resources */,
+				5C920C472EDDDE4800F3374F /* GoogleService-Info.plist in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				F3D54A8128FD462225993B24 /* PrivacyInfo.xcprivacy in Resources */,

@@ -2,18 +2,16 @@ import { navigate, reset } from "@/navigation/NavigationService";
 import { checkPhone, fetchUserDetail, postLogout, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useState } from "react";
-import { Alert, Platform } from "react-native";
-import DeviceInfo from "react-native-device-info";
-import { getAuth, onAuthStateChanged, signInWithPhoneNumber } from '@react-native-firebase/auth';
+import { getAuth, signInWithPhoneNumber } from '@react-native-firebase/auth';
 import * as Keychain from 'react-native-keychain';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const  [error, setError] = useState<string | null>(null);
     const [showError, setShowError] = useState(false);
-    
+    const [isRequesting, setIsRequesting] = useState(false);
     const { setUserData } = useMeStore();
     const { setIsUserLogin } = useAuthStore();
 
@@ -118,23 +116,40 @@ export const useAuth = () => {
     }
 
     const fetchUser = async () =>{
+        setIsLoading(true);
         const res = await fetchUserDetail();
         if(res.status === 200){
             setUserData(res?.data?.data);
         }
+        setIsLoading(false);
     }
 
-    const logout = async (username: any, s_id: any) => {
+
+    const getToken = async (): Promise<string | null> => {
+      try {
+        const credentials = await Keychain.getGenericPassword();
+        return credentials ? credentials.password : null;
+      } catch (error) {
+        console.error('Error retrieving token:', error);
+        return null;
+      }
+    };
+    
+
+    const logout = async () => {
+        setIsRequesting(true);
         const data = {
-            s_phone_login: username,
-            s_id: s_id,
+            refreshToken: await getToken(),
         }
         const res = await postLogout(data);
-        if(res.status === 200){
+        if(res?.data?.code === '000'){
             setUserData(null);
             setIsUserLogin(false);
-            reset('LoginScreen');
+            await Keychain.resetGenericPassword();
+            await AsyncStorage.clear();
+            reset('Login');
         }
+        setIsRequesting(false);
     }
     return {
         isLoading,
@@ -145,6 +160,7 @@ export const useAuth = () => {
         showError,
         setShowError,
         checkPhoneNumber,
-        register
+        register,
+        isRequesting
     };
 }

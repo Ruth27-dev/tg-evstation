@@ -26,6 +26,9 @@ import AboutUsScreen from '@/containers/settings/AboutUsScreen';
 import TopUpScreen from '@/containers/main/TopUpScreen';
 import MapScreen from '@/containers/main/MapScreen';
 import KHQRViewScreen from '@/containers/wallet/KHQRViewScreen';
+import PaymentSuccessScreen from '@/containers/wallet/PaymentSuccessScreen';
+import PaymentMethodScreen from '@/containers/wallet/PaymentMethodScreen';
+import NotificationScreen from '@/containers/main/NotificationScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const MainStackContainer = () => {
@@ -60,6 +63,9 @@ const MainStackContainer = () => {
         <Stack.Screen name={'TopUp'} component={TopUpScreen} />
         <Stack.Screen name={'MapScreen'} component={MapScreen} />
         <Stack.Screen name={'KHQRView'} component={KHQRViewScreen} />
+        <Stack.Screen name={'PaymentSuccess'} component={PaymentSuccessScreen} />
+        <Stack.Screen name={'PaymentMethod'} component={PaymentMethodScreen} />
+        <Stack.Screen name={'Notification'} component={NotificationScreen} />
       </Stack.Navigator>
     </>
   );

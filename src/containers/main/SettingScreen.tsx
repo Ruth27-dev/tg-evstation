@@ -1,5 +1,5 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
@@ -8,6 +8,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Images } from "@/assets/images";
 import { navigate } from '@/navigation/NavigationService';
+import { useAuth } from "@/hooks/useAuth";
+import { useMeStore } from "@/store/useMeStore";
+import Loading from "@/components/Loading";
 
 interface SettingItem {
     id: string;
@@ -20,12 +23,13 @@ interface SettingItem {
 }
 
 const SettingScreen = () => {
-    const [userData] = useState({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        phone: '+855 12 345 678',
-        memberSince: 'Member since Nov 2024'
-    });
+
+    const { fetchUser,logout, isRequesting } = useAuth();
+    const { userData } = useMeStore();
+
+    useEffect(() => { 
+        fetchUser();
+    }, []);
 
     const handleProfilePress = () => {
         navigate('ProfileScreen');
@@ -45,7 +49,7 @@ const SettingScreen = () => {
             'Are you sure you want to logout?',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Logout', style: 'destructive', onPress: () => console.log('Logout confirmed') }
+                { text: 'Logout', style: 'destructive', onPress: () => logout() }
             ]
         );
     };
@@ -56,7 +60,7 @@ const SettingScreen = () => {
             'Are you sure you want to delete your account? This action cannot be undone.',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: () => console.log('Delete account confirmed') }
+                { text: 'Delete', style: 'destructive', onPress: () => logout() }
             ]
         );
     };
@@ -186,24 +190,22 @@ const SettingScreen = () => {
             )}
         </TouchableOpacity>
     );
-
+    if(isRequesting) return <Loading/>
     return (
         <BaseComponent isBack={false}>
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {/* User Profile Card */}
                 <View style={styles.profileCard}>
                     <View style={styles.profileHeader}>
                         <View style={styles.avatarContainer}>
                             <Image source={Images.user} style={styles.avatar} />
                         </View>
                         <View style={styles.profileInfo}>
-                            <Text style={styles.userName}>{userData.name}</Text>
-                            <Text style={styles.userPhone}>{userData.phone}</Text>
+                            <Text style={styles.userName}>{userData?.user_name}</Text>
+                            <Text style={styles.userPhone}>{userData?.phone_number}</Text>
                         </View>
                     </View>
                 </View>
 
-                {/* Account Settings Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Account Settings</Text>
                     <View style={styles.settingsCard}>
@@ -211,7 +213,6 @@ const SettingScreen = () => {
                     </View>
                 </View>
 
-                {/* Support & Information Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Support & Information</Text>
                     <View style={styles.settingsCard}>

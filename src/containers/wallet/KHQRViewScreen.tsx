@@ -5,7 +5,6 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import { Colors } from '@/theme';
 import BaseComponent from '@/components/BaseComponent';
 
-const SUCCESS_URL = 'https://simplegroup-kh.com/status=success';
 
 const KHQRViewScreen = (props: any) => {
   const {source, setIsPay} = props.route.params;
@@ -37,14 +36,12 @@ const KHQRViewScreen = (props: any) => {
 
 
   const isSuccessUrl = (url: string) =>{
-    console.log(url)
   }
     // !!url && (url === SUCCESS_URL || url.startsWith(SUCCESS_URL) || url.includes('status=success'));
 
   // Intercept navigations BEFORE they happen (more stable than relying solely on onNavigationStateChange)
   const onShouldStartLoadWithRequest = useCallback((req:any) => {
     const url = req?.url ?? '';
-    console.log('Navigating to:', url);
     if (!url) return true;
 
     // Success callback
@@ -71,10 +68,8 @@ const KHQRViewScreen = (props: any) => {
       try { setIsPay?.(true); } catch {}
     }
   }, [setIsPay]);
-  console.log(source)
-  
   return (
-    <BaseComponent isBack={true} title="KH QR Payment">
+    <BaseComponent isBack={true}>
         <WebView
             originWhitelist={['*']}
             javaScriptEnabled

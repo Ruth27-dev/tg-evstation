@@ -21,6 +21,10 @@ export const Images = {
   confirm: require('./logo/confirm.png'),
   headerLogo: require('./logo/header_logo.png'),
   logoNoBg: require('./logo/logo_nobg.png'),
+
+  icKhqr: require('./icon/ic_aba.png'),
+  icCard: require('./icon/ic_cards.png'),
+  ic4Cards: require('./icon/ic_4card.png'),
 };
 
 export default Images;

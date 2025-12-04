@@ -1,48 +1,36 @@
-import { fetchMeWallet, fetchMeWalletTransactions } from "@/services/useApi";
-import { useWalletStore } from "@/store/useWallet";
+import { fetchHistory, fetchMeWalletTransactions } from "@/services/useApi";
+import { useHistoryStore } from "@/store/useHistoryStore";
 import { useState } from "react";
 
-export const useWallet = () => {
+export const useHistory = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isLoadMoreLoading, setIsLoadMoreLoading] = useState<boolean>(false);
-    const { setUserWalletBalance,userWalletBalance,setMeTransaction, meTransaction } = useWalletStore();
+    const { chargerHistoryData, setChargerHistoryData } = useHistoryStore();
 
-    const getMeWallet = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetchMeWallet();
-            if (response?.data?.code === '000') {
-                setUserWalletBalance(response?.data?.data || null);
-            } else {
-                setUserWalletBalance(null);
-            }
-        } catch (error: any) {
-            setUserWalletBalance(null);
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    const getMeTransactions = async (page: number = 1) => {
+    const getChargerHistory = async (page: number = 1) => {
         try {
             if (page === 1) {
                 setIsLoading(true);
             } else {
                 setIsLoadMoreLoading(true);
             }
-
-            const response = await fetchMeWalletTransactions(page - 1);
+            const data = {
+                page: page,
+                size: 10,
+                search:''
+            }
+            const response = await fetchHistory(data);
             if (response?.data?.code === '000') {
                 const newContent = response?.data?.data.content || [];
                 const isLastPage = response?.data?.data.last || false;
                 
                 if (page === 1) {
-                    setMeTransaction(newContent);
+                    setChargerHistoryData(newContent);
                 } else {
-                    const currentTransactions = meTransaction || [];
+                    const currentTransactions = chargerHistoryData || [];
                     const existingIds = new Set(currentTransactions.map((t: any) => t.id));
                     const uniqueNewContent = newContent.filter((t: any) => !existingIds.has(t.id));
-                    setMeTransaction([...currentTransactions, ...uniqueNewContent]);
+                    setChargerHistoryData([...currentTransactions, ...uniqueNewContent]);
                 }
                 
                 return {
@@ -53,13 +41,13 @@ export const useWallet = () => {
                 };
             } else {
                 if (page === 1) {
-                    setMeTransaction([]);
+                    setChargerHistoryData([]);
                 }
                 return { content: [], isLastPage: true, totalPages: 0, totalElements: 0 };
             }
         } catch (error: any) {
             if (page === 1) {
-                setMeTransaction([]);
+                setChargerHistoryData([]);
             }
             return { content: [], isLastPage: true, totalPages: 0, totalElements: 0 };
         } finally {
@@ -69,12 +57,10 @@ export const useWallet = () => {
     }
 
     return {
-        getMeWallet,
         isLoading,
         isLoadMoreLoading,
-        userWalletBalance,
-        getMeTransactions,
-        meTransaction
+        chargerHistoryData,
+        getChargerHistory
     };
 }
 

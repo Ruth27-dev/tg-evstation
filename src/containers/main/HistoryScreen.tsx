@@ -1,134 +1,61 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { navigate } from "@/navigation/NavigationService";
+import { useHistory } from "@/hooks/useHistory";
+import { History } from "@/types";
 
-interface ChargingHistory {
-    id: string;
-    stationName: string;
-    address: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    duration: string;
-    energyCharged: string;
-    cost: string;
-    status: 'completed' | 'failed';
-    chargerType: 'fast' | 'standard';
-}
 
 const HistoryScreen = () => {
     const [selectedFilter, setSelectedFilter] = useState<'all' | 'completed' | 'failed'>('all');
-    const [historyData] = useState<ChargingHistory[]>([
-        {
-            id: '1',
-            stationName: 'Central Station Plaza',
-            address: 'Street 51, Phnom Penh',
-            date: 'Nov 20, 2025',
-            startTime: '14:30',
-            endTime: '15:45',
-            duration: '1h 15m',
-            energyCharged: '45.5 kWh',
-            cost: '$11.38',
-            status: 'completed',
-            chargerType: 'fast'
-        },
-        {
-            id: '2',
-            stationName: 'Riverside EV Hub',
-            address: 'Sisowath Quay, Phnom Penh',
-            date: 'Nov 18, 2025',
-            startTime: '09:15',
-            endTime: '11:30',
-            duration: '2h 15m',
-            energyCharged: '38.2 kWh',
-            cost: '$7.64',
-            status: 'completed',
-            chargerType: 'standard'
-        },
-        {
-            id: '3',
-            stationName: 'Mall Charging Point',
-            address: 'Aeon Mall, Phnom Penh',
-            date: 'Nov 15, 2025',
-            startTime: '16:00',
-            endTime: '17:20',
-            duration: '1h 20m',
-            energyCharged: '42.8 kWh',
-            cost: '$9.42',
-            status: 'completed',
-            chargerType: 'fast'
-        },
-        {
-            id: '4',
-            stationName: 'Airport Express Charge',
-            address: 'National Road 4, Phnom Penh',
-            date: 'Nov 12, 2025',
-            startTime: '08:45',
-            endTime: '09:50',
-            duration: '1h 5m',
-            energyCharged: '35.0 kWh',
-            cost: '$9.80',
-            status: 'completed',
-            chargerType: 'fast'
-        },
-        {
-            id: '5',
-            stationName: 'Downtown Charging Hub',
-            address: 'Street 240, Phnom Penh',
-            date: 'Nov 10, 2025',
-            startTime: '13:20',
-            endTime: '13:25',
-            duration: '5m',
-            energyCharged: '2.1 kWh',
-            cost: '$0.42',
-            status: 'failed',
-            chargerType: 'standard'
-        },
-    ]);
+    const { getChargerHistory , chargerHistoryData,isLoading,isLoadMoreLoading} = useHistory();
 
-    const filteredData = historyData.filter(item => {
+    useEffect(() => {
+        getChargerHistory(1);
+    },[])
+
+    const filteredData = chargerHistoryData?.filter(item => {
         if (selectedFilter === 'all') return true;
         return item.status === selectedFilter;
     });
 
     // Calculate totals
-    const calculateTotals = () => {
-        const completedSessions = historyData.filter(item => item.status === 'completed');
+    // const calculateTotals = () => {
+    //     const completedSessions = chargerHistoryData?.filter(item => item.status === 'completed');
         
-        const totalEnergy = completedSessions.reduce((sum, item) => {
-            return sum + parseFloat(item.energyCharged.replace(' kWh', ''));
-        }, 0);
+    //     const totalEnergy = completedSessions?.reduce((sum, item) => {
+    //         return sum + parseFloat(item.energyCharged.replace(' kWh', ''));
+    //     }, 0);
 
-        const totalCost = completedSessions.reduce((sum, item) => {
-            return sum + parseFloat(item.cost.replace('$', ''));
-        }, 0);
+    //     const totalCost = completedSessions?.reduce((sum, item) => {
+    //         return sum + parseFloat(item.cost.replace('$', ''));
+    //     }, 0);
 
-        const totalMinutes = completedSessions.reduce((sum, item) => {
-            const duration = item.duration;
-            const hours = duration.includes('h') ? parseInt(duration.split('h')[0]) : 0;
-            const minutes = duration.includes('m') ? parseInt(duration.split('h')[1]?.replace('m', '') || duration.replace('m', '')) : 0;
-            return sum + (hours * 60) + minutes;
-        }, 0);
+    //     const totalMinutes = completedSessions?.reduce((sum, item) => {
+    //         const duration = item.duration;
+    //         const hours = duration.includes('h') ? parseInt(duration.split('h')[0]) : 0;
+    //         const minutes = duration.includes('m') ? parseInt(duration.split('h')[1]?.replace('m', '') || duration.replace('m', '')) : 0;
+    //         return sum + (hours * 60) + minutes;
+    //     }, 0);
 
-        const totalHours = Math.floor(totalMinutes / 60);
-        const remainingMinutes = totalMinutes % 60;
+    //     const totalHours = Math.floor(totalMinutes / 60);
+    //     const remainingMinutes = totalMinutes % 60;
 
-        return {
-            totalEnergy: totalEnergy.toFixed(1),
-            totalCost: totalCost.toFixed(2),
-            totalDuration: `${totalHours}h ${remainingMinutes}m`,
-            chargingSessions: completedSessions.length
-        };
-    };
+    //     return {
+    //         totalEnergy: totalEnergy.toFixed(1),
+    //         totalCost: totalCost.toFixed(2),
+    //         totalDuration: `${totalHours}h ${remainingMinutes}m`,
+    //         chargingSessions: completedSessions.length
+    //     };
+    // };
 
-    const totals = calculateTotals();
+    // const totals = calculateTotals();
 
-    const renderHistoryCard = ({ item }: { item: ChargingHistory }) => (
+    const renderHistoryCard = ({ item }: { item: History }) => (
         <TouchableOpacity style={styles.historyCard} activeOpacity={0.7} onPress={()=>navigate('HistoryDetail')}>
             {/* Card Header */}
             <View style={styles.cardHeader}>
@@ -157,7 +84,7 @@ const HistoryScreen = () => {
             <View style={styles.dateTimeContainer}>
                 <View style={styles.dateTimeRow}>
                     <Ionicons name="calendar-outline" size={14} color="#6B7280" />
-                    <Text style={styles.dateTimeText}>{item.date}</Text>
+                    <Text style={styles.dateTimeText}>{item.started_at}</Text>
                 </View>
                 <View style={styles.dateTimeRow}>
                     <Ionicons name="time-outline" size={14} color="#6B7280" />
@@ -199,7 +126,7 @@ const HistoryScreen = () => {
     return (
         <BaseComponent isBack={false}>
             <View style={styles.container}>
-                <View style={styles.summaryContainer}>
+                {/* <View style={styles.summaryContainer}>
                     <View style={styles.summaryRow}>
                         <View style={[styles.summaryCard, styles.summaryCardPrimary]}>
                             <View style={styles.summaryIconContainer}>
@@ -232,12 +159,12 @@ const HistoryScreen = () => {
                             <Text style={styles.summaryValue}>{totals.chargingSessions}x</Text>
                         </View>
                     </View>
-                </View>
+                </View> */}
 
                 <FlatList
-                    data={filteredData}
+                    data={chargerHistoryData ?? []}
                     renderItem={renderHistoryCard}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item:any) => item.id}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={

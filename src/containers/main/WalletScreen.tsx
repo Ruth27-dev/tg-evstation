@@ -1,73 +1,79 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import BalanceCard from "@/components/BalanceCard";
+import TransactionDetailModal from "@/components/TransactionDetailModal";
 import { useWallet } from "@/hooks/useWallet";
-
-interface Transaction {
-    id: string;
-    type: 'deposit' | 'withdraw' | 'transfer' | 'payment';
-    amount: number;
-    description: string;
-    date: string;
-    status: 'completed' | 'pending' | 'failed';
-}
+import { Transaction } from "@/types";
+import moment from "moment";
 
 const WalletScreen = () => {
     const [walletBalance] = useState(1250.50);
-    const { getMeWallet,userWalletBalance } = useWallet();
+    const [refreshing, setRefreshing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const { getMeWallet, userWalletBalance, meTransaction, getMeTransactions, isLoadMoreLoading } = useWallet();
     
-    const [transactions] = useState<Transaction[]>([
-        {
-            id: '1',
-            type: 'deposit',
-            amount: 500,
-            description: 'Top up via Bank',
-            date: '2025-11-20 10:30 AM',
-            status: 'completed'
-        },
-        {
-            id: '2',
-            type: 'payment',
-            amount: -150,
-            description: 'Station Payment',
-            date: '2025-11-19 03:45 PM',
-            status: 'completed'
-        },
-        {
-            id: '3',
-            type: 'withdraw',
-            amount: -200,
-            description: 'Withdrawal to Bank',
-            date: '2025-11-18 09:15 AM',
-            status: 'completed'
-        },
-        {
-            id: '4',
-            type: 'transfer',
-            amount: -50,
-            description: 'Transfer to +855 12345678',
-            date: '2025-11-17 02:20 PM',
-            status: 'completed'
-        },
-        {
-            id: '5',
-            type: 'deposit',
-            amount: 300,
-            description: 'Top up via Card',
-            date: '2025-11-16 11:00 AM',
-            status: 'completed'
-        },
-    ]);
+    useEffect(() => {
+        getMeWallet();
+        getMeTransactions(1);
+    }, []);
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        setCurrentPage(1);
+        setHasMore(true);
+        try {
+            await Promise.all([
+                getMeWallet(),
+                getMeTransactions(1)
+            ]);
+        } catch (error) {
+            console.error('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [getMeWallet, getMeTransactions]);
+
+    const loadMore = useCallback(async () => {
+        if (isLoadMoreLoading || !hasMore) return;
+        
+        const nextPage = currentPage + 1;
+        
+        try {
+            const result = await getMeTransactions(nextPage);
+            // Check if this is the last page
+            if (result.isLastPage || result.content.length === 0) {
+                setHasMore(false);
+            } else {
+                setCurrentPage(nextPage);
+            }
+        } catch (error) {
+            console.error('Load more error:', error);
+            setHasMore(false);
+        }
+    }, [isLoadMoreLoading, hasMore, currentPage, getMeTransactions]);
+
+    const renderFooter = () => {
+        if (!isLoadMoreLoading) return null;
+        return (
+            <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={Colors.mainColor} />
+                <Text style={styles.loadingText}>Loading more...</Text>
+            </View>
+        );
+    };
 
     const getTransactionIcon = (type: string) => {
         switch (type) {
-            case 'deposit':
+            case 'TOPUP':
                 return 'arrow-down-circle';
-            case 'withdraw':
+            case 'CHARGE':
                 return 'arrow-up-circle';
             default:
                 return 'arrow-down-circle';
@@ -76,56 +82,93 @@ const WalletScreen = () => {
 
     const getTransactionColor = (type: string) => {
         switch (type) {
-            case 'deposit':
+            case 'TOPUP':
                 return Colors.secondaryColor;
-            case 'withdraw':
-            case 'payment':
-            case 'transfer':
+            case 'CHARGE':
                 return '#EF4444';
             default:
                 return Colors.mainColor;
         }
     };
+    const handleTransactionPress = useCallback((transaction: Transaction) => {
+        setSelectedTransaction(transaction);
+        setModalVisible(true);
+    }, []);
 
-    const renderTransaction = ({ item }: { item: Transaction }) => (
-        <TouchableOpacity style={styles.transactionItem} activeOpacity={0.7}>
-            <View style={[styles.transactionIcon, { backgroundColor: `${getTransactionColor(item.type)}15` }]}>
-                <Ionicons name={getTransactionIcon(item.type)} size={24} color={getTransactionColor(item.type)} />
-            </View>
-            <View style={styles.transactionDetails}>
-                <Text style={styles.transactionDescription}>{item.description}</Text>
-                <Text style={styles.transactionDate}>{item.date}</Text>
-            </View>
-            <View style={styles.transactionAmountContainer}>
-                <Text style={[styles.transactionAmount, { color: item.amount > 0 ? Colors.secondaryColor : '#EF4444' }]}>
-                    {item.amount > 0 ? '+' : ''}{item.amount.toFixed(2)} $
-                </Text>
-            </View>
-        </TouchableOpacity>
-    );
+    const closeModal = useCallback(() => {
+        setModalVisible(false);
+        setTimeout(() => setSelectedTransaction(null), 300);
+    }, []);
+
+    const renderItem = useCallback(({ item }: { item: Transaction }) => {
+        return (
+            <TouchableOpacity 
+                style={styles.transactionItem} 
+                activeOpacity={0.7}
+                onPress={() => handleTransactionPress(item)}
+            >
+                <View style={[styles.transactionIcon, { backgroundColor: `${getTransactionColor(item.type)}15` }]}>
+                    <Ionicons name={getTransactionIcon(item.type)} size={24} color={getTransactionColor(item.type)} />
+                </View>
+                <View style={styles.transactionDetails}>
+                    <Text style={styles.transactionDescription}>{item.type || 'No description'}</Text>
+                    <Text style={styles.transactionDate}>
+                        {item.created_at 
+                        ? moment.utc(item.created_at).local().format('MMM DD, YYYY hh:mm A')
+                        : ''}
+                    </Text>
+
+                </View>
+                <View style={styles.transactionAmountContainer}>
+                    <Text style={[styles.transactionAmount, { color: item.amount > 0 ? Colors.secondaryColor : '#EF4444' }]}>
+                        {`${item.amount > 0 ? '+' : ''}${item.amount.toFixed(2)} $`}
+                    </Text>
+                    <View style={[styles.statusBadge, { backgroundColor: item.status === 'PENDING' ? '#FEF3C7' : Colors.secondaryColor }]}>
+                        <Text style={[styles.statusText, { color: item.status === 'PENDING' ? '#F59E0B' :Colors.white  }]}>
+                            {item.status}
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        )
+    }, [handleTransactionPress])
 
     return (
         <BaseComponent isBack={false}>
             <View style={styles.container}>
                 <BalanceCard amount={Number(userWalletBalance?.balance) || 0} currency={userWalletBalance?.currency ?? '$'} />
-
                 <View style={styles.transactionsSection}>
                     <View style={styles.transactionsHeader}>
                         <Text style={styles.transactionsTitle}>Transaction History</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.viewAllText}>View All</Text>
-                        </TouchableOpacity>
                     </View>
 
                     <FlatList
-                        data={transactions}
-                        renderItem={renderTransaction}
-                        keyExtractor={(item) => item.id}
+                        data={meTransaction ?? []}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item.id.toString()}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.transactionsList}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                                colors={[Colors.mainColor]}
+                                tintColor={Colors.mainColor}
+                            />
+                        }
+                        onEndReached={loadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={renderFooter}
                     />
                 </View>
             </View>
+
+            {/* Transaction Detail Modal */}
+            <TransactionDetailModal
+                visible={modalVisible}
+                transaction={selectedTransaction}
+                onClose={closeModal}
+            />
         </BaseComponent>
     );
 }
@@ -134,7 +177,8 @@ export default WalletScreen;
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        paddingTop:10,
     },
     transactionsSection: {
         flex: 1,
@@ -152,7 +196,7 @@ const styles = StyleSheet.create({
     },
     transactionsTitle: {
         fontSize: FontSize.large,
-        fontFamily: CustomFontConstant.EnRegular,
+        fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor
     },
     viewAllText: {
@@ -214,5 +258,17 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnRegular,
         fontWeight: '600',
         textTransform: 'capitalize',
+    },
+    footerLoader: {
+        paddingVertical: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 8,
+    },
+    loadingText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: Colors.mainColor,
     },
 });

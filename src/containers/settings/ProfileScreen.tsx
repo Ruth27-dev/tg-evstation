@@ -1,35 +1,32 @@
 import BaseComponent from "@/components/BaseComponent";
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
+import { View, Text, StyleSheet,  ScrollView } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomButton from "@/components/CustomButton";
-import { Images } from "@/assets/images";
 import CustomInputText from "@/components/CustomInputText";
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useMeStore } from "@/store/useMeStore";
 
 interface ProfileFormData {
     name: string;
     email: string;
     phone: string;
-    dateOfBirth: string;
-    address: string;
 }
 
 const profileSchema = yup.object().shape({
     name: yup.string().required('Full name is required'),
     email: yup.string().email('Invalid email').required('Email is required'),
     phone: yup.string().required('Phone number is required'),
-    dateOfBirth: yup.string().required('Date of birth is required'),
-    address: yup.string().required('Address is required'),
 });
 
 const ProfileScreen = () => {
     const [isEditing, setIsEditing] = useState(false);
-
+    const { userData } = useMeStore();
+    
     const {
         control,
         handleSubmit,
@@ -38,9 +35,9 @@ const ProfileScreen = () => {
     } = useForm<ProfileFormData>({
         resolver: yupResolver(profileSchema),
         defaultValues: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+855 12 345 678'
+            name: userData?.user_name || '',
+            email: userData?.email || '',
+            phone: userData?.phone_number || ''
         }
     });
 
@@ -78,6 +75,7 @@ const ProfileScreen = () => {
                             name="phone"
                             errors={errors}
                             isLeftIcon
+                            editable={isEditing}
                             keyboardType="phone-pad"
                             renderLeftIcon={
                                 <Ionicons name="call-outline" size={20} color={Colors.mainColor} />

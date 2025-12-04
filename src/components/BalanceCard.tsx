@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
     balanceCard: {
         backgroundColor: Colors.mainColor,
         marginHorizontal: 20,
-        marginTop: 20,
-        marginBottom: 24,
+        marginTop: 10,
+        marginBottom: 15,
         padding: 20,
         borderRadius: 10,
         elevation: 2,
