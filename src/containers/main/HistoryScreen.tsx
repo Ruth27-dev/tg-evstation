@@ -57,8 +57,7 @@ const HistoryScreen = () => {
 
     const renderHistoryCard = ({ item }: { item: History }) => (
         <TouchableOpacity style={styles.historyCard} activeOpacity={0.7} onPress={()=>navigate('HistoryDetail')}>
-            {/* Card Header */}
-            <View style={styles.cardHeader}>
+            {/* <View style={styles.cardHeader}>
                 <View style={styles.headerLeft}>
                     <View style={[
                         styles.iconContainer, 
@@ -80,7 +79,6 @@ const HistoryScreen = () => {
                 </View>
             </View>
 
-            {/* Date & Time */}
             <View style={styles.dateTimeContainer}>
                 <View style={styles.dateTimeRow}>
                     <Ionicons name="calendar-outline" size={14} color="#6B7280" />
@@ -96,7 +94,6 @@ const HistoryScreen = () => {
                 </View>
             </View>
 
-            {/* Charging Details */}
             <View style={styles.detailsContainer}>
                 <View style={styles.detailItem}>
                     <MaterialCommunityIcons name="lightning-bolt" size={18} color={Colors.mainColor} />
@@ -115,11 +112,10 @@ const HistoryScreen = () => {
                 </View>
             </View>
 
-            {/* Receipt Button */}
             <View style={styles.receiptButton}>
                 <Ionicons name="receipt-outline" size={16} color={Colors.mainColor} />
                 <Text style={styles.receiptText}>View Receipt</Text>
-            </View>
+            </View> */}
         </TouchableOpacity>
     );
 
@@ -164,7 +160,7 @@ const HistoryScreen = () => {
                 <FlatList
                     data={chargerHistoryData ?? []}
                     renderItem={renderHistoryCard}
-                    keyExtractor={(item:any) => item.id}
+                    keyExtractor={(index) => index.toString()}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={

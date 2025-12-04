@@ -6,12 +6,15 @@ import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralCo
 import { navigate } from "@/navigation/NavigationService";
 import { useWallet } from "@/hooks/useWallet";
 import CustomButton from "@/components/CustomButton";
+import PaymentTermsModal from "@/components/PaymentTermsModal";
 
 
 const TopUpScreen = () => {
     const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
     const [customAmount, setCustomAmount] = useState('');
     const { userWalletBalance } = useWallet();
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    
 
     const quickAmounts = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100];
     const handleAmountSelect = (amount: number) => {
@@ -35,6 +38,16 @@ const TopUpScreen = () => {
             currency: userWalletBalance?.currency ?? '$'
         });
     };
+
+
+    const handleAcceptTerms = () => {
+        setShowTermsModal(false);
+    };
+    
+    const handleDeclineTerms = () => {
+        setShowTermsModal(false);
+    };
+    
 
     return (
         <BaseComponent isBack={true} title="Top Up">
@@ -76,7 +89,20 @@ const TopUpScreen = () => {
                         onChangeText={handleCustomAmountChange}
                     />
                 </View>
+            </View>
+            
+             {/* Terms & Conditions Link */}
+                <View style={styles.termsSection}>
+                    <TouchableOpacity 
+                        onPress={() => setShowTermsModal(true)}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.termsLink}>
+                            Payment Terms & Conditions
+                        </Text>
+                    </TouchableOpacity>
                 </View>
+
             <View style={styles.bottomContainer}>
                 <CustomButton
                     buttonTitle={`Continue ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount.toFixed(2)}` : ''}`}
@@ -86,6 +112,12 @@ const TopUpScreen = () => {
                 />
 
             </View>
+            {/* Payment Terms Modal */}
+            <PaymentTermsModal
+                visible={showTermsModal}
+                onClose={handleDeclineTerms}
+                onAccept={handleAcceptTerms}
+            />
         </BaseComponent>
     );
 }
@@ -269,5 +301,16 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium + 2,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.white,
+    },
+    termsSection: {
+        paddingHorizontal: safePadding,
+        alignItems: 'center',
+    },
+    termsLink: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+        textDecorationLine: 'underline',
+        textAlign: 'center',
     },
 });

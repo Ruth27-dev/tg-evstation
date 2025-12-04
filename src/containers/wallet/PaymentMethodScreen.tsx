@@ -4,10 +4,9 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Image } fr
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, Images, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { goBack, navigate } from "@/navigation/NavigationService";
 import { useTopUp } from "@/hooks/useTopUp";
 import CustomButton from "@/components/CustomButton";
+import PaymentTermsModal from "@/components/PaymentTermsModal";
 
 interface PaymentMethod {
     id: string;
@@ -28,6 +27,7 @@ interface PaymentMethodScreenProps {
 
 const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+    const [showTermsModal, setShowTermsModal] = useState(false);
     const { postTopUp } = useTopUp();
     
     const amount = route?.params?.amount || 0;
@@ -50,9 +50,8 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
     ];
 
     const handleContinue = () => {
-        postTopUp(amount.toString(), selectedMethod?.type || '')
+        postTopUp(amount.toString(), selectedMethod?.type || '');
     };
-
 
     return (
         <BaseComponent isBack={true} title="Payment Method">
@@ -189,7 +188,31 @@ const styles = StyleSheet.create({
     checkIcon: {
         marginLeft: 8,
     },
-   
+    // Terms Section
+    termsSection: {
+        marginTop: 24,
+        paddingHorizontal: safePadding,
+        alignItems: 'center',
+    },
+    termsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 4,
+    },
+    termsText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#6B7280',
+        textAlign: 'center',
+    },
+    termsLink: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+        textDecorationLine: 'underline',
+        textAlign: 'center',
+    },
     // Bottom Action
     bottomContainer: {
         position: 'absolute',
