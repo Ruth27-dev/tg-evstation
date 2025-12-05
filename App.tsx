@@ -13,8 +13,12 @@ import { useEffect } from 'react';
 import FirebaseMessagingService from '@/services/FirebaseMessagingService';
 import DeviceRegistrationService from '@/services/DeviceRegistrationService';
 import { WebSocketProvider } from '@/context/WebSocketProvider';
+import { useNetworkConnection } from '@/hooks/useNetworkConnection';
+import NoInternet from '@/components/NoInternet';
 
 function App() {
+  const { isConnected } = useNetworkConnection();
+  
   if (__DEV__) {
     require("./ReactotronConfig");
   }
@@ -42,6 +46,7 @@ function App() {
               <RouteContainer />
             </NavigationContainer>
           </WebSocketProvider>
+          {!isConnected && (<NoInternet/>)}
         </ToastProvider>
       </AuthProvider>
     </SafeAreaProvider>

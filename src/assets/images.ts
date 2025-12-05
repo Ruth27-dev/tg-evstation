@@ -25,6 +25,7 @@ export const Images = {
   icKhqr: require('./icon/ic_aba.png'),
   icCard: require('./icon/ic_cards.png'),
   ic4Cards: require('./icon/ic_4card.png'),
+  no_data: require('./icon/station.png'),
 };
 
 export default Images;

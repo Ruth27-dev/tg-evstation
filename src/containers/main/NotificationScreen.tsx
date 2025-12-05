@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
@@ -10,6 +10,18 @@ import moment from 'moment';
 
 const NotificationScreen = () => {
     const [selectedTab, setSelectedTab] = useState<NotificationType>('normal');
+    const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const handleNotificationPress = (notification: Notification) => {
+        setSelectedNotification(notification);
+        setModalVisible(true);
+    };
+
+    const closeModal = () => {
+        setModalVisible(false);
+        setTimeout(() => setSelectedNotification(null), 300);
+    };
 
     const mockNotifications: Notification[] = [
         {
@@ -89,6 +101,7 @@ const NotificationScreen = () => {
                     !item.read && styles.unreadNotification
                 ]}
                 activeOpacity={0.7}
+                onPress={() => handleNotificationPress(item)}
             >
                 {getNotificationIcon(item.type, item.read)}
                 
@@ -185,6 +198,79 @@ const NotificationScreen = () => {
                     contentContainerStyle={styles.listContent}
                     ListEmptyComponent={renderEmptyState}
                 />
+
+                {/* Notification Detail Modal */}
+                <Modal
+                    visible={modalVisible}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={closeModal}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            {selectedNotification && (
+                                <>
+                                    <View style={styles.modalHeader}>
+                                        {getNotificationIcon(selectedNotification.type, selectedNotification.read)}
+                                        <TouchableOpacity 
+                                            style={styles.closeButton}
+                                            onPress={closeModal}
+                                        >
+                                            <Ionicons name="close" size={24} color={Colors.mainColor} />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <ScrollView 
+                                        style={styles.modalBody}
+                                        showsVerticalScrollIndicator={false}
+                                    >
+                                        <View style={styles.modalTitleContainer}>
+                                            <Text style={styles.modalTitle}>
+                                                {selectedNotification.title}
+                                            </Text>
+                                            {!selectedNotification.read && (
+                                                <View style={styles.modalUnreadBadge}>
+                                                    <Text style={styles.modalUnreadText}>New</Text>
+                                                </View>
+                                            )}
+                                        </View>
+
+                                        <View style={styles.modalTimeContainer}>
+                                            <Ionicons name="time-outline" size={16} color="#9CA3AF" />
+                                            <Text style={styles.modalTime}>
+                                                {moment(selectedNotification.created_at).format('MMMM D, YYYY • h:mm A')}
+                                            </Text>
+                                        </View>
+
+                                        <View style={styles.modalDivider} />
+
+                                        <Text style={styles.modalMessage}>
+                                            {selectedNotification.message}
+                                        </Text>
+
+                                        {selectedNotification.type === 'announcement' && (
+                                            <View style={styles.modalTypeTag}>
+                                                <MaterialCommunityIcons 
+                                                    name="bullhorn" 
+                                                    size={16} 
+                                                    color={Colors.secondaryColor} 
+                                                />
+                                                <Text style={styles.modalTypeText}>Announcement</Text>
+                                            </View>
+                                        )}
+                                    </ScrollView>
+
+                                    <TouchableOpacity 
+                                        style={styles.modalButton}
+                                        onPress={closeModal}
+                                    >
+                                        <Text style={styles.modalButtonText}>Got it</Text>
+                                    </TouchableOpacity>
+                                </>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
             </View>
         </BaseComponent>
     );
@@ -310,5 +396,122 @@ const styles = StyleSheet.create({
         color: '#9CA3AF',
         textAlign: 'center',
         paddingHorizontal: 40,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: Colors.white,
+        borderRadius: 20,
+        width: '100%',
+        maxHeight: '80%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        paddingBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    closeButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalBody: {
+        padding: 20,
+        maxHeight: 400,
+    },
+    modalTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+    },
+    modalTitle: {
+        flex: 1,
+        fontSize: FontSize.large,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+        lineHeight: 28,
+    },
+    modalUnreadBadge: {
+        backgroundColor: Colors.secondaryColor,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        marginLeft: 8,
+    },
+    modalUnreadText: {
+        fontSize: FontSize.small - 2,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.white,
+        textTransform: 'uppercase',
+    },
+    modalTimeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 16,
+    },
+    modalTime: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#9CA3AF',
+    },
+    modalDivider: {
+        height: 1,
+        backgroundColor: '#E5E7EB',
+        marginBottom: 16,
+    },
+    modalMessage: {
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#4B5563',
+        lineHeight: 24,
+        marginBottom: 16,
+    },
+    modalTypeTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        backgroundColor: `${Colors.secondaryColor}15`,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        gap: 6,
+        marginTop: 8,
+    },
+    modalTypeText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.secondaryColor,
+    },
+    modalButton: {
+        backgroundColor: Colors.mainColor,
+        paddingVertical: 16,
+        borderRadius: 12,
+        margin: 20,
+        marginTop: 0,
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        fontSize: FontSize.medium + 1,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.white,
     },
 });

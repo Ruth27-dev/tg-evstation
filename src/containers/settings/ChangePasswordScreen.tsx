@@ -2,7 +2,7 @@ import BaseComponent from "@/components/BaseComponent";
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import { Colors } from "@/theme";
-import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
+import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomButton from "@/components/CustomButton";
 import CustomInputText from "@/components/CustomInputText";
@@ -98,112 +98,91 @@ const ChangePasswordScreen = () => {
     return (
         <BaseComponent isBack={true} title="Change Password">
             <View style={styles.container}>
-                <View style={styles.card}>
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View style={styles.iconContainer}>
-                            <Ionicons name="lock-closed" size={28} color={Colors.mainColor} />
-                        </View>
-                        <Text style={styles.title}>Update Your Password</Text>
-                        <Text style={styles.subtitle}>
-                            Choose a strong password to protect your account
-                        </Text>
+
+                <View style={styles.header}>
+                    <View style={styles.iconContainer}>
+                        <Ionicons name="lock-closed" size={28} color={Colors.mainColor} />
                     </View>
-
-                    {/* Current Password */}
-                    <CustomInputText
-                        labelText="Current Password"
-                        placeHolderText="Enter current password"
-                        control={control}
-                        name="currentPassword"
-                        errors={errors}
-                        isLeftIcon
-                        isRightIcon
-                        isPassword={!showCurrentPassword}
-                        renderLeftIcon={
-                            <Ionicons name="lock-closed-outline" size={20} color={Colors.mainColor} />
-                        }
-                        renderRightIcon={
-                            <Ionicons 
-                                name={showCurrentPassword ? "eye-off-outline" : "eye-outline"} 
-                                size={20} 
-                                color="#9CA3AF"
-                                onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                            />
-                        }
-                    />
-
-                    {/* New Password */}
-                    <View>
-                        <CustomInputText
-                            labelText="New Password"
-                            placeHolderText="Enter new password"
-                            control={control}
-                            name="newPassword"
-                            errors={errors}
-                            isLeftIcon
-                            isRightIcon
-                            isPassword={!showNewPassword}
-                            renderLeftIcon={
-                                <Ionicons name="lock-open-outline" size={20} color={Colors.mainColor} />
-                            }
-                            renderRightIcon={
-                                <Ionicons 
-                                    name={showNewPassword ? "eye-off-outline" : "eye-outline"} 
-                                    size={20} 
-                                    color="#9CA3AF"
-                                    onPress={() => setShowNewPassword(!showNewPassword)}
-                                />
-                            }
-                        />
-                        
-                        {/* Password Strength Indicator */}
-                        {newPassword.length > 0 && (
-                            <View style={styles.strengthContainer}>
-                                <View style={styles.strengthBar}>
-                                    <View 
-                                        style={[
-                                            styles.strengthFill, 
-                                            { width: `${passwordStrength.strength}%`, backgroundColor: passwordStrength.color }
-                                        ]} 
-                                    />
-                                </View>
-                                <Text style={[styles.strengthLabel, { color: passwordStrength.color }]}>
-                                    {passwordStrength.label}
-                                </Text>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Confirm Password */}
-                    <CustomInputText
-                        labelText="Confirm New Password"
-                        placeHolderText="Re-enter new password"
-                        control={control}
-                        name="confirmPassword"
-                        errors={errors}
-                        isLeftIcon
-                        isRightIcon
-                        isPassword={!showConfirmPassword}
-                        renderLeftIcon={
-                            <Ionicons name="checkmark-circle-outline" size={20} color={Colors.mainColor} />
-                        }
-                        renderRightIcon={
-                            <Ionicons 
-                                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
-                                size={20} 
-                                color="#9CA3AF"
-                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                            />
-                        }
-                    />
-
-                    {/* Submit Button */}
-                    <CustomButton
-                        buttonTitle="Change Password"
-                        onPress={handleSubmit(handleChangePassword)}
-                    />
+                    <Text style={styles.title}>Update Your Password</Text>
+                    <Text style={styles.subtitle}>
+                        Choose a strong password to protect your account
+                    </Text>
                 </View>
+
+                {/* Current Password */}
+                <CustomInputText
+                    labelText="Current Password"
+                    placeHolderText="Enter current password"
+                    control={control}
+                    name="currentPassword"
+                    errors={errors}
+                    isLeftIcon
+                    isRightIcon
+                    isPassword={!showCurrentPassword}
+                    renderLeftIcon={
+                        <Ionicons name="lock-closed-outline" size={20} color={Colors.mainColor} />
+                    }
+                    renderRightIcon={
+                        <Ionicons 
+                            name={showCurrentPassword ? "eye-off-outline" : "eye-outline"} 
+                            size={20} 
+                            color="#9CA3AF"
+                            onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                        />
+                    }
+                />
+                <View style={{ height: 10 }} />
+                <CustomInputText
+                    labelText="New Password"
+                    placeHolderText="Enter new password"
+                    control={control}
+                    name="newPassword"
+                    errors={errors}
+                    isLeftIcon
+                    isRightIcon
+                    isPassword={!showNewPassword}
+                    renderLeftIcon={
+                        <Ionicons name="lock-open-outline" size={20} color={Colors.mainColor} />
+                    }
+                    renderRightIcon={
+                        <Ionicons 
+                            name={showNewPassword ? "eye-off-outline" : "eye-outline"} 
+                            size={20} 
+                            color="#9CA3AF"
+                            onPress={() => setShowNewPassword(!showNewPassword)}
+                        />
+                    }
+                />
+                <View style={{ height: 10 }} />
+                    
+                <CustomInputText
+                    labelText="Confirm New Password"
+                    placeHolderText="Re-enter new password"
+                    control={control}
+                    name="confirmPassword"
+                    errors={errors}
+                    isLeftIcon
+                    isRightIcon
+                    isPassword={!showConfirmPassword}
+                    renderLeftIcon={
+                        <Ionicons name="checkmark-circle-outline" size={20} color={Colors.mainColor} />
+                    }
+                    renderRightIcon={
+                        <Ionicons 
+                            name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                            size={20} 
+                            color="#9CA3AF"
+                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        />
+                    }
+                />
+                <View style={{ height:40 }} />
+                {/* Submit Button */}
+                <CustomButton
+                    buttonTitle="Change Password"
+                    onPress={handleSubmit(handleChangePassword)}
+                    buttonColor={Colors.mainColor}
+                />
             </View>
         </BaseComponent>
     );
@@ -214,6 +193,7 @@ export default ChangePasswordScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        padding:safePadding
     },
     card: {
         backgroundColor: Colors.white,

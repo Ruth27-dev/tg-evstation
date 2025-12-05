@@ -9,7 +9,7 @@ interface UseStationSortingProps {
 
 export const useStationSorting = ({ stations, currentLocation }: UseStationSortingProps) => {
     const sortedStations = useMemo(() => {
-        if (!currentLocation || !stations.length) {
+        if (!currentLocation || !stations?.length) {
             return stations;
         }
 
@@ -17,14 +17,14 @@ export const useStationSorting = ({ stations, currentLocation }: UseStationSorti
             const distanceA = calculateDistance(
                 currentLocation.latitude,
                 currentLocation.longitude,
-                parseFloat(a.latitude),
-                parseFloat(a.longitude)
+                parseFloat(a?.latitude),
+                parseFloat(a?.longitude)
             );
             const distanceB = calculateDistance(
-                currentLocation.latitude,
-                currentLocation.longitude,
-                parseFloat(b.latitude),
-                parseFloat(b.longitude)
+                currentLocation?.latitude,
+                currentLocation?.longitude,
+                parseFloat(b?.latitude),
+                parseFloat(b?.longitude)
             );
             return distanceA - distanceB;
         });

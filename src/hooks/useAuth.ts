@@ -1,11 +1,12 @@
-import { navigate, reset } from "@/navigation/NavigationService";
-import { checkPhone, fetchUserDetail, postLogout, userLogin, userRegister } from "@/services/useApi";
+import { goBack, navigate, reset } from "@/navigation/NavigationService";
+import { checkPhone, fetchUserDetail, postLogout, updateMe, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import { useCallback, useState } from "react";
 import { getAuth, signInWithPhoneNumber } from '@react-native-firebase/auth';
 import * as Keychain from 'react-native-keychain';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import DeviceInfo from "react-native-device-info";
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -151,6 +152,27 @@ export const useAuth = () => {
         }
         setIsRequesting(false);
     }
+
+    const updateProfile = async (data:any) =>{
+        setIsRequesting(true);
+        const fcmToken = await AsyncStorage.getItem('@fcm_token');
+        const deviceId = await DeviceInfo.getUniqueId();
+        if (deviceId) {
+            data.device_id = deviceId;
+        }
+        if (fcmToken) {
+            data.fcm_token = fcmToken;
+        }
+
+        const response = await updateMe(data)
+        if(response.data?.code === '000'){
+            setIsRequesting(false);
+            fetchUser();
+            goBack()
+        }else{
+            setIsRequesting(false);
+        }
+    }
     return {
         isLoading,
         login,
@@ -161,6 +183,7 @@ export const useAuth = () => {
         setShowError,
         checkPhoneNumber,
         register,
-        isRequesting
+        isRequesting,
+        updateProfile
     };
 }

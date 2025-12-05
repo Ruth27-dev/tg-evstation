@@ -9,15 +9,15 @@ import TransactionDetailModal from "@/components/TransactionDetailModal";
 import { useWallet } from "@/hooks/useWallet";
 import { Transaction } from "@/types";
 import moment from "moment";
+import Loading from "@/components/Loading";
 
 const WalletScreen = () => {
-    const [walletBalance] = useState(1250.50);
     const [refreshing, setRefreshing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
-    const { getMeWallet, userWalletBalance, meTransaction, getMeTransactions, isLoadMoreLoading } = useWallet();
+    const { getMeWallet, userWalletBalance, meTransaction, getMeTransactions, isLoadMoreLoading,isLoading } = useWallet();
     
     useEffect(() => {
         getMeWallet();
@@ -42,12 +42,9 @@ const WalletScreen = () => {
 
     const loadMore = useCallback(async () => {
         if (isLoadMoreLoading || !hasMore) return;
-        
         const nextPage = currentPage + 1;
-        
         try {
             const result = await getMeTransactions(nextPage);
-            // Check if this is the last page
             if (result.isLastPage || result.content.length === 0) {
                 setHasMore(false);
             } else {
@@ -133,6 +130,8 @@ const WalletScreen = () => {
         )
     }, [handleTransactionPress])
 
+    if(isLoading) return <Loading />
+    
     return (
         <BaseComponent isBack={false}>
             <View style={styles.container}>
@@ -162,8 +161,6 @@ const WalletScreen = () => {
                     />
                 </View>
             </View>
-
-            {/* Transaction Detail Modal */}
             <TransactionDetailModal
                 visible={modalVisible}
                 transaction={selectedTransaction}

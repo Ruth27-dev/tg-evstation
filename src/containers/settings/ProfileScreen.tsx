@@ -10,22 +10,23 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useMeStore } from "@/store/useMeStore";
+import { useAuth } from "@/hooks/useAuth";
+import Loading from "@/components/Loading";
 
 interface ProfileFormData {
     name: string;
-    email: string;
     phone: string;
 }
 
 const profileSchema = yup.object().shape({
     name: yup.string().required('Full name is required'),
-    email: yup.string().email('Invalid email').required('Email is required'),
     phone: yup.string().required('Phone number is required'),
 });
 
 const ProfileScreen = () => {
     const [isEditing, setIsEditing] = useState(false);
     const { userData } = useMeStore();
+    const { updateProfile,isRequesting } = useAuth();
     
     const {
         control,
@@ -36,15 +37,16 @@ const ProfileScreen = () => {
         resolver: yupResolver(profileSchema),
         defaultValues: {
             name: userData?.user_name || '',
-            email: userData?.email || '',
             phone: userData?.phone_number || ''
         }
     });
 
     const handleSave = (data: ProfileFormData) => {
+        const { phone, name } = data;
+        updateProfile({ phone_number: phone, user_name: name });
         setIsEditing(false);
-        console.log('Profile updated:', data);
     };
+    if(isRequesting) return <Loading />
 
     return (
         <BaseComponent isBack={true} title="Profile">
@@ -65,7 +67,6 @@ const ProfileScreen = () => {
                         />
                     </View>
                   
-                    {/* Phone */}
                     <View style={{ marginTop: safePadding }}>
                         <Text style={styles.cardTitle}>Phone Number</Text>
                         <CustomInputText
@@ -83,23 +84,6 @@ const ProfileScreen = () => {
                         />
                     </View>
 
-                    <View style={{ marginTop: safePadding }}>
-                        <Text style={styles.cardTitle}>Email</Text>
-                        <CustomInputText
-                            labelText="Email"
-                            placeHolderText="Enter your email"
-                            control={control}
-                            name="email"
-                            errors={errors}
-                            isLeftIcon
-                            keyboardType="email-address"
-                            renderLeftIcon={
-                                <Ionicons name="mail-outline" size={20} color={Colors.mainColor} />
-                            }
-                        />
-                    </View>
-
-                    {/* Save Button */}
                     <View style={styles.buttonContainer}>
                         <CustomButton
                             buttonTitle="Edit Profile"

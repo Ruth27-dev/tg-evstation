@@ -5,79 +5,60 @@ import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { History } from "@/types";
+import moment from "moment";
 
-const HistoryDetailScreen = () => {
-    // Mock data - replace with actual data from navigation params or API
-    const sessionData = {
-        id: 'CH-20251120-001',
-        status: 'completed' as 'completed' | 'failed',
-        stationName: 'Central Station Plaza',
-        stationAddress: 'Street 51, Phnom Penh',
-        chargerType: 'CCS Type 2',
-        chargerPower: '150 kW',
-        date: 'November 20, 2025',
-        startTime: '14:30',
-        endTime: '15:45',
-        duration: '1h 15m',
-        energyCharged: '45.5 kWh',
-        startBattery: '15%',
-        endBattery: '85%',
-        pricePerKwh: '$0.25',
-        totalCost: '$11.38',
-        paymentMethod: 'Credit Card •••• 4242',
-        transactionId: 'TXN-2025112014301234',
+const HistoryDetailScreen = ({ route }: any) => {
+
+    const sessionData: History = route?.params?.session;
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'COMPLETED':
+                return { bg: '#10B98115', color: Colors.secondaryColor, icon: 'checkmark-circle' };
+            case 'CHARGING':
+                return { bg: '#3B82F615', color: '#3B82F6', icon: 'sync' };
+            case 'FAILED':
+                return { bg: '#EF444415', color: '#EF4444', icon: 'close-circle' };
+            default:
+                return { bg: '#9CA3AF15', color: '#6B7280', icon: 'information-circle' };
+        }
     };
+
+    const formatDate = (dateString: Date | string) => {
+        return moment.utc(dateString).local().format("dddd, MMMM D, YYYY");
+    };
+
+    const formatTime = (dateString: Date | string) => {
+        return moment.utc(dateString).local().format("hh:mm A");
+    };
+
+    const calculateDuration = () => {
+        const start = new Date(sessionData?.started_at);
+        const end = new Date(sessionData?.last_update_at);
+        const diffMs = end.getTime() - start.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const hours = Math.floor(diffMins / 60);
+        const minutes = diffMins % 60;
+        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    };
+
+    const statusColors = getStatusColor(sessionData?.status);
 
     return (
         <BaseComponent isBack={true} title="Charging Details">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
-                {/* Station Info */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Station Information</Text>
-                    <View style={styles.infoCard}>
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoIconContainer}>
-                                <MaterialCommunityIcons name="ev-station" size={20} color={Colors.mainColor} />
-                            </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Station</Text>
-                                <Text style={styles.infoValue}>{sessionData.stationName}</Text>
-                                <Text style={styles.infoSubvalue}>{sessionData.stationAddress}</Text>
-                            </View>
-                        </View>
+                <View style={styles.statusCard}>
+                    <View style={[styles.statusIconContainer, { backgroundColor: statusColors.bg }]}>
+                        <Ionicons name={statusColors.icon as any} size={48} color={statusColors.color} />
+                    </View>
+                    <Text style={styles.statusTitle}>{sessionData?.status}</Text>
+                    <View style={styles.sessionIdContainer}>
+                        <Text style={styles.sessionIdLabel}>Session ID</Text>
+                        <Text style={styles.sessionIdValue}>#{sessionData?.session_id.slice(0, 8)}</Text>
                     </View>
                 </View>
-
-                {/* Charger Details */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Charger Details</Text>
-                    <View style={styles.infoCard}>
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoIconContainer}>
-                                <MaterialCommunityIcons name="ev-plug-type2" size={20} color={Colors.mainColor} />
-                            </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Charger Type</Text>
-                                <Text style={styles.infoValue}>{sessionData.chargerType}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.divider} />
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoIconContainer}>
-                                <MaterialCommunityIcons name="lightning-bolt" size={20} color={Colors.mainColor} />
-                            </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Power Output</Text>
-                                <Text style={styles.infoValue}>{sessionData.chargerPower}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Time & Duration */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Time & Duration</Text>
+                    <Text style={styles.sectionTitle}>Session Information</Text>
                     <View style={styles.infoCard}>
                         <View style={styles.infoRow}>
                             <View style={styles.infoIconContainer}>
@@ -85,7 +66,7 @@ const HistoryDetailScreen = () => {
                             </View>
                             <View style={styles.infoContent}>
                                 <Text style={styles.infoLabel}>Date</Text>
-                                <Text style={styles.infoValue}>{sessionData.date}</Text>
+                                <Text style={styles.infoValue}>{formatDate(sessionData?.started_at)}</Text>
                             </View>
                         </View>
                         <View style={styles.divider} />
@@ -93,67 +74,92 @@ const HistoryDetailScreen = () => {
                             <View style={styles.timelineItem}>
                                 <View style={styles.timelineDot} />
                                 <View style={styles.timelineContent}>
-                                    <Text style={styles.timelineLabel}>Start Time</Text>
-                                    <Text style={styles.timelineValue}>{sessionData.startTime}</Text>
+                                    <Text style={styles.timelineLabel}>Started</Text>
+                                    <Text style={styles.timelineValue}>{formatTime(sessionData?.started_at)}</Text>
                                 </View>
                             </View>
                             <View style={styles.timelineLine} />
                             <View style={styles.timelineItem}>
                                 <View style={[styles.timelineDot, styles.timelineDotEnd]} />
                                 <View style={styles.timelineContent}>
-                                    <Text style={styles.timelineLabel}>End Time</Text>
-                                    <Text style={styles.timelineValue}>{sessionData.endTime}</Text>
+                                    <Text style={styles.timelineLabel}>Last Update</Text>
+                                    <Text style={styles.timelineValue}>{formatTime(sessionData?.last_update_at)}</Text>
                                 </View>
+                            </View>
+                        </View>
+                        <View style={styles.divider} />
+                        <View style={styles.infoRow}>
+                            <View style={styles.infoIconContainer}>
+                                <MaterialCommunityIcons name="clock-outline" size={20} color={Colors.mainColor} />
+                            </View>
+                            <View style={styles.infoContent}>
+                                <Text style={styles.infoLabel}>Duration</Text>
+                                <Text style={styles.infoValue}>{calculateDuration()}</Text>
                             </View>
                         </View>
                     </View>
                 </View>
-
-                {/* Energy & Battery */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Energy & Battery</Text>
                     <View style={styles.infoCard}>
                         <View style={styles.energyHeader}>
-                            <MaterialCommunityIcons name="battery-charging" size={32} color={Colors.secondaryColor} />
+                            <MaterialCommunityIcons name="lightning-bolt" size={32} color={Colors.secondaryColor} />
                             <View style={styles.energyInfo}>
                                 <Text style={styles.energyLabel}>Energy Charged</Text>
-                                <Text style={styles.energyValue}>{sessionData.energyCharged}</Text>
+                                <Text style={styles.energyValue}>{sessionData?.energy_kwh.toFixed(2)} kWh</Text>
                             </View>
-                        </View>
-                        <View style={styles.batteryContainer}>
-                            <View style={styles.batteryItem}>
-                                <Text style={styles.batteryLabel}>Start</Text>
-                                <Text style={styles.batteryValue}>{sessionData.startBattery}</Text>
-                            </View>
-                            <Ionicons name="arrow-forward" size={20} color="#9CA3AF" />
-                            <View style={styles.batteryItem}>
-                                <Text style={styles.batteryLabel}>End</Text>
-                                <Text style={styles.batteryValue}>{sessionData.endBattery}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Payment Details */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Payment Details</Text>
-                    <View style={styles.infoCard}>
-                        <View style={styles.costRow}>
-                            <Text style={styles.costLabel}>Price per kWh</Text>
-                            <Text style={styles.costValue}>{sessionData.pricePerKwh}</Text>
                         </View>
                         <View style={styles.divider} />
+                        <View style={styles.batteryContainer}>
+                            <View style={styles.batteryItem}>
+                                <MaterialCommunityIcons name="battery-charging" size={30} color={Colors.mainColor} />
+                                <Text style={styles.batteryLabel}>Current Battery</Text>
+                                <Text style={styles.batteryValue}>{sessionData?.current_soc}%</Text>
+                            </View>
+                        </View>
+                        {sessionData?.minutes_remaining && (
+                            <>
+                                <View style={styles.divider} />
+                                <View style={styles.infoRow}>
+                                    <View style={styles.infoIconContainer}>
+                                        <MaterialCommunityIcons name="timer-outline" size={20} color={Colors.mainColor} />
+                                    </View>
+                                    <View style={styles.infoContent}>
+                                        <Text style={styles.infoLabel}>Time Remaining</Text>
+                                        <Text style={styles.infoValue}>{sessionData?.minutes_remaining} minutes</Text>
+                                    </View>
+                                </View>
+                            </>
+                        )}
+                    </View>
+                </View>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Cost Summary</Text>
+                    <View style={styles.infoCard}>
                         <View style={styles.costRow}>
                             <Text style={styles.costLabel}>Energy Charged</Text>
-                            <Text style={styles.costValue}>{sessionData.energyCharged}</Text>
+                            <Text style={styles.costValue}>{sessionData?.energy_kwh.toFixed(2)} kWh</Text>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.totalCostRow}>
-                            <Text style={styles.totalCostLabel}>Total Cost</Text>
-                            <Text style={styles.totalCostValue}>{sessionData.totalCost}</Text>
+                            <View>
+                                <Text style={styles.totalCostLabel}>Total Cost</Text>
+                                <Text style={styles.totalCostSubtext}>Amount charged so far</Text>
+                            </View>
+                            <Text style={styles.totalCostValue}>${sessionData?.price_so_far.toFixed(2)}</Text>
                         </View>
+                        {sessionData?.max_amount_cents && (
+                            <>
+                                <View style={styles.divider} />
+                                <View style={styles.costRow}>
+                                    <Text style={styles.costLabel}>Max Amount</Text>
+                                    <Text style={styles.costValue}>${(sessionData?.max_amount_cents / 100).toFixed(2)}</Text>
+                                </View>
+                            </>
+                        )}
                     </View>
                 </View>
+                <View style={{ height: 40 }} />
             </ScrollView>
         </BaseComponent>
     )
@@ -168,15 +174,14 @@ const styles = StyleSheet.create({
     },
     statusCard: {
         backgroundColor: Colors.white,
-        marginTop: 20,
         marginBottom: 24,
-        padding: 24,
+        padding: safePadding,
         borderRadius: 10,
         alignItems: 'center'
     },
     statusIconContainer: {
-        width: 80,
-        height: 80,
+        width: 60,
+        height: 60,
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
@@ -215,7 +220,7 @@ const styles = StyleSheet.create({
         color: Colors.mainColor,
     },
     section: {
-        marginBottom: 35
+        marginBottom: 20
     },
     sectionTitle: {
         fontSize: FontSize.medium + 1,
@@ -346,7 +351,7 @@ const styles = StyleSheet.create({
         color: Colors.mainColor,
     },
     batteryContainer: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'space-around',
         backgroundColor: '#F9FAFB',
@@ -356,15 +361,16 @@ const styles = StyleSheet.create({
     },
     batteryItem: {
         alignItems: 'center',
+        gap: 8,
     },
     batteryLabel: {
-        fontSize: FontSize.small,
+        fontSize: FontSize.small + 1,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#9CA3AF',
-        marginBottom: 6,
+        color: '#6B7280',
+        marginTop: 4,
     },
     batteryValue: {
-        fontSize: FontSize.large,
+        fontSize: FontSize.large + 4,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
     },
@@ -399,8 +405,36 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
     },
+    totalCostSubtext: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#9CA3AF',
+        marginTop: 2,
+    },
     totalCostValue: {
         fontSize: FontSize.large + 2,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 8,
+    },
+    actionButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.white,
+        paddingVertical: 14,
+        borderRadius: 10,
+        gap: 8,
+        borderWidth: 1,
+        borderColor: Colors.mainColor,
+    },
+    actionButtonText: {
+        fontSize: FontSize.small + 1,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
     },

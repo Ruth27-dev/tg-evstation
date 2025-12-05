@@ -41,7 +41,7 @@ const StationMap: React.FC<StationMapProps> = ({
             showsMyLocationButton={false}
             showsCompass={true}
         >
-            {stations.map((station) => {
+            {stations?.map((station) => {
                 const isSelected = selectedStation?.id === station.id;
                 
                 return (

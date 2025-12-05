@@ -21,13 +21,13 @@ const StationCard: React.FC<StationCardProps> = ({
     onPress 
 }) => {
     // Calculate total connectors
-    const totalConnectors = station.chargers.reduce((total: number, charger: any) => 
+    const totalConnectors = station?.chargers.reduce((total: number, charger: any) => 
         total + (charger.connector?.length || 0), 0
     );
     
     // Calculate available connectors
-    const availableConnectors = station.chargers.reduce((available: number, charger: any) => {
-        const availableInCharger = charger.connector?.filter(
+    const availableConnectors = station?.chargers.reduce((available: number, charger: any) => {
+        const availableInCharger = charger?.connector?.filter(
             (conn: any) => conn.status === 'AVAILABLE' || conn.status === 'PREPARING'
         ).length || 0;
         return available + availableInCharger;

@@ -7,7 +7,7 @@ import { navigate } from "@/navigation/NavigationService";
 import { useWallet } from "@/hooks/useWallet";
 import CustomButton from "@/components/CustomButton";
 import PaymentTermsModal from "@/components/PaymentTermsModal";
-
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view'
 
 const TopUpScreen = () => {
     const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
@@ -51,47 +51,50 @@ const TopUpScreen = () => {
 
     return (
         <BaseComponent isBack={true} title="Top Up">
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Select Amount</Text>
-                <View style={styles.amountGrid}>
-                    {quickAmounts.map((amount) => (
-                        <TouchableOpacity
-                            key={amount}
-                            style={[
-                                styles.amountButton,
-                                selectedAmount === amount && !customAmount && styles.amountButtonSelected
-                            ]}
-                            onPress={() => handleAmountSelect(amount)}
-                            activeOpacity={0.7}
-                        >
-                            <Text style={[
-                                styles.amountText,
-                                selectedAmount === amount && !customAmount && styles.amountTextSelected
-                            ]}>
-                                ${amount?.toFixed(1)}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
+            <KeyboardAwareScrollView
+                style={{flex:1}}
+                extraScrollHeight={40}
+            >
 
-            {/* Custom Amount Section */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Or Enter Custom Amount</Text>
-                <View style={styles.customAmountContainer}>
-                    <Text style={styles.currencySymbol}>$</Text>
-                    <TextInput
-                        style={styles.customAmountInput}
-                        placeholder="0.00"
-                        placeholderTextColor="#9CA3AF"
-                        keyboardType="numeric"
-                        value={customAmount}
-                        onChangeText={handleCustomAmountChange}
-                    />
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Select Amount</Text>
+                    <View style={styles.amountGrid}>
+                        {quickAmounts.map((amount) => (
+                            <TouchableOpacity
+                                key={amount}
+                                style={[
+                                    styles.amountButton,
+                                    selectedAmount === amount && !customAmount && styles.amountButtonSelected
+                                ]}
+                                onPress={() => handleAmountSelect(amount)}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[
+                                    styles.amountText,
+                                    selectedAmount === amount && !customAmount && styles.amountTextSelected
+                                ]}>
+                                    ${amount?.toFixed(1)}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
-            </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Or Enter Custom Amount</Text>
+                    <View style={styles.customAmountContainer}>
+                        <Text style={styles.currencySymbol}>$</Text>
+                        <TextInput
+                            style={styles.customAmountInput}
+                            placeholder="0.00"
+                            placeholderTextColor="#9CA3AF"
+                            keyboardType="numeric"
+                            value={customAmount}
+                            onChangeText={handleCustomAmountChange}
+                        />
+                    </View>
+                </View>
             
-             {/* Terms & Conditions Link */}
                 <View style={styles.termsSection}>
                     <TouchableOpacity 
                         onPress={() => setShowTermsModal(true)}
@@ -102,22 +105,22 @@ const TopUpScreen = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
+                <View style={styles.bottomContainer}>
+                    <CustomButton
+                        buttonTitle={`Continue ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount.toFixed(2)}` : ''}`}
+                        buttonColor={selectedAmount && selectedAmount > 0  ? Colors.mainColor : Colors.gray}
+                        onPress={handleTopUp}
+                        disabled={!selectedAmount || selectedAmount <= 0}
+                    />
 
-            <View style={styles.bottomContainer}>
-                <CustomButton
-                    buttonTitle={`Continue ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount.toFixed(2)}` : ''}`}
-                    buttonColor={selectedAmount && selectedAmount > 0  ? Colors.mainColor : Colors.gray}
-                    onPress={handleTopUp}
-                    disabled={!selectedAmount || selectedAmount <= 0}
+                </View>
+                <PaymentTermsModal
+                    visible={showTermsModal}
+                    onClose={handleDeclineTerms}
+                    onAccept={handleAcceptTerms}
                 />
-
-            </View>
-            {/* Payment Terms Modal */}
-            <PaymentTermsModal
-                visible={showTermsModal}
-                onClose={handleDeclineTerms}
-                onAccept={handleAcceptTerms}
-            />
+            </KeyboardAwareScrollView>
+           
         </BaseComponent>
     );
 }
@@ -269,18 +272,8 @@ const styles = StyleSheet.create({
         color: '#6B7280',
     },
     bottomContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.1,
+        paddingHorizontal: safePadding,
+        marginTop: 40,
     },
     topUpButton: {
         flexDirection: 'row',

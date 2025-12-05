@@ -34,40 +34,6 @@ const KHQRViewScreen = (props: any) => {
     }, [setIsPay])
   );
 
-
-  const isSuccessUrl = (url: string) =>{
-  }
-    // !!url && (url === SUCCESS_URL || url.startsWith(SUCCESS_URL) || url.includes('status=success'));
-
-  // Intercept navigations BEFORE they happen (more stable than relying solely on onNavigationStateChange)
-  const onShouldStartLoadWithRequest = useCallback((req:any) => {
-    const url = req?.url ?? '';
-    if (!url) return true;
-
-    // Success callback
-    if (!handledSuccessRef.current && isSuccessUrl(url)) {
-      handledSuccessRef.current = true;
-      try { setIsPay?.(true); } catch {}
-      return false;
-    }
-
-    // Allow our http(s) pages
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('about:blank')) {
-      return true;
-    }
-
-    Linking.openURL(url).catch(() => {});
-    return false;
-  }, [setIsPay]);
-
-  const onNavigationStateChange = useCallback((navState:any) => {
-    const url = navState?.url ?? '';
-    if (!url) return;
-    if (!handledSuccessRef.current && isSuccessUrl(url)) {
-      handledSuccessRef.current = true;
-      try { setIsPay?.(true); } catch {}
-    }
-  }, [setIsPay]);
   return (
     <BaseComponent isBack={true}>
         <WebView
@@ -76,10 +42,9 @@ const KHQRViewScreen = (props: any) => {
             domStorageEnabled
             scrollEnabled={false}
             setSupportMultipleWindows={false}
-            onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
             startInLoadingState
             renderLoading={() => (
-                <View style={{flex: 1, backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center'}}>
+                <View style={{flex: 1, backgroundColor: Colors.white}}>
                     <ActivityIndicator size="large" color={Colors.mainColor} />
                 </View>
             )}
@@ -87,7 +52,6 @@ const KHQRViewScreen = (props: any) => {
             mixedContentMode="always"
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
-        onNavigationStateChange={onNavigationStateChange}
         />
     </BaseComponent>
   );

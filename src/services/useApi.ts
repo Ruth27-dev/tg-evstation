@@ -110,5 +110,6 @@ export const evtStart = async (data: object, onError?: (err: any) => void) => ap
 export const topUp = async (data: object, onError?: (err: any) => void) => api.post(`v1/wallet/topup`, data, onError);
 export const postLogout = (data: object, onError?: (err: any) => void) => api.post('v1/auth/logout', data, onError);
 export const fetchHistory = (data: object, onError?: (err: any) => void) => api.post('v1/chargers/charging-history', data, onError);
+export const updateMe = (data: object, onError?: (err: any) => void) => api.post('v1/users/me', data, onError);
 
 export default api;

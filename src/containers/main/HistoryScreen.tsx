@@ -1,177 +1,179 @@
+import React, { useCallback, useEffect, useState } from "react";
 import BaseComponent from "@/components/BaseComponent";
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndicator } from "react-native";
 import { Colors } from "@/theme";
-import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
+import { CustomFontConstant, FontSize, Images, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { navigate } from "@/navigation/NavigationService";
 import { useHistory } from "@/hooks/useHistory";
 import { History } from "@/types";
-
+import NoData from "@/components/NoData";
+import moment from "moment";
+import Loading from "@/components/Loading";
 
 const HistoryScreen = () => {
-    const [selectedFilter, setSelectedFilter] = useState<'all' | 'completed' | 'failed'>('all');
     const { getChargerHistory , chargerHistoryData,isLoading,isLoadMoreLoading} = useHistory();
-
+    const [refreshing, setRefreshing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
     useEffect(() => {
         getChargerHistory(1);
     },[])
+    
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([
+                getChargerHistory(1),
+            ]);
+        } catch (error) {
+            console.error('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [getChargerHistory]);
 
-    const filteredData = chargerHistoryData?.filter(item => {
-        if (selectedFilter === 'all') return true;
-        return item.status === selectedFilter;
-    });
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'COMPLETED':
+                return { bg: '#10B98115', color: Colors.secondaryColor };
+            case 'CHARGING':
+                return { bg: '#3B82F615', color: '#3B82F6' };
+            case 'FAILED':
+                return { bg: '#EF444415', color: '#EF4444' };
+            default:
+                return { bg: '#9CA3AF15', color: '#6B7280' };
+        }
+    };
 
-    // Calculate totals
-    // const calculateTotals = () => {
-    //     const completedSessions = chargerHistoryData?.filter(item => item.status === 'completed');
-        
-    //     const totalEnergy = completedSessions?.reduce((sum, item) => {
-    //         return sum + parseFloat(item.energyCharged.replace(' kWh', ''));
-    //     }, 0);
+    const formatDate = (dateString: Date | string) => {
+        return moment.utc(dateString).local().format("MMM D, YYYY");
+    };
 
-    //     const totalCost = completedSessions?.reduce((sum, item) => {
-    //         return sum + parseFloat(item.cost.replace('$', ''));
-    //     }, 0);
+    const formatTime = (dateString: Date | string) => {
+        return moment.utc(dateString).local().format("hh:mm A");
+    };
+     const loadMore = useCallback(async () => {
+            if (isLoadMoreLoading || !hasMore) return;
+            const nextPage = currentPage + 1;
+            try {
+                const result = await getChargerHistory(nextPage);
+                if (result.isLastPage || result.content.length === 0) {
+                    setHasMore(false);
+                } else {
+                    setCurrentPage(nextPage);
+                }
+            } catch (error) {
+                console.error('Load more error:', error);
+                setHasMore(false);
+            }
+        }, [isLoadMoreLoading, hasMore, currentPage, getChargerHistory]);
+    
+        const renderFooter = () => {
+            if (!isLoadMoreLoading) return null;
+            return (
+                <View style={styles.footerLoader}>
+                    <ActivityIndicator size="small" color={Colors.mainColor} />
+                    <Text style={styles.loadingText}>Loading more...</Text>
+                </View>
+            );
+        };
 
-    //     const totalMinutes = completedSessions?.reduce((sum, item) => {
-    //         const duration = item.duration;
-    //         const hours = duration.includes('h') ? parseInt(duration.split('h')[0]) : 0;
-    //         const minutes = duration.includes('m') ? parseInt(duration.split('h')[1]?.replace('m', '') || duration.replace('m', '')) : 0;
-    //         return sum + (hours * 60) + minutes;
-    //     }, 0);
-
-    //     const totalHours = Math.floor(totalMinutes / 60);
-    //     const remainingMinutes = totalMinutes % 60;
-
-    //     return {
-    //         totalEnergy: totalEnergy.toFixed(1),
-    //         totalCost: totalCost.toFixed(2),
-    //         totalDuration: `${totalHours}h ${remainingMinutes}m`,
-    //         chargingSessions: completedSessions.length
-    //     };
-    // };
-
-    // const totals = calculateTotals();
-
-    const renderHistoryCard = ({ item }: { item: History }) => (
-        <TouchableOpacity style={styles.historyCard} activeOpacity={0.7} onPress={()=>navigate('HistoryDetail')}>
-            {/* <View style={styles.cardHeader}>
-                <View style={styles.headerLeft}>
-                    <View style={[
-                        styles.iconContainer, 
-                        { backgroundColor: item.chargerType === 'fast' ? '#10B98115' : '#3B82F615' }
-                    ]}>
-                        <MaterialCommunityIcons 
-                            name={item.chargerType === 'fast' ? 'lightning-bolt' : 'ev-station'} 
-                            size={20} 
-                            color={item.chargerType === 'fast' ? Colors.secondaryColor : '#3B82F6'} 
-                        />
+    const renderHistoryCard = ({ item }: { item: History }) => {
+        const statusColors = getStatusColor(item.status);
+        return (
+            <TouchableOpacity 
+                style={styles.historyCard} 
+                activeOpacity={0.7} 
+                onPress={() => navigate('HistoryDetail', { session: item })}
+            >
+                <View style={styles.cardHeader}>
+                    <View style={styles.headerLeft}>
+                        <View style={[styles.iconContainer, { backgroundColor: statusColors.bg }]}>
+                            <Image source={Images.no_data} style={{width:24,height:24}}/>
+                        </View>
+                        <View style={styles.headerInfo}>
+                            <Text style={styles.sessionId}>Session #{item.session_id.slice(0, 8)}</Text>
+                            <View style={styles.dateRow}>
+                                <Ionicons name="calendar-outline" size={12} color="#9CA3AF" />
+                                <Text style={styles.dateText}>{formatDate(item.started_at)}</Text>
+                                <Text style={styles.timeText}>{formatTime(item.started_at)}</Text>
+                            </View>
+                        </View>
                     </View>
-                    <View style={styles.headerInfo}>
-                        <Text style={styles.stationName}>{item.stationName}</Text>
-                        <View style={styles.locationRow}>
-                            <Ionicons name="location-outline" size={12} color="#9CA3AF" />
-                            <Text style={styles.address}>{item.address}</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
+                        <Text style={[styles.statusText, { color: statusColors.color }]}>
+                            {item.status}
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.detailsContainer}>
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <MaterialCommunityIcons name="lightning-bolt" size={20} color={Colors.mainColor} />
+                            <View>
+                                <Text style={styles.detailLabel}>Energy</Text>
+                                <Text style={styles.detailValue}>{item.energy_kwh.toFixed(2)} kWh</Text>
+                            </View>
+                        </View>
+                        <View style={styles.detailItem}>
+                            <MaterialCommunityIcons name="battery-charging" size={20} color={Colors.mainColor} />
+                            <View>
+                                <Text style={styles.detailLabel}>Battery</Text>
+                                <Text style={styles.detailValue}>{item.current_soc}%</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.divider} />
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <MaterialCommunityIcons name="cash" size={20} color={Colors.mainColor} />
+                            <View>
+                                <Text style={styles.detailLabel}>Total Cost</Text>
+                                <Text style={styles.detailValue}>${item.price_so_far.toFixed(2)}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.detailItem}>
+                            <MaterialCommunityIcons name="clock-outline" size={20} color={Colors.mainColor} />
+                            <View>
+                                <Text style={styles.detailLabel}>Last Update</Text>
+                                <Text style={styles.detailValue}>{formatTime(item.last_update_at)}</Text>
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
 
-            <View style={styles.dateTimeContainer}>
-                <View style={styles.dateTimeRow}>
-                    <Ionicons name="calendar-outline" size={14} color="#6B7280" />
-                    <Text style={styles.dateTimeText}>{item.started_at}</Text>
-                </View>
-                <View style={styles.dateTimeRow}>
-                    <Ionicons name="time-outline" size={14} color="#6B7280" />
-                    <Text style={styles.dateTimeText}>{item.startTime} - {item.endTime}</Text>
-                </View>
-                <View style={styles.dateTimeRow}>
-                    <MaterialCommunityIcons name="timer-outline" size={14} color="#6B7280" />
-                    <Text style={styles.dateTimeText}>{item.duration}</Text>
-                </View>
-            </View>
-
-            <View style={styles.detailsContainer}>
-                <View style={styles.detailItem}>
-                    <MaterialCommunityIcons name="lightning-bolt" size={18} color={Colors.mainColor} />
-                    <View>
-                        <Text style={styles.detailLabel}>Energy Charged</Text>
-                        <Text style={styles.detailValue}>{item.energyCharged}</Text>
-                    </View>
-                </View>
-                <View style={styles.divider} />
-                <View style={styles.detailItem}>
-                    <MaterialCommunityIcons name="cash" size={18} color={Colors.mainColor} />
-                    <View>
-                        <Text style={styles.detailLabel}>Total Cost</Text>
-                        <Text style={styles.detailValue}>{item.cost}</Text>
-                    </View>
-                </View>
-            </View>
-
-            <View style={styles.receiptButton}>
-                <Ionicons name="receipt-outline" size={16} color={Colors.mainColor} />
-                <Text style={styles.receiptText}>View Receipt</Text>
-            </View> */}
-        </TouchableOpacity>
-    );
-
+                <TouchableOpacity style={styles.receiptButton} onPress={()=>navigate('HistoryDetail')}>
+                    <Ionicons name="receipt-outline" size={16} color={Colors.mainColor} />
+                    <Text style={styles.receiptText}>View Details</Text>
+                </TouchableOpacity>
+            </TouchableOpacity>
+        );
+    };
+    if(isLoading) return <Loading />
     return (
         <BaseComponent isBack={false}>
-            <View style={styles.container}>
-                {/* <View style={styles.summaryContainer}>
-                    <View style={styles.summaryRow}>
-                        <View style={[styles.summaryCard, styles.summaryCardPrimary]}>
-                            <View style={styles.summaryIconContainer}>
-                                <MaterialCommunityIcons name="lightning-bolt" size={24} color={Colors.white} />
-                            </View>
-                            <Text style={styles.summaryLabel}>Total Energy</Text>
-                            <Text style={styles.summaryValue}>{totals.totalEnergy} kWh</Text>
-                        </View>
-                        <View style={[styles.summaryCard, styles.summaryCardSecondary]}>
-                            <View style={styles.summaryIconContainer}>
-                                <MaterialCommunityIcons name="cash-multiple" size={24} color={Colors.white} />
-                            </View>
-                            <Text style={styles.summaryLabel}>Total Cost</Text>
-                            <Text style={styles.summaryValue}>${totals.totalCost}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.summaryRow}>
-                        <View style={[styles.summaryCard, styles.summaryCardTertiary]}>
-                            <View style={styles.summaryIconContainer}>
-                                <MaterialCommunityIcons name="clock-outline" size={24} color={Colors.white} />
-                            </View>
-                            <Text style={styles.summaryLabel}>Total Duration</Text>
-                            <Text style={styles.summaryValue}>{totals.totalDuration}</Text>
-                        </View>
-                        <View style={[styles.summaryCard, styles.summaryCardQuaternary]}>
-                            <View style={styles.summaryIconContainer}>
-                                <MaterialCommunityIcons name="ev-station" size={24} color={Colors.white} />
-                            </View>
-                            <Text style={styles.summaryLabel}>Charging Times</Text>
-                            <Text style={styles.summaryValue}>{totals.chargingSessions}x</Text>
-                        </View>
-                    </View>
-                </View> */}
-
-                <FlatList
-                    data={chargerHistoryData ?? []}
-                    renderItem={renderHistoryCard}
-                    keyExtractor={(index) => index.toString()}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.listContainer}
-                    ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <MaterialCommunityIcons name="history" size={64} color="#D1D5DB" />
-                            <Text style={styles.emptyText}>No charging history</Text>
-                            <Text style={styles.emptySubtext}>Your charging sessions will appear here</Text>
-                        </View>
-                    }
-                />
-            </View>
+            <FlatList
+                data={chargerHistoryData ?? []}
+                renderItem={renderHistoryCard}
+                keyExtractor={(item, index) => `${item.session_id}-${index}`}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContainer}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[Colors.mainColor]}
+                        tintColor={Colors.mainColor}
+                    />
+                }
+                ListEmptyComponent={<NoData/>}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+            />
         </BaseComponent>
     );
 }
@@ -248,7 +250,9 @@ const styles = StyleSheet.create({
         color: Colors.white,
     },
     listContainer: {
-        paddingBottom: 70,
+        paddingBottom: 90,
+        paddingHorizontal: safePadding,
+        paddingTop: safePadding,
     },
     historyCard: {
         backgroundColor: Colors.white,
@@ -284,15 +288,46 @@ const styles = StyleSheet.create({
         color: Colors.mainColor,
         marginBottom: 4,
     },
+    sessionId: {
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+        marginBottom: 4,
+    },
     locationRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
     },
+    dateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    dateText: {
+        fontSize: FontSize.small - 1,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#6B7280',
+    },
+    timeText: {
+        fontSize: FontSize.small - 1,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#9CA3AF',
+    },
     address: {
         fontSize: FontSize.small - 1,
         fontFamily: CustomFontConstant.EnRegular,
         color: '#9CA3AF',
+    },
+    statusBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    statusText: {
+        fontSize: FontSize.small - 1,
+        fontFamily: CustomFontConstant.EnBold,
+        textTransform: 'uppercase',
     },
     dateTimeContainer: {
         flexDirection: 'row',
@@ -314,14 +349,15 @@ const styles = StyleSheet.create({
         color: '#6B7280',
     },
     detailsContainer: {
+        backgroundColor: '#F9FAFB',
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 12,
+    },
+    detailRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        marginBottom: 12,
     },
     detailItem: {
         flexDirection: 'row',
@@ -330,10 +366,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     divider: {
-        width: 1,
-        height: 40,
+        height: 1,
         backgroundColor: '#E5E7EB',
-        marginHorizontal: 12,
+        marginVertical: 12,
     },
     detailLabel: {
         fontSize: FontSize.small - 1,
@@ -364,23 +399,16 @@ const styles = StyleSheet.create({
         color: Colors.mainColor,
         fontWeight: '700',
     },
-    emptyContainer: {
+     footerLoader: {
+        paddingVertical: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 60,
+        flexDirection: 'row',
+        gap: 8,
     },
-    emptyText: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: '#9CA3AF',
-        fontWeight: '700',
-        marginTop: 16,
-        marginBottom: 4,
-    },
-    emptySubtext: {
+    loadingText: {
         fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#D1D5DB',
-        fontWeight: '500',
+        color: Colors.mainColor,
     },
 });

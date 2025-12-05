@@ -1,12 +1,13 @@
 import { fetchMeWallet, fetchStation } from "@/services/useApi";
 import { useStationStore } from "@/store/useStationStore";
 import { useState } from "react";
+import { useNetworkConnection } from "./useNetworkConnection";
 
 export const useStation = () => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const { setStationData,stationData } = useStationStore();
-
+    
     const getStation = async (page: number = 1, size: number = 10) => {
         setIsLoading(true);
         try {

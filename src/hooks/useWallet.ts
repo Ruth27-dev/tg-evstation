@@ -1,6 +1,6 @@
 import { fetchMeWallet, fetchMeWalletTransactions } from "@/services/useApi";
-import { useWalletStore } from "@/store/useWallet";
 import { useState } from "react";
+import { useWalletStore } from "@/store/useWalletStore";
 
 export const useWallet = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);

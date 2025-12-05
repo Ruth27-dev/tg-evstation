@@ -7,6 +7,7 @@ export const StorageKey = {
     saleClock: "sale-clock",
     notificationPermission: "notification-permission",
     printer: "printer-storage",
+    ev: "ev-storage",
 }
 
 export const screenSizes = {

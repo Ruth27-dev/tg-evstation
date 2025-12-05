@@ -21,7 +21,7 @@ const HomeScreen = () => {
     const { getStation, stationData, isLoading } = useStation();
     const { currentLocation } = useStoreLocation();
     const { setSelectedStation,selectedStation } = useStationStore();
-    // Fetch wallet and station data on mount
+
     useEffect(() => {
         getMeWallet();
         getStation();
@@ -57,8 +57,14 @@ const HomeScreen = () => {
 
     const handleStationPress = useCallback((station: Content) => {
         setSelectedStation(station);
-        handleMarkerPress(station);
     }, [handleMarkerPress]);
+
+    const handleRefresh = useCallback(async () => {
+        await Promise.all([
+            getMeWallet(),
+            getStation()
+        ]);
+    }, [getMeWallet, getStation]);
 
     if(isLoading) return <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" color={Colors.mainColor} />
@@ -85,6 +91,12 @@ const HomeScreen = () => {
             >
                 <Ionicons name="locate" size={24} color={Colors.white} />
             </TouchableOpacity>
+            <TouchableOpacity 
+                style={styles.refreshButton}
+                onPress={handleRefresh}
+            >
+                <Ionicons name="refresh" size={24} color={Colors.white} />
+            </TouchableOpacity>
             <StationList
                 stations={sortedStations}
                 selectedStation={selectedStation}
@@ -108,12 +120,23 @@ const styles = StyleSheet.create({
     },
     myLocationButton: {
         position: 'absolute',
-        bottom: 260,
+        bottom: 310,
         right: safePadding,
-        width: 50,
-        height: 50,
+        width: 40,
+        height: 40,
         borderRadius: 28,
         backgroundColor: Colors.secondaryColor,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    refreshButton: {
+        position: 'absolute',
+        bottom: 250,
+        right: safePadding,
+        width: 40,
+        height: 40,
+        borderRadius: 28,
+        backgroundColor: Colors.mainColor,
         justifyContent: 'center',
         alignItems: 'center'
     },

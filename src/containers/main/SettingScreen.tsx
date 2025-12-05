@@ -1,6 +1,6 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { use, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from "react-native";
+import React, { use, useCallback, useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, RefreshControl } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -23,7 +23,7 @@ interface SettingItem {
 }
 
 const SettingScreen = () => {
-
+    const [refreshing, setRefreshing] = useState(false);
     const { fetchUser,logout, isRequesting } = useAuth();
     const { userData } = useMeStore();
 
@@ -31,6 +31,19 @@ const SettingScreen = () => {
         fetchUser();
     }, []);
 
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([
+                fetchUser(),
+            ]);
+        } catch (error) {
+            console.error('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [fetchUser]);
+        
     const handleProfilePress = () => {
         navigate('ProfileScreen');
     };
@@ -193,7 +206,18 @@ const SettingScreen = () => {
     if(isRequesting) return <Loading/>
     return (
         <BaseComponent isBack={false}>
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                style={styles.container} 
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[Colors.mainColor]}
+                        tintColor={Colors.mainColor}
+                    />
+                }
+            >
                 <View style={styles.profileCard}>
                     <View style={styles.profileHeader}>
                         <View style={styles.avatarContainer}>
