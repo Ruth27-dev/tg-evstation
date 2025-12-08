@@ -2,7 +2,7 @@ import BaseComponent from "@/components/BaseComponent";
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator } from "react-native";
 import { Colors } from "@/theme";
-import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
+import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import BalanceCard from "@/components/BalanceCard";
 import TransactionDetailModal from "@/components/TransactionDetailModal";
@@ -15,13 +15,18 @@ const WalletScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const { getMeWallet, userWalletBalance, meTransaction, getMeTransactions, isLoadMoreLoading,isLoading } = useWallet();
     
     useEffect(() => {
-        getMeWallet();
-        getMeTransactions(1);
+        const loadInitialData = async () => {
+            await getMeWallet();
+            await getMeTransactions(1);
+            setIsInitialLoad(false);
+        };
+        loadInitialData();
     }, []);
 
     const onRefresh = useCallback(async () => {
@@ -41,7 +46,9 @@ const WalletScreen = () => {
     }, [getMeWallet, getMeTransactions]);
 
     const loadMore = useCallback(async () => {
-        if (isLoadMoreLoading || !hasMore) return;
+        // Prevent load more during initial load or if already loading
+        if (isInitialLoad || isLoadMoreLoading || !hasMore) return;
+        
         const nextPage = currentPage + 1;
         try {
             const result = await getMeTransactions(nextPage);
@@ -54,7 +61,7 @@ const WalletScreen = () => {
             console.error('Load more error:', error);
             setHasMore(false);
         }
-    }, [isLoadMoreLoading, hasMore, currentPage, getMeTransactions]);
+    }, [isInitialLoad, isLoadMoreLoading, hasMore, currentPage, getMeTransactions]);
 
     const renderFooter = () => {
         if (!isLoadMoreLoading) return null;
@@ -77,6 +84,16 @@ const WalletScreen = () => {
         }
     };
 
+    const getSymbolForTransaction = (type: string) => {
+        switch (type) {
+            case 'TOPUP':
+                return '+';
+            case 'CHARGE':
+                return '-';
+            default:
+                return '';
+        }
+    };
     const getTransactionColor = (type: string) => {
         switch (type) {
             case 'TOPUP':
@@ -87,6 +104,17 @@ const WalletScreen = () => {
                 return Colors.mainColor;
         }
     };
+
+    const itemStatus = (status:string) =>{
+            switch (status) {
+            case 'PENDING':
+                return '#FEF3C7';
+            case 'COMPLETED':
+                return Colors.secondaryColor;
+            default:
+                return '#EF4444';
+        }
+    }
     const handleTransactionPress = useCallback((transaction: Transaction) => {
         setSelectedTransaction(transaction);
         setModalVisible(true);
@@ -117,14 +145,18 @@ const WalletScreen = () => {
 
                 </View>
                 <View style={styles.transactionAmountContainer}>
-                    <Text style={[styles.transactionAmount, { color: item.amount > 0 ? Colors.secondaryColor : '#EF4444' }]}>
-                        {`${item.amount > 0 ? '+' : ''}${item.amount.toFixed(2)} $`}
+                    <Text style={[styles.transactionAmount, { color: getTransactionColor(item.type) }]}>
+                        {`${getSymbolForTransaction(item.type)} ${item.amount.toFixed(2)} $`}
                     </Text>
-                    <View style={[styles.statusBadge, { backgroundColor: item.status === 'PENDING' ? '#FEF3C7' : Colors.secondaryColor }]}>
-                        <Text style={[styles.statusText, { color: item.status === 'PENDING' ? '#F59E0B' :Colors.white  }]}>
-                            {item.status}
-                        </Text>
-                    </View>
+                    {item?.type === 'CHARGE'?
+                        <></>
+                        :
+                        <View style={[styles.statusBadge, { backgroundColor: itemStatus(item.status) }]}>
+                            <Text style={[styles.statusText, { color: item.status === 'PENDING' ? '#F59E0B' :Colors.white  }]}>
+                                {item.status}
+                            </Text>
+                        </View>
+                    }
                 </View>
             </TouchableOpacity>
         )
@@ -227,14 +259,12 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
-        fontWeight: '600',
         marginBottom: 4,
     },
     transactionDate: {
         fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnRegular,
         color: '#9CA3AF',
-        fontWeight: '400',
     },
     transactionAmountContainer: {
         alignItems: 'flex-end',
@@ -242,7 +272,6 @@ const styles = StyleSheet.create({
     transactionAmount: {
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
-        fontWeight: '700',
         marginBottom: 4,
     },
     statusBadge: {
@@ -253,7 +282,6 @@ const styles = StyleSheet.create({
     statusText: {
         fontSize: FontSize.small - 2,
         fontFamily: CustomFontConstant.EnRegular,
-        fontWeight: '600',
         textTransform: 'capitalize',
     },
     footerLoader: {

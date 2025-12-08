@@ -29,6 +29,11 @@ import KHQRViewScreen from '@/containers/wallet/KHQRViewScreen';
 import PaymentSuccessScreen from '@/containers/wallet/PaymentSuccessScreen';
 import PaymentMethodScreen from '@/containers/wallet/PaymentMethodScreen';
 import NotificationScreen from '@/containers/main/NotificationScreen';
+import ChargingDetailScreen from '@/containers/charging/ChargingDetailScreen';
+import ChargingSuccessScreen from '@/containers/charging/ChargingSuccessScreen';
+import ListStationScreen from '@/containers/home/ListStationScreen';
+import PreparingChargingScreen from '@/containers/charging/PreparingChargingScreen';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const MainStackContainer = () => {
@@ -63,9 +68,13 @@ const MainStackContainer = () => {
         <Stack.Screen name={'TopUp'} component={TopUpScreen} />
         <Stack.Screen name={'MapScreen'} component={MapScreen} />
         <Stack.Screen name={'KHQRView'} component={KHQRViewScreen} />
+        <Stack.Screen name={'ListStation'} component={ListStationScreen} /> 
         <Stack.Screen name={'PaymentSuccess'} component={PaymentSuccessScreen} />
         <Stack.Screen name={'PaymentMethod'} component={PaymentMethodScreen} />
         <Stack.Screen name={'Notification'} component={NotificationScreen} />
+        <Stack.Screen name={'ChargingDetail'} component={ChargingDetailScreen} />
+        <Stack.Screen name={'ChargingSuccess'} component={ChargingSuccessScreen} />
+        <Stack.Screen name={'PreparingCharging'} component={PreparingChargingScreen} />
       </Stack.Navigator>
     </>
   );

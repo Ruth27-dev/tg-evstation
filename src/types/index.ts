@@ -104,3 +104,41 @@ export interface History {
     price_so_far:          number;
     max_amount_cents:      null;
 }
+export interface EVStartResponse {
+  status: string
+  message: string
+  charger_point_id: string
+  connector_number: number
+  connector_id: string
+  session_id: any
+}
+
+export interface SessionDetail {
+  session_id: string
+  status: string
+  energy_kwh: number
+  current_soc: number
+  minutes_remaining: number
+  estimated_finish_time: string
+  started_at: string
+  last_update_at: string
+  price_so_far: number
+  max_amount_cents: any
+  ocpp_transaction_id: number
+}
+
+export interface ContactResponse {
+  id: string
+  email: string
+  phone: string
+  telegram: string
+  created_at: string
+}
+
+export interface FAQResponse {
+  id: string
+  question: string
+  answer: string
+  status: string
+  created_at: string
+}

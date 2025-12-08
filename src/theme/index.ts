@@ -10,5 +10,6 @@ export const Colors = {
     dividerColor: '#B0B0B0',
     red: '#FF0000',
     disableColor:'#D1D1D1',
+    darkColor:'#081B37',
 }
 

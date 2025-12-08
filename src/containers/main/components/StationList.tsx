@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        paddingBottom: 100,
+        paddingBottom: 50,
     },
     listContent: {
         paddingHorizontal: safePadding,

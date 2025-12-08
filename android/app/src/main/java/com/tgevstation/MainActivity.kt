@@ -4,6 +4,8 @@ import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
+import android.os.Bundle
+import android.view.View
 
 class MainActivity : ReactActivity() {
 
@@ -19,4 +21,13 @@ class MainActivity : ReactActivity() {
    */
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+  override fun onCreate(savedInstanceState: Bundle?) {
+      super.onCreate(savedInstanceState)
+      // Hide the navigation bar and make it immersive
+      val decorView = window.decorView
+      val uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+              View.SYSTEM_UI_FLAG_FULLSCREEN or
+              View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+      decorView.systemUiVisibility = uiOptions
+  }
 }

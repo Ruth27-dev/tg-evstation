@@ -1,5 +1,8 @@
+import { useEVConnector } from '@/hooks/useEVConnector';
 import { useWallet } from '@/hooks/useWallet';
 import { navigate } from '@/navigation/NavigationService';
+import { useEVStore } from '@/store/useEVStore';
+import { isEmpty } from 'lodash';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as Keychain from 'react-native-keychain';
 
@@ -38,6 +41,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
   const { getMeWallet, getMeTransactions } = useWallet();
+  const { clearEvConnect, setSessionDetail, clearSessionDetail,sessionDetail,evConnect } = useEVStore();
+  const { getSessionDetail } = useEVConnector();
   
   useEffect(() => {
     const fetchToken = async () => {
@@ -58,11 +63,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       setConnected(true);
     };
     ws.current.onmessage = (event) => {
-		console.log("RAW MESSAGE:", event.data);
+		// console.log("RAW MESSAGE:", event.data);
 
 		try {
 			const data: WSMessage = JSON.parse(event.data);
-			console.log("PARSED:", data);
+			// console.log("PARSED:", data);
 
 			setLastMessage(data);
 
@@ -74,7 +79,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           transactionId: data.data?.id,
           date: data.data?.created_at,
         });
-			}
+			}else if (data.event_type === "START_CHARGING") {
+        navigate("ChargingDetail");
+      }else if (data.event_type === "STOP_CHARGING") {
+        navigate("ChargingSuccess");
+      }
+      // else if( data.event_type === "METER_CHANGE") {
+      //   if(!isEmpty(evConnect?.session_id)){
+      //     const sessionId = evConnect?.session_id ?? '';
+      //     getSessionDetail(sessionId);
+      //   }
+      // }
 		} catch (e) {
 			console.log("JSON PARSE ERROR:", e);
 		}

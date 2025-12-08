@@ -1,69 +1,42 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, TextInput, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import CustomButton from "@/components/CustomButton";
-
-interface FAQ {
-    question: string;
-    answer: string;
-}
-
-const faqs: FAQ[] = [
-    {
-        question: 'How do I start charging?',
-        answer: 'Simply scan the QR code at the charging station, select your preferred charging options, and tap Start Charging.'
-    },
-    {
-        question: 'What payment methods are accepted?',
-        answer: 'We accept all major credit/debit cards, mobile payments, and digital wallets.'
-    },
-    {
-        question: 'How long does charging take?',
-        answer: 'Charging time varies based on your vehicle and charging speed. Fast chargers can provide 80% charge in 30-45 minutes.'
-    },
-    {
-        question: 'Can I schedule charging sessions?',
-        answer: 'Yes, you can schedule charging sessions in advance through the app for your convenience.'
-    },
-];
+import { useContact } from "@/hooks/useContact";
+import Loading from "@/components/Loading";
+import { useFAQ } from "@/hooks/useFQA";
 
 const CustomerSupportScreen = () => {
     const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
-    const [message, setMessage] = useState('');
+    const { getContact , contactData, isLoading } = useContact();
+    const { getFAQ, faqData } = useFAQ();
+
+    useEffect(() => {
+        getContact();
+        getFAQ();
+    }, []);
 
     const handleCall = () => {
-        Linking.openURL('tel:+85512345678');
+        Linking.openURL(`tel:${contactData?.phone}`);
     };
 
     const handleEmail = () => {
-        Linking.openURL('mailto:support@tgevstation.com');
+        Linking.openURL(`mailto:${contactData?.email}`);
     };
 
     const handleWhatsApp = () => {
-        Linking.openURL('whatsapp://send?phone=85512345678');
-    };
-
-    const handleWebsite = () => {
-        Linking.openURL('https://www.tgevstation.com/support');
-    };
-
-    const handleSendMessage = () => {
-        if (!message.trim()) {
-            Alert.alert('Error', 'Please enter a message');
-            return;
-        }
-        console.log('Send message:', message);
-        Alert.alert('Success', 'Your message has been sent. We will get back to you soon!');
-        setMessage('');
+        const telegramUsername = contactData?.telegram?.replace('@', '');
+        Linking.openURL(`tg://resolve?domain=${telegramUsername}`);
     };
 
     const toggleFAQ = (index: number) => {
         setExpandedFAQ(expandedFAQ === index ? null : index);
     };
+
+    if(isLoading) return <Loading/>
 
     return (
         <BaseComponent isBack={true} title="Customer Support">
@@ -79,7 +52,6 @@ const CustomerSupportScreen = () => {
                     </Text>
                 </View>
 
-                {/* Contact Methods */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Contact Us</Text>
                     
@@ -89,8 +61,7 @@ const CustomerSupportScreen = () => {
                         </View>
                         <View style={styles.contactInfo}>
                             <Text style={styles.contactTitle}>Phone</Text>
-                            <Text style={styles.contactDetail}>+855 12 345 678</Text>
-                            <Text style={styles.contactTime}>Available 24/7</Text>
+                            <Text style={styles.contactDetail}>{contactData?.phone}</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                     </TouchableOpacity>
@@ -101,15 +72,13 @@ const CustomerSupportScreen = () => {
                         </View>
                         <View style={styles.contactInfo}>
                             <Text style={styles.contactTitle}>Telegram</Text>
-                            <Text style={styles.contactDetail}>+855 12 345 678</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                     </TouchableOpacity>
                 </View>
-                {/* FAQ Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
-                    {faqs.map((faq, index) => (
+                    {faqData?.map((faq, index) => (
                         <TouchableOpacity
                             key={index}
                             style={styles.faqCard}

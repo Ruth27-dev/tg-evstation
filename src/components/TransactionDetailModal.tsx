@@ -39,6 +39,27 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         }
     };
 
+     const getSymbolForTransaction = (type: string) => {
+        switch (type) {
+            case 'TOPUP':
+                return '+';
+            case 'CHARGE':
+                return '-';
+            default:
+                return '';
+        }
+    };
+
+    const itemStatus = (status:string) =>{
+         switch (status) {
+            case 'PENDING':
+                return '#FEF3C7';
+            case 'COMPLETED':
+                return Colors.secondaryColor;
+            default:
+                return '#EF4444';
+        }
+    }
     if (!transaction) return null;
 
     return (
@@ -53,7 +74,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     <ScrollView showsVerticalScrollIndicator={false}>
                         {/* Header */}
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Transaction Details</Text>
+                            {/* <Text style={styles.modalTitle}>Transaction Details</Text> */}
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Ionicons name="close" size={24} color={Colors.mainColor} />
                             </TouchableOpacity>
@@ -73,17 +94,17 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                             </View>
                             <Text style={[
                                 styles.modalAmount,
-                                { color: transaction.amount > 0 ? Colors.secondaryColor : '#EF4444' }
+                                { color: getTransactionColor(transaction.type) }
                             ]}>
-                                {`${transaction.amount > 0 ? '+' : ''}${transaction.amount.toFixed(2)} $`}
+                                {`${getSymbolForTransaction(transaction.type)}${transaction.amount.toFixed(2)} $`}
                             </Text>
                             <View style={[
                                 styles.modalStatusBadge,
-                                { backgroundColor: transaction.status === 'PENDING' ? '#FEF3C7' : `${Colors.secondaryColor}20` }
+                                { backgroundColor: itemStatus(transaction.status) }
                             ]}>
                                 <Text style={[
                                     styles.modalStatusText,
-                                    { color: transaction.status === 'PENDING' ? '#F59E0B' : Colors.secondaryColor }
+                                    { color: transaction.status === 'PENDING' ? '#F59E0B' : Colors.white }
                                 ]}>
                                     {transaction.status}
                                 </Text>
@@ -101,12 +122,10 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                                 <Text style={styles.detailLabel}>Type</Text>
                                 <Text style={styles.detailValue}>{transaction.type}</Text>
                             </View>
-
-                            <View style={styles.detailRow}>
+                            {/* <View style={styles.detailRow}>
                                 <Text style={styles.detailLabel}>External Reference</Text>
                                 <Text style={styles.detailValue}>{transaction.external_ref}</Text>
-                            </View>
-
+                            </View> */}
                             <View style={styles.detailRow}>
                                 <Text style={styles.detailLabel}>Date & Time</Text>
                                 <Text style={styles.detailValue}>
@@ -182,7 +201,6 @@ const styles = StyleSheet.create({
     modalAmount: {
         fontSize: 32,
         fontFamily: CustomFontConstant.EnBold,
-        fontWeight: '700',
         marginBottom: 12,
     },
     modalStatusBadge: {
@@ -193,7 +211,6 @@ const styles = StyleSheet.create({
     modalStatusText: {
         fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnBold,
-        fontWeight: '700',
         textTransform: 'uppercase',
     },
     detailsContainer: {

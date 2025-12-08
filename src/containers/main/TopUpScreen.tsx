@@ -16,7 +16,7 @@ const TopUpScreen = () => {
     const [showTermsModal, setShowTermsModal] = useState(false);
     
 
-    const quickAmounts = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100];
+    const quickAmounts = [5, 10, 20, 50, 100];
     const handleAmountSelect = (amount: number) => {
         setSelectedAmount(amount);
         setCustomAmount('');
@@ -73,7 +73,7 @@ const TopUpScreen = () => {
                                     styles.amountText,
                                     selectedAmount === amount && !customAmount && styles.amountTextSelected
                                 ]}>
-                                    ${amount?.toFixed(1)}
+                                    ${amount}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -107,7 +107,7 @@ const TopUpScreen = () => {
                 </View>
                 <View style={styles.bottomContainer}>
                     <CustomButton
-                        buttonTitle={`Continue ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount.toFixed(2)}` : ''}`}
+                        buttonTitle={`Continue ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount}` : ''}`}
                         buttonColor={selectedAmount && selectedAmount > 0  ? Colors.mainColor : Colors.gray}
                         onPress={handleTopUp}
                         disabled={!selectedAmount || selectedAmount <= 0}
@@ -206,8 +206,8 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     amountButton: {
-        width: '31%',
-        paddingVertical: 10,
+        width: '30%',
+        paddingVertical: 15,
         borderRadius: 5,
         backgroundColor: Colors.white,
         borderWidth: 1,

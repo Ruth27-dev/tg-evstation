@@ -8,6 +8,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Content, Charger, Connector } from "@/types";
 import { useStationStore } from "@/store/useStationStore";
+import { navigate } from "@/navigation/NavigationService";
 
 
 const StationDetailScreen = ({ route }: any) => {
@@ -108,7 +109,7 @@ const StationDetailScreen = ({ route }: any) => {
     return (
         <BaseComponent isBack={true} title="Station Details">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {/* Station Image */}
+                
                 <View style={styles.imageContainer}>
                     <Image source={{ uri: selectedStation?.image }} style={styles.stationImage} resizeMode="cover" />
                     <View style={styles.statusBadge}>
@@ -117,13 +118,11 @@ const StationDetailScreen = ({ route }: any) => {
                     </View>
                 </View>
 
-                {/* Station Info */}
                 <View style={styles.content}>
                     <View style={styles.headerSection}>
                         <Text style={styles.stationName}>{selectedStation?.name}</Text>
                     </View>
 
-                    {/* Quick Actions */}
                     <View style={styles.actionsContainer}>
                         <TouchableOpacity 
                             style={styles.actionButton} 
@@ -146,12 +145,12 @@ const StationDetailScreen = ({ route }: any) => {
                             </View>
                             <Text style={styles.actionText}>Call</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                        {/* <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
                             <View style={styles.actionIconContainer}>
                                 <MaterialIcons name="report" size={20} color={Colors.mainColor} />
                             </View>
                             <Text style={styles.actionText}>Report</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
 
                     {/* Location Info */}
@@ -163,8 +162,7 @@ const StationDetailScreen = ({ route }: any) => {
                         </View>
                     </View>
 
-                    {/* Amenities */}
-                    {amenitiesList.length > 0 && (
+                    {amenitiesList?.length > 0 && (
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Amenities</Text>
                             <View style={styles.amenitiesContainer}>
@@ -178,14 +176,12 @@ const StationDetailScreen = ({ route }: any) => {
                         </View>
                     )}
 
-                    {/* Charger Types */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Available Chargers</Text>
                         {processedChargers.map(renderChargerType)}
                     </View>
 
-                    {/* Start Charging Button */}
-                    <TouchableOpacity style={styles.startButton} activeOpacity={0.8}>
+                    <TouchableOpacity style={styles.startButton} activeOpacity={0.8} onPress={()=>navigate('Connector')}>
                         <MaterialCommunityIcons name="lightning-bolt" size={24} color={Colors.white} />
                         <Text style={styles.startButtonText}>Start Charging</Text>
                     </TouchableOpacity>

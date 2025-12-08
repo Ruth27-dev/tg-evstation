@@ -1,63 +1,78 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
-import MapView from 'react-native-maps';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import React, { useCallback, useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from "@/theme";
 import { safePadding } from "@/constants/GeneralConstants";
 import BaseComponent from "@/components/BaseComponent";
-import BalanceCard from "@/components/BalanceCard";
 import { useWallet } from "@/hooks/useWallet";
 import { useStation } from "@/hooks/useStation";
 import { Content } from "@/types";
 import useStoreLocation from "@/store/useStoreLocation";
-import StationMap from "./components/StationMap";
-import StationList from "./components/StationList";
 import { useStationSorting } from "./hooks/useStationSorting";
 import { useStationStore } from "@/store/useStationStore";
+import { navigate } from "@/navigation/NavigationService";
+import { useAuth } from "@/hooks/useAuth";
+import Loading from "@/components/Loading";
+import BalanceSection from "./components/BalanceSection";
+import PromotionSlider from "./components/PromotionSlider";
+import MenuGrid from "./components/MenuGrid";
 
 const HomeScreen = () => {
-    const mapRef = useRef<MapView>(null!);
+    const [activeSlide, setActiveSlide] = useState(0);
     const { getMeWallet, userWalletBalance } = useWallet();
-    const { getStation, stationData, isLoading } = useStation();
-    const { currentLocation } = useStoreLocation();
-    const { setSelectedStation,selectedStation } = useStationStore();
+    const { getStation, isLoading } = useStation();
+    const { fetchUser } = useAuth();
+
+    const promotions = [
+        {
+            id: 1,
+            title: "50% OFF First Charge",
+            subtitle: "New users only",
+            color: "#C9A961"
+        },
+        {
+            id: 2,
+            title: "Free Charging",
+            subtitle: "Top up $100 or more",
+            color: "#FFA500"
+        },
+        {
+            id: 3,
+            title: "Loyalty Rewards",
+            subtitle: "Earn points on every charge",
+            color: "#FF6B6B"
+        },
+    ];
+
+    const menuItems = [
+        { 
+            id: 1, 
+            name: 'Top Up', 
+            icon: 'wallet', 
+            color: '#10B981',
+            onPress: () => navigate('TopUp') 
+        },
+        { 
+            id: 2, 
+            name: 'History', 
+            icon: 'time', 
+            color: '#3B82F6',
+            onPress: () => navigate('History')
+        },
+        { 
+            id: 3, 
+            name: 'Find Station', 
+            icon: 'charging-station', 
+            color: '#F59E0B',
+            onPress: () => navigate('ListStation')
+        },
+    ];
 
     useEffect(() => {
         getMeWallet();
         getStation();
+        fetchUser();
     }, []);
-
-    const sortedStations = useStationSorting({ 
-        stations: stationData, 
-        currentLocation 
-    });
-
-    const handleMarkerPress = useCallback((station: Content) => {
-        setSelectedStation(station);
-        if (mapRef.current) {
-            mapRef.current.animateToRegion({
-                latitude: parseFloat(station.latitude),
-                longitude: parseFloat(station.longitude),
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
-            }, 500);
-        }
-    }, []);
-
-    const handleMyLocation = useCallback(() => {
-        if (currentLocation && mapRef.current) {
-            mapRef.current.animateToRegion({
-                latitude: currentLocation.latitude,
-                longitude: currentLocation.longitude,
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
-            }, 500);
-        }
-    }, [currentLocation]);
-
-    const handleStationPress = useCallback((station: Content) => {
-        setSelectedStation(station);
-    }, [handleMarkerPress]);
 
     const handleRefresh = useCallback(async () => {
         await Promise.all([
@@ -66,43 +81,32 @@ const HomeScreen = () => {
         ]);
     }, [getMeWallet, getStation]);
 
-    if(isLoading) return <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <ActivityIndicator size="large" color={Colors.mainColor} />
-    </View>
+    if(isLoading) return <Loading/>
 
     return (
        <BaseComponent isBack={false}>
-            <View style={styles.topCardContainer}>
-                <BalanceCard 
-                    amount={Number(userWalletBalance?.balance) || 0} 
-                    currency={userWalletBalance?.currency ?? '$'} 
-                />
-            </View>
-            <StationMap
-                mapRef={mapRef}
-                currentLocation={currentLocation}
-                stations={sortedStations}
-                selectedStation={selectedStation}
-                onMarkerPress={handleMarkerPress}
-            />
-            <TouchableOpacity 
-                style={styles.myLocationButton}
-                onPress={handleMyLocation}
+            <LinearGradient
+                colors={['#f5f5f5', '#ffffff', '#f0f0f0']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.headerGradient}
             >
-                <Ionicons name="locate" size={24} color={Colors.white} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-                style={styles.refreshButton}
-                onPress={handleRefresh}
-            >
-                <Ionicons name="refresh" size={24} color={Colors.white} />
-            </TouchableOpacity>
-            <StationList
-                stations={sortedStations}
-                selectedStation={selectedStation}
-                currentLocation={currentLocation}
-                onStationPress={handleStationPress}
-            />
+                <View style={{padding:safePadding}}>
+                    <BalanceSection 
+                        balance={Number(userWalletBalance?.balance) || 0}
+                        currency={userWalletBalance?.currency ?? '$'}
+                        onRefresh={handleRefresh}
+                    />
+
+                    <PromotionSlider 
+                        promotions={promotions}
+                        activeSlide={activeSlide}
+                        onSlideChange={setActiveSlide}
+                    />
+
+                    <MenuGrid menuItems={menuItems} />
+                </View>
+            </LinearGradient>
        </BaseComponent>
     );
 }
@@ -110,40 +114,7 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-    topCardContainer: {
-        position: 'relative',
-        top: 0,
-        left: 0,
-        right: 0,
-        paddingTop: 10,
-        zIndex: 1,
-    },
-    myLocationButton: {
-        position: 'absolute',
-        bottom: 310,
-        right: safePadding,
-        width: 40,
-        height: 40,
-        borderRadius: 28,
-        backgroundColor: Colors.secondaryColor,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    refreshButton: {
-        position: 'absolute',
-        bottom: 250,
-        right: safePadding,
-        width: 40,
-        height: 40,
-        borderRadius: 28,
-        backgroundColor: Colors.mainColor,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    loadingContainer: {
+    headerGradient: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F9FAFB',
     },
 });
