@@ -1,15 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import LinearGradient from 'react-native-linear-gradient';
-import { Colors } from "@/theme";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { safePadding } from "@/constants/GeneralConstants";
 import BaseComponent from "@/components/BaseComponent";
 import { useWallet } from "@/hooks/useWallet";
 import { useStation } from "@/hooks/useStation";
-import { Content } from "@/types";
-import useStoreLocation from "@/store/useStoreLocation";
-import { useStationSorting } from "./hooks/useStationSorting";
-import { useStationStore } from "@/store/useStationStore";
 import { navigate } from "@/navigation/NavigationService";
 import { useAuth } from "@/hooks/useAuth";
 import Loading from "@/components/Loading";
@@ -48,14 +42,14 @@ const HomeScreen = () => {
         { 
             id: 1, 
             name: 'Top Up', 
-            icon: 'wallet', 
+            icon: 'logo-usd', 
             color: '#10B981',
             onPress: () => navigate('TopUp') 
         },
         { 
             id: 2, 
             name: 'History', 
-            icon: 'time', 
+            icon: 'battery-charging', 
             color: '#3B82F6',
             onPress: () => navigate('History')
         },
@@ -85,28 +79,25 @@ const HomeScreen = () => {
 
     return (
        <BaseComponent isBack={false}>
-            <LinearGradient
-                colors={['#f5f5f5', '#ffffff', '#f0f0f0']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.headerGradient}
-            >
-                <View style={{padding:safePadding}}>
-                    <BalanceSection 
-                        balance={Number(userWalletBalance?.balance) || 0}
-                        currency={userWalletBalance?.currency ?? '$'}
-                        onRefresh={handleRefresh}
-                    />
+            <ScrollView style={{flex:1}} contentContainerStyle={{paddingBottom: 20,flexGrow:1}}>
+                <View style={styles.headerGradient}>
+                    <View style={{padding:safePadding}}>
+                        <BalanceSection 
+                            balance={Number(userWalletBalance?.balance) || 0}
+                            currency={userWalletBalance?.currency ?? '$'}
+                            onRefresh={handleRefresh}
+                        />
 
-                    <PromotionSlider 
-                        promotions={promotions}
-                        activeSlide={activeSlide}
-                        onSlideChange={setActiveSlide}
-                    />
+                        <PromotionSlider 
+                            promotions={promotions}
+                            activeSlide={activeSlide}
+                            onSlideChange={setActiveSlide}
+                        />
 
-                    <MenuGrid menuItems={menuItems} />
+                        <MenuGrid menuItems={menuItems} />
+                    </View>
                 </View>
-            </LinearGradient>
+            </ScrollView>   
        </BaseComponent>
     );
 }

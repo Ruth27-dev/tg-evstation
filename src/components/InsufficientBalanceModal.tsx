@@ -65,7 +65,6 @@ const InsufficientBalanceModal: React.FC<InsufficientBalanceModalProps> = ({
                         </View>
                     </View>
 
-                    {/* Info Box */}
                     <View style={styles.infoBox}>
                         <Ionicons name="information-circle" size={18} color={Colors.secondaryColor} />
                         <Text style={styles.infoText}>
@@ -73,7 +72,6 @@ const InsufficientBalanceModal: React.FC<InsufficientBalanceModalProps> = ({
                         </Text>
                     </View>
 
-                    {/* Buttons */}
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity 
                             style={styles.cancelButton}
@@ -88,15 +86,8 @@ const InsufficientBalanceModal: React.FC<InsufficientBalanceModalProps> = ({
                             onPress={onTopUp}
                             activeOpacity={0.8}
                         >
-                            <LinearGradient
-                                colors={[Colors.secondaryColor, Colors.secondaryColor]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={styles.topUpGradient}
-                            >
-                                <Ionicons name="add-circle" size={20} color="#fff" />
-                                <Text style={styles.topUpButtonText}>Top Up Now</Text>
-                            </LinearGradient>
+                            <Ionicons name="add-circle" size={20} color="#fff" />
+                            <Text style={styles.topUpButtonText}>Top Up</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -239,12 +230,12 @@ const styles = StyleSheet.create({
     cancelButton: {
         flex: 1,
         backgroundColor: Colors.backGroundColor,
-        paddingVertical: 14,
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
         borderColor: Colors.secondaryColor,
+        height:50
     },
     cancelButtonText: {
         fontSize: FontSize.medium,
@@ -255,6 +246,10 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: 12,
         overflow: 'hidden',
+        backgroundColor: Colors.mainColor,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     topUpGradient: {
         flexDirection: 'row',
@@ -265,7 +260,8 @@ const styles = StyleSheet.create({
     },
     topUpButtonText: {
         fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnBold,
+        fontFamily: CustomFontConstant.EnRegular,
         color: '#fff',
+        paddingLeft: 5
     },
 });

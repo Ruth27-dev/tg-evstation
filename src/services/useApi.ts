@@ -2,119 +2,194 @@ import * as Keychain from 'react-native-keychain';
 import DeviceInfo from 'react-native-device-info';
 
 export const BASE_URL = 'https://tgevstation.com/api/';
-
 const TIMEOUT = 60000;
 
 const getToken = async (): Promise<string | null> => {
   try {
-    const credentials = await Keychain.getGenericPassword();
-    return credentials ? credentials.password : null;
-  } catch (error) {
-    console.error('Error retrieving token:', error);
+    const creds = await Keychain.getGenericPassword();
+    return creds ? creds.password : null;
+  } catch (err) {
+    console.error('Token error:', err);
     return null;
   }
 };
 
-const getDeviceId = async (): Promise<string> => {
+const getDeviceId = async () => {
   try {
     return await DeviceInfo.getUniqueId();
-  } catch (error) {
-    console.error('Error retrieving device ID:', error);
+  } catch (e) {
     return '';
   }
 };
 
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-interface RequestType {
+interface RequestOptions {
   endpoint: string;
   method?: HTTPMethod;
-  body?: object;
+  body?: any;
   onError?: (err: any) => void;
 }
 
+
 const request = async ({
-  method = 'GET',
   endpoint,
+  method = 'GET',
   body,
   onError,
-}: RequestType) => {
-  const isFormData = body instanceof FormData;
-  const deviceId = await getDeviceId();
+}: RequestOptions) => {
+  const isForm = body instanceof FormData;
   const token = await getToken();
-  const headers: HeadersInit_ = {
-    'Cache-Control': 'no-cache',
+  const deviceId = await getDeviceId();
+
+  const headers: any = {
     Accept: 'application/json',
+    'Cache-Control': 'no-cache',
     'X-Device-Id': deviceId,
-    Authorization: token ? `Bearer ${token}` : '',
-    ...(isFormData
-      ? {'Content-Type': 'multipart/form-data'}
-      : {'Content-Type': 'application/json'}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(isForm ? {} : { 'Content-Type': 'application/json' }),
   };
 
+  // Timeout controller
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT);
+
+  const options: any = {
+    method,
+    headers,
+    signal: controller.signal,
+  };
+
+  if (method !== 'GET' && body) {
+    options.body = isForm ? body : JSON.stringify(body);
+  }
 
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method,
-      headers,
-      ...(body ? {body: isFormData ? body : JSON.stringify(body)} : {}),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    const responseData = await response.json();
+    const response = await fetch(`${BASE_URL}${endpoint}`, options);
+
+    clearTimeout(timeout);
+
+    const json = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const errorData = {
+      const errorPayload = {
         status: response.status,
-        message: responseData?.message || 'An error occurred',
-        data: responseData,
+        message: json?.message || 'Request failed',
+        data: json,
       };
-      onError?.(errorData);
-      return errorData;
+      onError?.(errorPayload);
+      return errorPayload;
     }
-    return {status: response.status, message: 'Success', data: responseData};
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    const errorData = {
-      status: 500,
+
+    return {
+      status: response.status,
+      message: 'Success',
+      data: json,
+    };
+  } catch (err: any) {
+    clearTimeout(timeout);
+
+    console.error('Network Request Error:', {
+      endpoint,
+      error: err?.message || err,
+      name: err?.name,
+      stack: err?.stack,
+    });
+
+    const errorPayload = {
+      status: 0,
       message:
-        error.name === 'AbortError' ? 'Request timeout' : 'Network error',
+        err?.name === 'AbortError'
+          ? 'Request timeout'
+          : err?.message || 'Network error (Request never reached server)',
       data: null,
     };
-    onError?.(errorData);
-    return errorData;
+
+    onError?.(errorPayload);
+    return errorPayload;
   }
 };
 
+/**
+ * --------------------------------------------------------------------
+ *  CLEAN API METHODS
+ * --------------------------------------------------------------------
+ */
 const api = {
-  get: (endpoint: string, body?: object, onError?: (err: any) => void) =>
-    request({method: 'GET', endpoint, body, onError}),
-  post: (endpoint: string, body?: object, onError?: (err: any) => void) =>
-    request({method: 'POST', endpoint, body, onError}),
-  put: (endpoint: string, body: object, onError?: (err: any) => void) =>
-    request({method: 'PUT', endpoint, body, onError}),
+  get: (endpoint: string, onError?: (err: any) => void) =>
+    request({ method: 'GET', endpoint, onError }),
+
+  post: (endpoint: string, body?: any, onError?: (err: any) => void) =>
+    request({ method: 'POST', endpoint, body, onError }),
+
+  put: (endpoint: string, body?: any, onError?: (err: any) => void) =>
+    request({ method: 'PUT', endpoint, body, onError }),
+
   delete: (endpoint: string, onError?: (err: any) => void) =>
-    request({method: 'DELETE', endpoint, onError}),
+    request({ method: 'DELETE', endpoint, onError }),
 };
 
-export const userLogin = (data: object, onError?: (err: any) => void) => api.post('v1/auth/login', data, onError);
-export const checkPhone = (data: object, onError?: (err: any) => void) => api.post('v1/auth/exist-phone-number', data, onError);
-export const userRegister = (data: object, onError?: (err: any) => void) => api.post('v1/auth/register', data, onError);
-export const fetchUserDetail = async (onError?: (err: any) => void) => api.get(`v1/users/me`, undefined, onError);
-export const fetchMeWallet = async (onError?: (err: any) => void) => api.post(`v1/wallet`, undefined, onError);
-export const fetchMeWalletTransactions = async (page: number = 0, onError?: (err: any) => void) => api.post(`v1/wallet/transactions?page=${page}&size=10`, {}, onError);
-export const fetchStation = async (data: object, onError?: (err: any) => void) => api.post(`v1/location/list`, data, onError);
-export const evtStart = async (data: object, onError?: (err: any) => void) => api.post(`v1/chargers/remote-start`, data, onError);
-export const evtStop = async (data: object, onError?: (err: any) => void) => api.post(`v1/chargers/remote-stop`, data, onError);
-export const chargingSessions = async (data: any, onError?: (err: any) => void) => api.post(`v1/chargers/charging-sessions/${data}`, onError);
 
-export const topUp = async (data: object, onError?: (err: any) => void) => api.post(`v1/wallet/topup`, data, onError);
-export const postLogout = (data: object, onError?: (err: any) => void) => api.post('v1/auth/logout', data, onError);
-export const fetchHistory = (data: object, onError?: (err: any) => void) => api.post('v1/chargers/charging-history', data, onError);
-export const updateMe = (data: object, onError?: (err: any) => void) => api.post('v1/users/me', data, onError);
-export const fetchContact = (onError?: (err: any) => void) => api.post('v1/lookup/contact-us', onError);
-export const fetchFAQ = (onError?: (err: any) => void) => api.post('v1/lookup/faq', onError);
+
+export const userLogin = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/auth/login', data, onError);
+
+export const checkPhone = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/auth/exist-phone-number', data, onError);
+
+export const userRegister = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/auth/register', data, onError);
+
+export const postLogout = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/auth/logout', data, onError);
+
+export const fetchUserDetail = (onError?: (err: any) => void) =>
+  api.get('v1/users/me', onError);
+
+export const updateMe = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/users/me', data, onError);
+
+
+export const fetchMeWallet = (onError?: (err: any) => void) =>
+  api.post('v1/wallet', {}, onError);
+
+export const fetchMeWalletTransactions = (
+  page = 0,
+  onError?: (err: any) => void,
+) =>
+  api.post(
+    `v1/wallet/transactions?page=${page}&size=10`,
+    {},
+    onError,
+  );
+
+export const topUp = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/wallet/topup', data, onError);
+
+export const verifyTransaction = (data: any,onError?: (err: any) => void) =>
+  api.post('v1/wallet/verify', data, onError);
+
+
+export const fetchStation = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/location/list', data, onError);
+
+
+export const evtStart = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/chargers/remote-start', data, onError);
+
+export const evtStop = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/chargers/remote-stop', data, onError);
+
+export const chargingSessions = (id: string, onError?: (err: any) => void) =>
+  api.post(`v1/chargers/charging-sessions/${id}`, {}, onError);
+
+export const fetchHistory = (data: any, onError?: (err: any) => void) =>
+  api.post('v1/chargers/charging-history', data, onError);
+
+export const fetchContact = (onError?: (err: any) => void) =>
+  api.post('v1/lookup/contact-us', {}, onError);
+
+export const fetchFAQ = (onError?: (err: any) => void) =>
+  api.post('v1/lookup/faq', {}, onError);
 
 export default api;

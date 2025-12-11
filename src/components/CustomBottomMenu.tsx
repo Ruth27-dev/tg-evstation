@@ -11,8 +11,14 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Colors } from '@/theme';
 import { CustomFontConstant, Images } from '@/constants/GeneralConstants';
+import { useEVStore } from '@/store/useEVStore';
+import { isEmpty } from 'lodash';
+import ChargingMiniPlayer from './ChargingMiniPlayer';
+import { navigate } from '@/navigation/NavigationService';
 
 const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
+    const { evConnect } = useEVStore();
+    const hasActiveCharging = !isEmpty(evConnect);
     
     // Remove useMemo and directly create menuData to ensure fresh translations
     const menuData = [
@@ -24,35 +30,48 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
     ];
 
     const renderButtonScan = useCallback((onPress: () => void, onLongPress: () => void, index: number, isFocused: boolean) => {
+        const handlePress = () => {
+            if (hasActiveCharging) {
+                navigate('ChargingDetail');
+            } else {
+                onPress();
+            }
+        };
+
         return (
-            <TouchableOpacity 
-                activeOpacity={0.7}
-                style={{
-                    width: 65,
-                    height: 65,
-                    backgroundColor: Colors.white,
-                    borderRadius: 35,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    bottom: 25,
-                    borderColor: Colors.secondaryColor,
-                    borderWidth: 2,
-                }}
-                onLongPress={onLongPress}
-                onPress={onPress}
-            >
-                <Image source={Images.logoNoBg} style={{ width: 55, height: 55 }} />
-            </TouchableOpacity>
+            <View>
+                <TouchableOpacity 
+                    activeOpacity={0.7}
+                    style={{
+                        width: 65,
+                        height: 65,
+                        backgroundColor: Colors.white,
+                        borderRadius: 35,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        bottom: 25,
+                        borderColor: Colors.secondaryColor,
+                        borderWidth: 2,
+                    }}
+                    onLongPress={onLongPress}
+                    onPress={handlePress}
+                >
+                    <Image source={Images.logoNoBg} style={{ width: 55, height: 55 }} />
+                </TouchableOpacity>
+               
+            </View>
         );
-    }, []); 
+    }, [hasActiveCharging]); 
 
     const translateY = useRef(new Animated.Value(0)).current;
 
     return (
-        <Animated.View 
-            style={[styles.container, { transform: [{ translateY }] }]}
-        >
-            {state?.routes?.map((route: any, index: any) => {
+        <>
+            <ChargingMiniPlayer />
+            <Animated.View 
+                style={[styles.container, { transform: [{ translateY }] }]}
+            >
+                {state?.routes?.map((route: any, index: any) => {
                 const { options } = descriptors[route.key];
                 const label = options?.tabBarLabel ?? options.title ?? route.name;
                 const isFocused = state?.index === index;
@@ -95,7 +114,8 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
                     </TouchableOpacity>
                 );
             })}
-        </Animated.View>
+            </Animated.View>
+        </>
     );
 };
 
@@ -126,6 +146,30 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    badge: {
+        position: 'absolute',
+        top: -10,
+        right: 5,
+        backgroundColor: '#10b981',
+        borderRadius: 12,
+        width: 24,
+        height: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    badgeDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#fff',
     },
 });
 

@@ -32,7 +32,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.437520296446-gjd43eh297pq760gqfo7c9qelbis8bda</string>
+				<string>tgevstation</string>
 			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string></string>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>

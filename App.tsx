@@ -36,12 +36,25 @@ function App() {
     };
   }, []);
 
+  const linking = {
+    prefixes: [
+      "myapp://",
+      "https://tgevstation.com",
+    ],
+    config: {
+      screens: {
+        Main: "main",
+        PaymentSuccess: "payment-success",
+      },
+    },
+  };
+
   return (
     <SafeAreaProvider>
       <AuthProvider>
         <ToastProvider>
           <WebSocketProvider>
-             <NavigationContainer ref={navigationRef}>
+             <NavigationContainer ref={navigationRef} linking={linking}>
               <StatusBar barStyle="dark-content" />
               <RouteContainer />
             </NavigationContainer>

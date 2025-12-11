@@ -28,7 +28,7 @@ interface PaymentMethodScreenProps {
 const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
     const [showTermsModal, setShowTermsModal] = useState(false);
-    const { postTopUp } = useTopUp();
+    const { postTopUp ,isLoading } = useTopUp();
     
     const amount = route?.params?.amount || 0;
 
@@ -120,6 +120,7 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
                     buttonColor={selectedMethod ? Colors.mainColor : Colors.gray}
                     onPress={handleContinue}
                     disabled={!selectedMethod}
+                    isLoading={isLoading}
                 />
             </View>
         </BaseComponent>
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
         color: '#697386',
     },
     methodDescriptionDisabled: {
-        color: '#D1D5DB',
+        color: Colors.gray,
     },
     checkIcon: {
         marginLeft: 8,

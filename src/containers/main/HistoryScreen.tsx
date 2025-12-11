@@ -145,10 +145,10 @@ const HistoryScreen = () => {
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.receiptButton} onPress={()=>navigate('HistoryDetail')}>
+                <View style={styles.receiptButton}>
                     <Ionicons name="receipt-outline" size={16} color={Colors.mainColor} />
                     <Text style={styles.receiptText}>View Details</Text>
-                </TouchableOpacity>
+                </View>
             </TouchableOpacity>
         );
     };

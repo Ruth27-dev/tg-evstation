@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { View, ScrollView, Image, StyleSheet, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from '@/theme';
+import { screenSizes } from '@/constants/GeneralConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
         width: width - 42,
         marginRight: 0,
         borderRadius: 10,
-        minHeight: 220,
+        minHeight: screenSizes.height * 0.25,
         position: 'relative',
         overflow: 'hidden',
     },
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 20,
         width: '100%',
-        height: 220,
+        height: screenSizes.height * 0.25,
     },
     promoImage: {
         width: '100%',

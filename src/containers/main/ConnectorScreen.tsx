@@ -22,30 +22,41 @@ const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 
 const ConnectorScreen = () => {
     const { hasPermission, requestPermission } = useCameraPermission();
-    const device: any = useCameraDevice('back');
+    const device = useCameraDevice('back', {
+        physicalDevices: ['ultra-wide-angle-camera', 'wide-angle-camera', 'telephoto-camera']
+    });
     const [flash, setFlash] = useState(false);
     const [scannedCode, setScannedCode] = useState<string | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [showBalanceModal, setShowBalanceModal] = useState(false);
+    const [isCameraActive, setIsCameraActive] = useState(false);
     const { postStart, isLoading,evConnect } = useEVConnector();
     const camera = useRef(null);
     const { userData } = useMeStore();
     const { userWalletBalance } = useWalletStore();
 
     useEffect(() => {
-        if (!hasPermission) requestPermission();
+        if (!hasPermission) {
+            requestPermission();
+        }
     }, [hasPermission]);
 
+    useEffect(() => {
+        // Activate camera only when we have both permission and device
+        if (hasPermission && device) {
+            setIsCameraActive(true);
+        }
+        return () => {
+            setIsCameraActive(false);
+        };
+    }, [hasPermission, device]);
     const checkBalanceAndStartCharging = async (qrCode: string) => {
-        const balance = userWalletBalance?.balanceCents || 0;
         
-        if (balance < 1) {
+        if (Number(userWalletBalance?.balance) < 0.10) {
             setShowBalanceModal(true);
             setScannedCode(null);
             return;
         }
-
-        // Proceed with charging if balance is sufficient
         postStart(qrCode, String(userData?.phone_number));
     };
 
@@ -67,51 +78,48 @@ const ConnectorScreen = () => {
             }
         }
     })
-    useEffect(() => {
-        if(!isEmpty(evConnect)){
-            // navigate('ChargingDetail');
-        }
-    }, [evConnect]);
 
     if(isLoading) return <Loading/>
+    
+    if (!hasPermission) {
+        return (
+            <BaseComponent isBack={false}>
+                <View style={styles.container}>
+                    <Text style={styles.instruction}>Camera permission is required to scan QR codes</Text>
+                </View>
+            </BaseComponent>
+        );
+    }
+
+    if (!device) {
+        return (
+            <BaseComponent isBack={false}>
+                <View style={styles.container}>
+                    <Text style={styles.instruction}>No camera device found</Text>
+                </View>
+            </BaseComponent>
+        );
+    }
 
     return (
         <BaseComponent isBack={false}>
             <View style={styles.container}>
                 <View style={styles.scannerContainer}>
                     <View style={styles.scanFrame}>
-                        {device && device !== null ? (
+                        {device && hasPermission && (
                             <Camera
                                 ref={camera}
                                 style={styles.camera}
                                 device={device}
-                                isActive={true}
+                                isActive={isCameraActive}
                                 torch={flash ? 'on' : 'off'}
                                 codeScanner={codeScanner}
                             />
-                        ) : (
-                            <View style={styles.placeholderContainer}>
-                                <MaterialCommunityIcons 
-                                    name="qrcode-scan" 
-                                    size={100} 
-                                    color={Colors.mainColor}
-                                    style={{ opacity: 0.3 }}
-                                />
-                            </View>
                         )}
                         <View style={styles.scanBorder} />
                     </View>
-
                     <Text style={styles.instruction}>Position QR code in center</Text>
-                    {scannedCode && (
-                        <View style={styles.successBadge}>
-                            <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-                            <Text style={styles.successText}>Scanned Successfully</Text>
-                        </View>
-                    )}
                 </View>
-
-                {/* Flash Button */}
                 <TouchableOpacity 
                     style={[styles.flashButton, flash && styles.flashActive]}
                     onPress={() => setFlash(!flash)}
@@ -134,7 +142,6 @@ const ConnectorScreen = () => {
                     </Text>
                 </TouchableOpacity>
 
-                {/* Insufficient Balance Modal */}
                 <InsufficientBalanceModal
                     visible={showBalanceModal}
                     currentBalance={userWalletBalance?.balance || '0.00'}

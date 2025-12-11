@@ -7,6 +7,7 @@ import { getAuth, signInWithPhoneNumber } from '@react-native-firebase/auth';
 import * as Keychain from 'react-native-keychain';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DeviceInfo from "react-native-device-info";
+import { useEVStore } from "@/store/useEVStore";
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -15,7 +16,7 @@ export const useAuth = () => {
     const [isRequesting, setIsRequesting] = useState(false);
     const { setUserData } = useMeStore();
     const { setIsUserLogin } = useAuthStore();
-
+    const { clearEvConnect, clearSessionDetail } = useEVStore();
 
     const login = useCallback(async (phoneNumber: string, password: string) => {
         setIsLoading(true);
@@ -146,6 +147,8 @@ export const useAuth = () => {
         if(res?.data?.code === '000'){
             setUserData(null);
             setIsUserLogin(false);
+            clearEvConnect();
+            clearSessionDetail();
             await Keychain.resetGenericPassword();
             await AsyncStorage.clear();
             reset('Login');

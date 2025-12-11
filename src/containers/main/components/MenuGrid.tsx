@@ -30,7 +30,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ menuItems }) => {
                         activeOpacity={0.7}
                     >
                        
-                        <Ionicons name={item.icon as any} size={50} color={Colors.mainColor} />
+                        <Ionicons name={item.icon as any} size={35} color={Colors.mainColor} />
                         <View style={styles.menuGoldBorder} />
                         <Text style={styles.menuText}>{item.name}</Text>
                     </TouchableOpacity>
@@ -45,7 +45,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ menuItems }) => {
                         activeOpacity={0.7}
                     >
                         
-                        <FontAwesome5 name={menuItems[2].icon as any} size={60} color={Colors.mainColor} />
+                        <FontAwesome5 name={menuItems[2].icon as any} size={50} color={Colors.mainColor} />
                         <View style={styles.menuGoldBorder} />
                         <Text style={styles.menuTextLarge}>{menuItems[2].name}</Text>
                     </TouchableOpacity>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     },
     menuIconSmall: {
         width: '48%',
-        height: 100,
+        height: 80,
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     },
     menuIconLarge: {
         width: '100%',
-        height: 140,
+        height: 100,
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',

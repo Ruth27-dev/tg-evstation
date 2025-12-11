@@ -1,10 +1,8 @@
 import React, {useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import SplashScreen from '@/containers/SplashScreen';
 import LoginScreen from '@/containers/LoginScreen';
-import BaseViewScreen from '@/containers/BaseViewScreen';
 import ForgetPasswordScreen from '@/containers/ForgetPasswordScreen';
 import VerifyScreen from '@/containers/VerifyScreen';
 import RegisterScreen from '@/containers/RegisterScreen';
@@ -36,6 +34,7 @@ import PreparingChargingScreen from '@/containers/charging/PreparingChargingScre
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
 const MainStackContainer = () => {
   return (
     <>
@@ -56,7 +55,6 @@ const MainStackContainer = () => {
         <Stack.Screen name={'Register'} component={RegisterScreen} />
         <Stack.Screen name={'CreateAccount'} component={CreateAccountScreen} />
         <Stack.Screen name={'Main'} component={BottomTabContainer} />
-        <Stack.Screen name={'BaseViewScreen'} component={BaseViewScreen} />
         <Stack.Screen name={'StationDetail'} component={StationDetailScreen} />
         <Stack.Screen name={'HistoryDetail'} component={HistoryDetailScreen} />
         <Stack.Screen name={'ProfileScreen'} component={ProfileScreen} />

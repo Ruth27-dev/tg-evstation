@@ -61,6 +61,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     ws.current.onopen = () => {
       setConnected(true);
+      
+      // Check if there's an active charging session when reconnecting
+      if (!isEmpty(evConnect) && evConnect?.session_id) {
+        const sessionId = evConnect.session_id;
+        getSessionDetail(sessionId);
+      }
     };
     ws.current.onmessage = (event) => {
 		// console.log("RAW MESSAGE:", event.data);

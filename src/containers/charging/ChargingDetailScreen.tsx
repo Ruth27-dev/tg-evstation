@@ -88,7 +88,7 @@ const ChargingDetailScreen = () => {
     }, [sessionDetail?.current_soc]);
 
     const formatTimeRemaining = () => {
-        const mins = 81;
+        const mins = sessionDetail?.minutes_remaining;
         if (mins == null) return null;
 
         const hours = Math.floor(mins / 60);
@@ -191,7 +191,7 @@ const ChargingDetailScreen = () => {
                     <View style={styles.statCard}>
                         <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.secondaryColor} />
                         <Text style={styles.statLabel}>Est. Finish Time</Text>
-                        <Text style={styles.statValue}>{sessionDetail?.minutes_remaining?estimatedTimeRemaining: "N/A"}</Text>
+                        <Text style={styles.statValue}>{!sessionDetail?.minutes_remaining? estimatedTimeRemaining: "N/A"}</Text>
                     </View>
 
                     <View style={styles.statCard}>
@@ -202,7 +202,7 @@ const ChargingDetailScreen = () => {
                     </View>
 
                     <View style={styles.statCard}>
-                        <MaterialCommunityIcons name="speedometer-outline" size={28} color={Colors.secondaryColor} />
+                        <Ionicons name="speedometer-outline" size={28} color={Colors.secondaryColor} />
                         <Text style={styles.statLabel}>Status</Text>
                         <Text style={[styles.statValue, { fontSize: FontSize.medium }]}>{sessionDetail?.status || 'N/A'}</Text>
                     </View>
@@ -316,11 +316,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     chargingLottie: {
-        width: 80,
-        height: 80,
+        width: 70,
+        height: 70,
     },
     percentageText: {
-        fontSize: 48,
+        fontSize: 40,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
         marginTop: 8,
