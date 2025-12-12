@@ -1,33 +1,53 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, AppState, BackHandler, Linking, View} from 'react-native';
 import {WebView} from 'react-native-webview';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect } from '@react-navigation/native';
 import { Colors } from '@/theme';
 import BaseComponent from '@/components/BaseComponent';
+import { useTransactionPolling } from '@/context/TransactionPollingProvider';
 
 
 const KHQRViewScreen = (props: any) => {
   const {source, setIsPay} = props.route.params;
-  const isFocused = useIsFocused();
+  const { stopPolling, checkTransactionNow } = useTransactionPolling();
+  const appStateRef = useRef(AppState.currentState);
 
-  const handledSuccessRef = useRef(false);           // persist across renders
-  const mountedRef = useRef(true);
+  // Listen to app state changes (when user returns from banking app)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // App has come to foreground - check transaction status immediately
+        console.log('App returned to foreground, checking transaction status');
+        checkTransactionNow();
+      }
+      appStateRef.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
-    mountedRef.current = true;
-    const sub = AppState.addEventListener('change', (state) => {
-    });
     return () => {
-      mountedRef.current = false;
-      sub.remove();
+      // Stop polling when user leaves the screen
+      console.log('Leaving KHQR screen, stopping transaction polling');
+      stopPolling();
     };
-  }, [isFocused]); // ok if it re-subscribes when coming back to this screen
+  }, []); // Empty dependency array - only run on mount/unmount
 
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        try { setIsPay?.(true); } catch {}
-        return true;
+        try { 
+          setIsPay?.(true); 
+          stopPolling();
+
+        } catch {}
+        return false;
       };
       const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
       return () => sub.remove();
@@ -35,7 +55,9 @@ const KHQRViewScreen = (props: any) => {
   );
 
   return (
-    <BaseComponent isBack={true}>
+    <BaseComponent 
+      isBack={true}
+    >
         <WebView
             originWhitelist={['*']}
             javaScriptEnabled
@@ -53,6 +75,7 @@ const KHQRViewScreen = (props: any) => {
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
         />
+       
     </BaseComponent>
   );
 };

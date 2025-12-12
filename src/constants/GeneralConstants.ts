@@ -8,6 +8,7 @@ export const StorageKey = {
     notificationPermission: "notification-permission",
     printer: "printer-storage",
     ev: "ev-storage",
+    transactionId: "transaction-id-storage",
 }
 
 export const screenSizes = {

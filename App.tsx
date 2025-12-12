@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import FirebaseMessagingService from '@/services/FirebaseMessagingService';
 import DeviceRegistrationService from '@/services/DeviceRegistrationService';
 import { WebSocketProvider } from '@/context/WebSocketProvider';
+import { TransactionPollingProvider } from '@/context/TransactionPollingProvider';
 import { useNetworkConnection } from '@/hooks/useNetworkConnection';
 import NoInternet from '@/components/NoInternet';
 
@@ -54,10 +55,12 @@ function App() {
       <AuthProvider>
         <ToastProvider>
           <WebSocketProvider>
-             <NavigationContainer ref={navigationRef} linking={linking}>
-              <StatusBar barStyle="dark-content" />
-              <RouteContainer />
-            </NavigationContainer>
+            <TransactionPollingProvider>
+              <NavigationContainer ref={navigationRef} linking={linking}>
+                <StatusBar barStyle="dark-content" />
+                <RouteContainer />
+              </NavigationContainer>
+            </TransactionPollingProvider>
           </WebSocketProvider>
           {!isConnected && (<NoInternet/>)}
         </ToastProvider>
