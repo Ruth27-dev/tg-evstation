@@ -27,7 +27,6 @@ export const TransactionPollingProvider: React.FC<TransactionPollingProviderProp
 
   // Stop polling function
   const stopPolling = () => {
-    console.log('Stopping transaction polling');
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
@@ -55,7 +54,7 @@ export const TransactionPollingProvider: React.FC<TransactionPollingProviderProp
         console.log('Transaction status:', data?.status);
 
         // Check if payment is approved
-        if (data?.status === 'APPROVED') {
+        if (data?.status === 'APPROVED' || data?.status === 'COMPLETED') {
           console.log('Transaction APPROVED via polling, stopping');
           stopPolling();
           getMeWallet();
@@ -117,10 +116,8 @@ export const TransactionPollingProvider: React.FC<TransactionPollingProviderProp
     };
   }, []);
 
-  // Expose checkTransactionStatus for manual checks
   const checkTransactionNow = () => {
     if (transactionIdRef.current) {
-      console.log('Manual transaction check triggered');
       checkTransactionStatus();
     }
   };

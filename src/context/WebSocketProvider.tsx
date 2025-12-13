@@ -5,6 +5,7 @@ import { useEVStore } from '@/store/useEVStore';
 import { isEmpty } from 'lodash';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as Keychain from 'react-native-keychain';
+import { AppState, AppStateStatus } from 'react-native';
 
 interface WSMessage {
   type: string;
@@ -43,6 +44,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const { getMeWallet, getMeTransactions } = useWallet();
   const { clearEvConnect, setSessionDetail, clearSessionDetail,sessionDetail,evConnect } = useEVStore();
   const { getSessionDetail } = useEVConnector();
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   
   useEffect(() => {
     const fetchToken = async () => {
@@ -52,6 +54,29 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     fetchToken();
   }, []);
+
+  // Listen to AppState changes - check session when app becomes active
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // App has come to foreground - check if there's an active session
+        console.log('App returned to foreground, checking active session');
+        if (!isEmpty(evConnect) && evConnect?.session_id) {
+          const sessionId = evConnect.session_id;
+          console.log('Fetching session detail for:', sessionId);
+          getSessionDetail(sessionId);
+        }
+      }
+      appStateRef.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [evConnect, getSessionDetail]);
 
   const connect = () => {
     if (!accessToken) return;

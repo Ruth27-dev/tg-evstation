@@ -19,8 +19,6 @@ const KHQRViewScreen = (props: any) => {
         appStateRef.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        // App has come to foreground - check transaction status immediately
-        console.log('App returned to foreground, checking transaction status');
         checkTransactionNow();
       }
       appStateRef.current = nextAppState;

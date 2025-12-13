@@ -21,6 +21,9 @@ import EnglishIcon from '@/assets/icon/en.svg';
 import ChinaIcon from '@/assets/icon/china.svg';
 import AppLogo from '@/assets/logo/logo.svg';
 import { cleanPhoneNumber, validatePhoneNumber } from '@/utils';
+import { useTranslation } from '@/hooks/useTranslation';
+import TextTranslation from '@/components/TextTranslation';
+import { useLanguageStore } from '@/store/useTranslateStore';
 
 interface LoginFormData {
   phone: string;
@@ -36,7 +39,9 @@ const LoginScreen = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [isOTPLoading, setIsOTPLoading] = useState(false);
   const [countryCode, setCountryCode] = useState('+855');
-
+  const { t, currentLanguage } = useTranslation();
+  const { setAppLanguage } = useLanguageStore();
+  
 	const languageModalRef = useRef<{
 		showModal: () => void;
 		hideModal: () => void;
@@ -64,6 +69,22 @@ const LoginScreen = () => {
 		setCountryCode(country.dial_code);
 	}
 
+	const handleLanguageChange = (langCode: string) => {
+		setAppLanguage(langCode);
+		languageModalRef?.current?.hideModal();
+	};
+
+	const getLanguageIcon = () => {
+		switch (currentLanguage) {
+			case 'kh':
+				return <KhmerIcon width={30} height={30} />;
+			case 'zh':
+				return <ChinaIcon width={30} height={30} />;
+			default:
+				return <EnglishIcon width={30} height={30} />;
+		}
+	};
+
 	const renderTranslateIcon = useCallback(() => {
 		return (
 		<TouchableOpacity
@@ -71,11 +92,11 @@ const LoginScreen = () => {
 			onPress={() => languageModalRef?.current?.showModal()}
 			style={styles.languageButton}
 		>
-			<KhmerIcon width={30} height={30}/>
+			{getLanguageIcon()}
 			<Ionicons name="chevron-down" size={20} color={Colors.mainColor} />
 		</TouchableOpacity>
 		);
-	}, []);
+	}, [currentLanguage]);
 
 	const renderLang = useMemo(
 		() => (
@@ -94,7 +115,7 @@ const LoginScreen = () => {
 					onPress={(e) => e.stopPropagation()}
 				>
 				<View style={styles.modalHeader}>
-					<Text style={styles.modalTitle}>Select Language</Text>
+					<Text style={styles.modalTitle}>{t('profile.selectLanguage')}</Text>
 					<TouchableOpacity 
 						onPress={() => languageModalRef?.current?.hideModal()}
 						style={styles.closeButton}
@@ -103,35 +124,56 @@ const LoginScreen = () => {
 					</TouchableOpacity>
 				</View>
 				
-				<TouchableOpacity style={[styles.languageOption, styles.languageOptionActive]}>
+				<TouchableOpacity 
+					style={[styles.languageOption, currentLanguage === 'kh' && styles.languageOptionActive]}
+					onPress={() => handleLanguageChange('kh')}
+				>
 					<View style={styles.languageOptionLeft}>
 						<KhmerIcon width={30} height={30} />
 						<Text style={styles.languageOptionText}>ភាសាខ្មែរ (Khmer)</Text>
 					</View>
-					<Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
+					{currentLanguage === 'kh' ? (
+						<Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
+					) : (
+						<View style={styles.checkmarkPlaceholder} />
+					)}
 				</TouchableOpacity>
 				
-				<TouchableOpacity style={styles.languageOption}>
+				<TouchableOpacity 
+					style={[styles.languageOption, currentLanguage === 'en' && styles.languageOptionActive]}
+					onPress={() => handleLanguageChange('en')}
+				>
 					<View style={styles.languageOptionLeft}>
 						<EnglishIcon width={30} height={30}/>
 						<Text style={[styles.languageOptionText, styles.englishText]}>English</Text>
 					</View>
-					<View style={styles.checkmarkPlaceholder} />
+					{currentLanguage === 'en' ? (
+						<Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
+					) : (
+						<View style={styles.checkmarkPlaceholder} />
+					)}
 				</TouchableOpacity>
 
-				<TouchableOpacity style={styles.languageOption}>
+				<TouchableOpacity 
+					style={[styles.languageOption, currentLanguage === 'zh' && styles.languageOptionActive]}
+					onPress={() => handleLanguageChange('zh')}
+				>
 					<View style={styles.languageOptionLeft}>
 						<ChinaIcon width={30} height={30} />
-						<Text style={[styles.languageOptionText, styles.englishText]}>Chinese</Text>
+						<Text style={[styles.languageOptionText, styles.englishText]}>中文 (Chinese)</Text>
 					</View>
-					<View style={styles.checkmarkPlaceholder} />
+					{currentLanguage === 'zh' ? (
+						<Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
+					) : (
+						<View style={styles.checkmarkPlaceholder} />
+					)}
 				</TouchableOpacity>
 
 				</TouchableOpacity>
 			</TouchableOpacity>
 			}
 		/>
-		),[]
+		),[currentLanguage]
 	);
 
 	return (
@@ -163,8 +205,8 @@ const LoginScreen = () => {
 
 						<View style={styles.headerSection}>
 							<AppLogo width={180} height={180} />
-							<Text style={styles.welcomeTitle}>Welcome Back</Text>
-							<Text style={styles.welcomeSubtitle}>Sign in to continue</Text>
+              <TextTranslation textKey="common.welcome" fontSize={32} isBold />
+              <TextTranslation textKey="common.signInToContinue" fontSize={FontSize.medium} />
 						</View>
 
 						<View style={styles.formContainer}>

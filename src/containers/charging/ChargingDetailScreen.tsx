@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Animated, ScrollView, TouchableOpacity, Alert, AppState, AppStateStatus } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -30,6 +30,7 @@ const ChargingDetailScreen = () => {
     const ws = useRef<WebSocket | null>(null);
     const [connected, setConnected] = useState(false);
     const [accessToken, setAccessToken] = useState<string | null>(null);
+    const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
     // Get access token
     useEffect(() => {
@@ -46,12 +47,19 @@ const ChargingDetailScreen = () => {
         getAccessToken();
     }, []);
 
-    useEffect(() => {
+    const connectWebSocket = () => {
         if (!accessToken) return;
+        
+        if (ws.current && ws.current.readyState !== WebSocket.CLOSED) {
+            ws.current.close();
+        }
+
         const url = `wss://tgevstation.com/ws/mobile?token=${accessToken}`;
+        console.log('Connecting to WebSocket...');
         ws.current = new WebSocket(url);
 
         ws.current.onopen = () => {
+            console.log('WebSocket connected');
             setConnected(true);
         };
 
@@ -70,12 +78,53 @@ const ChargingDetailScreen = () => {
             }
         };
 
+        ws.current.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        ws.current.onclose = () => {
+            console.log('WebSocket disconnected');
+            setConnected(false);
+        };
+    };
+
+    useEffect(() => {
+        if (accessToken) {
+            connectWebSocket();
+        }
+
         return () => {
             if (ws.current) {
                 ws.current.close();
             }
         };
-    }, [accessToken,connected]);
+    }, [accessToken]);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (
+                appStateRef.current.match(/inactive|background/) &&
+                nextAppState === 'active'
+            ) {
+                console.log('App returned to foreground, refreshing charging session');
+                
+                if (accessToken) {
+                    console.log('Reconnecting WebSocket...');
+                    connectWebSocket();
+                }
+                
+                if (!isEmpty(evConnect) && sessionId) {
+                    console.log('Fetching session detail for:', sessionId);
+                    getSessionDetail(sessionId);
+                }
+            }
+            appStateRef.current = nextAppState;
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [evConnect, sessionId, getSessionDetail, accessToken]);
 
     useEffect(() => {
         if (sessionDetail?.current_soc) {
