@@ -86,7 +86,7 @@ const HistoryScreen = () => {
             <TouchableOpacity 
                 style={styles.historyCard} 
                 activeOpacity={0.7} 
-                onPress={() => navigate('HistoryDetail', { session: item })}
+                onPress={() => navigate('HistoryDetail', { sessionId: item.session_id })}
             >
                 <View style={styles.cardHeader}>
                     <View style={styles.headerLeft}>

@@ -20,7 +20,9 @@
     "submit": "Submit",
     "error": "Error",
     "success": "Success",
-    "signInToContinue": "Sign in to continue"
+    "signInToContinue": "Sign in to continue",
+    "chooseYourLanguage" : "Choose Your Language",
+    "selectYourPreferredLanguage" : "Select your preferred language for the app interface"
   },
   "auth": {
     "login": "Login",
@@ -56,7 +58,8 @@
     "paymentSuccess": "Payment Success",
     "topUpSuccess": "Top-up successful",
     "insufficientBalance": "Insufficient Balance",
-    "pleaseTopUp": "Please top up your wallet to continue"
+    "pleaseTopUp": "Please top up your wallet to continue",
+    "totalBalance": "Total Balance"
   },
   "charging": {
     "charging": "Charging",
@@ -102,13 +105,18 @@
     "settings": "Settings",
     "language": "Language",
     "selectLanguage": "Select your preferred language",
+    "changePassword": "Change Password",
+    "changeLanguage": "Change Language",
     "notifications": "Notifications",
     "helpSupport": "Help & Support",
     "termsConditions": "Terms & Conditions",
     "privacyPolicy": "Privacy Policy",
     "aboutUs": "About Us",
     "version": "Version",
-    "contactUs": "Contact Us"
+    "contactUs": "Contact Us",
+    "accountSettings": "Account Settings",
+    "support" : "Support & Information",
+    "deleteAccount": "Delete Account"
   },
   "notifications": {
     "chargingStarted": "Charging has started",
@@ -126,5 +134,14 @@
     "unknownError": "An unknown error occurred",
     "permissionDenied": "Permission denied",
     "cameraPermission": "Camera permission is required to scan QR codes"
+  },
+  "header": {
+    "changeLanguage": "Change Language"
+  },
+  "menu": {
+    "home": "Home",
+    "history": "History",
+    "wallet": "Wallet",
+    "profile": "Profile"
   }
 }

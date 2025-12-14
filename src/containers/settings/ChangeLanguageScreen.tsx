@@ -1,59 +1,51 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
+import React, { JSX, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Colors } from "@/theme";
-import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
+import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomButton from "@/components/CustomButton";
+import KhmerIcon from '@/assets/icon/kh.svg';
+import EnglishIcon from '@/assets/icon/en.svg';
+import ChinaIcon from '@/assets/icon/china.svg';
+import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguageStore } from "@/store/useTranslateStore";
+import TextTranslation from "@/components/TextTranslation";
 
 interface Language {
     code: string;
     name: string;
     nativeName: string;
-    icon: string;
+    icon: JSX.Element;
 }
 
 const languages: Language[] = [
-    { code: 'km', name: 'Khmer', nativeName: 'ភាសាខ្មែរ', icon: '🇰🇭' },
-    { code: 'en', name: 'English', nativeName: 'English', icon: '🇺🇸' },
-    { code: 'zh', name: 'Chinese', nativeName: '中文', icon: '🇨🇳' },
+    { code: 'kh', name: 'Khmer', nativeName: 'ភាសាខ្មែរ', icon: <KhmerIcon width={40} height={40} /> },
+    { code: 'en', name: 'English', nativeName: 'English', icon: <EnglishIcon width={40} height={40} /> },
+    { code: 'zh', name: 'Chinese', nativeName: '中文', icon: <ChinaIcon width={40} height={40} /> },
 ];
 
 const ChangeLanguageScreen = () => {
-    const [selectedLanguage, setSelectedLanguage] = useState('en');
-    const [tempSelectedLanguage, setTempSelectedLanguage] = useState('en');
-
-    const handleSave = () => {
-        setSelectedLanguage(tempSelectedLanguage);
-        console.log('Language changed to:', tempSelectedLanguage);
-        // Call API or update i18n configuration
-        Alert.alert(
-            'Success',
-            'Language has been changed successfully. App will reload.',
-            [
-                {
-                    text: 'OK',
-                    onPress: () => {
-                        // Reload app or update language context
-                    }
-                }
-            ]
-        );
-    };
-
+    const { t, currentLanguage } = useTranslation();
+    const { setAppLanguage } = useLanguageStore();
+      
+    const handleChangeLanguage = (languageCode: string) => {
+        setAppLanguage(languageCode);
+    }
+    
     const renderLanguageCard = (language: Language) => {
-        const isSelected = tempSelectedLanguage === language.code;
+        const isSelected = currentLanguage === language.code;
         
         return (
             <TouchableOpacity
                 key={language.code}
                 style={[styles.languageCard, isSelected && styles.languageCardSelected]}
-                onPress={() => setTempSelectedLanguage(language.code)}
+                onPress={() => handleChangeLanguage(language.code)}
                 activeOpacity={0.7}
             >
                 <View style={styles.languageContent}>
                     <View style={styles.languageLeft}>
-                        <Text style={styles.languageIcon}>{language.icon}</Text>
+                        {language.icon}
                         <View style={styles.languageText}>
                             <Text style={[styles.languageName, isSelected && styles.languageNameSelected]}>
                                 {language.name}
@@ -72,36 +64,19 @@ const ChangeLanguageScreen = () => {
         );
     };
 
-    const hasChanges = selectedLanguage !== tempSelectedLanguage;
-
     return (
-        <BaseComponent isBack={true} title="Change Language">
+        <BaseComponent isBack={true} title="header.changeLanguage">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.iconContainer}>
                         <Ionicons name="language" size={32} color={Colors.mainColor} />
                     </View>
-                    <Text style={styles.title}>Choose Your Language</Text>
-                    <Text style={styles.subtitle}>
-                        Select your preferred language for the app interface
-                    </Text>
+                    <TextTranslation fontSize={FontSize.large} textKey={'common.chooseYourLanguage'} isBold/>
+                    <TextTranslation fontSize={FontSize.small} textKey={'common.selectYourPreferredLanguage'}/>
                 </View>
-
-                {/* Language Cards */}
                 <View style={styles.languagesContainer}>
                     {languages.map(language => renderLanguageCard(language))}
                 </View>
-
-                {/* Save Button */}
-                {hasChanges && (
-                    <View style={styles.buttonContainer}>
-                        <CustomButton
-                            buttonTitle="Save Changes"
-                            onPress={handleSave}
-                        />
-                    </View>
-                )}
             </ScrollView>
         </BaseComponent>
     );
@@ -148,7 +123,7 @@ const styles = StyleSheet.create({
     },
     languageCard: {
         backgroundColor: Colors.white,
-        borderRadius: 16,
+        borderRadius: 10,
         padding: 10,
     },
     languageCardSelected: {
@@ -166,9 +141,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
         gap: 16,
-    },
-    languageIcon: {
-        fontSize: 40,
     },
     languageText: {
         flex: 1,
@@ -207,65 +179,5 @@ const styles = StyleSheet.create({
         height: 12,
         borderRadius: 6,
         backgroundColor: Colors.mainColor,
-    },
-    selectedBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: `${Colors.mainColor}20`,
-    },
-    selectedBadgeText: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-    },
-    infoCard: {
-        backgroundColor: `${Colors.mainColor}08`,
-        marginHorizontal: 16,
-        marginTop: 24,
-        padding: 20,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: `${Colors.mainColor}20`,
-    },
-    infoHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 12,
-    },
-    infoTitle: {
-        fontSize: FontSize.medium + 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-    },
-    infoText: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-        lineHeight: 22,
-    },
-    buttonContainer: {
-        paddingHorizontal: 16,
-        marginTop: 24,
-    },
-    currentLanguageInfo: {
-        alignItems: 'center',
-        paddingVertical: 24,
-        paddingHorizontal: 16,
-    },
-    currentLanguageLabel: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: '#9CA3AF',
-        marginBottom: 4,
-    },
-    currentLanguageValue: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
     },
 });

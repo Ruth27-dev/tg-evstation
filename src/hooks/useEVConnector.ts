@@ -1,13 +1,15 @@
 import { navigate } from "@/navigation/NavigationService";
 import { chargingSessions, evtStart, evtStop } from "@/services/useApi";
 import { useEVStore } from "@/store/useEVStore";
-import { useState } from "react";
+import { useSessionDetailStore } from "@/store/useSessionDetailStore";
+import { useState, useCallback } from "react";
+import Toast from 'react-native-toast-message';
 
 export const useEVConnector = () => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const { setEvConnect, clearEvConnect, evConnect,sessionDetail, setSessionDetail, clearSessionDetail } = useEVStore();
-    const [isRequesting, setIsRequesting] = useState(false);
+    const { setEvConnect, clearEvConnect, evConnect } = useEVStore();
+    const { sessionDetail, setSessionDetail, clearSessionDetail } = useSessionDetailStore();
 
     const postStart = async (connector_id: string, id_tag:string) => {
         setIsLoading(true);
@@ -22,6 +24,14 @@ export const useEVConnector = () => {
                     setEvConnect(response?.data?.data);
                     navigate('PreparingCharging')
                 }
+            } else if(response?.data?.code === '023' || response?.data?.code === '022'){ 
+                Toast.show({
+                    type: 'error',
+                    text1: 'Charging Error',
+                    text2: response?.data?.message || 'Charging cannot start due to an invalid connector.',
+                    position: 'bottom',
+                });
+                return;
             }
         } catch (error) {
             console.error("Error fetching station:", error);
@@ -57,13 +67,12 @@ export const useEVConnector = () => {
         }
     }
     
-    const getSessionDetail = async (session_id: string) => {
+    const getSessionDetail = useCallback(async (session_id: string) => {
         const response = await chargingSessions(session_id);
         if(response?.data?.code === '000'){
             setSessionDetail(response?.data?.data);
-            // navigate('ChargingDetail')
         }
-    }
+    }, [setSessionDetail]);
 
     return {
         postStart,
@@ -76,4 +85,3 @@ export const useEVConnector = () => {
         clearSessionDetail
     };
 }
-

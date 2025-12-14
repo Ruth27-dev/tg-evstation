@@ -42,7 +42,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
   const { getMeWallet, getMeTransactions } = useWallet();
-  const { clearEvConnect, setSessionDetail, clearSessionDetail,sessionDetail,evConnect } = useEVStore();
+  const { evConnect } = useEVStore();
   const { getSessionDetail } = useEVConnector();
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   
@@ -56,27 +56,26 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, []);
 
   // Listen to AppState changes - check session when app becomes active
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (
-        appStateRef.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        // App has come to foreground - check if there's an active session
-        console.log('App returned to foreground, checking active session');
-        if (!isEmpty(evConnect) && evConnect?.session_id) {
-          const sessionId = evConnect.session_id;
-          console.log('Fetching session detail for:', sessionId);
-          getSessionDetail(sessionId);
-        }
-      }
-      appStateRef.current = nextAppState;
-    });
+  // useEffect(() => {
+  //   const subscription = AppState.addEventListener('change', (nextAppState) => {
+  //     if (
+  //       appStateRef.current.match(/inactive|background/) &&
+  //       nextAppState === 'active'
+  //     ) {
+  //       console.log('App returned to foreground, checking active session');
+  //       if (!isEmpty(evConnect) && evConnect?.session_id) {
+  //         const sessionId = evConnect.session_id;
+  //         console.log('Fetching session detail for:', sessionId);
+  //         getSessionDetail(sessionId);
+  //       }
+  //     }
+  //     appStateRef.current = nextAppState;
+  //   });
 
-    return () => {
-      subscription.remove();
-    };
-  }, [evConnect, getSessionDetail]);
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // }, [evConnect, getSessionDetail]);
 
   const connect = () => {
     if (!accessToken) return;
@@ -88,10 +87,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       setConnected(true);
       
       // Check if there's an active charging session when reconnecting
-      if (!isEmpty(evConnect) && evConnect?.session_id) {
-        const sessionId = evConnect.session_id;
-        getSessionDetail(sessionId);
-      }
+      // if (!isEmpty(evConnect) && evConnect?.session_id) {
+      //   const sessionId = evConnect.session_id;
+      //   getSessionDetail(sessionId);
+      // }
     };
     ws.current.onmessage = (event) => {
 		// console.log("RAW MESSAGE:", event.data);

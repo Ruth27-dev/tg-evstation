@@ -20,7 +20,9 @@
     "submit": "ដាក់ស្នើ",
     "error": "កំហុស",
     "success": "ជោគជ័យ",
-    "signInToContinue": "ចូលប្រើដើម្បីបន្ត"
+    "signInToContinue": "ចូលប្រើដើម្បីបន្ត",
+    "chooseYourLanguage" : "ជ្រើសរើសភាសា",
+    "selectYourPreferredLanguage" : "ជ្រើសរើសភាសាដែលអ្នកចូលចិត្តសម្រាប់ចំណុចប្រទាក់កម្មវិធី"
   },
   "auth": {
     "login": "ចូលប្រើ",
@@ -56,7 +58,8 @@
     "paymentSuccess": "បង់ប្រាក់ជោគជ័យ",
     "topUpSuccess": "បញ្ចូលប្រាក់ជោគជ័យ",
     "insufficientBalance": "សមតុល្យមិនគ្រប់គ្រាន់",
-    "pleaseTopUp": "សូមបញ្ចូលប្រាក់ទៅកាបូបដើម្បីបន្ត"
+    "pleaseTopUp": "សូមបញ្ចូលប្រាក់ទៅកាបូបដើម្បីបន្ត",
+    "totalBalance": "សមតុល្យសរុប"
   },
   "charging": {
     "charging": "បញ្ចូលថ្ម",
@@ -102,13 +105,18 @@
     "settings": "ការកំណត់",
     "language": "ភាសា",
     "selectLanguage": "ជ្រើសរើសភាសាដែលអ្នកចូលចិត្ត",
+    "changePassword": "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
+    "changeLanguage": "ផ្លាស់ប្តូរភាសា",
     "notifications": "ការជូនដំណឹង",
-    "helpSupport": "ជំនួយ និងគាំទ្រ",
-    "termsConditions": "លក្ខខណ្ឌនិងកិច្ចព្រមព្រៀង",
+    "helpSupport": "ជំនួយ និងការគាំទ្រ",
+    "termsConditions": "លក្ខខណ្ឌ និងបទបញ្ញត្តិ",
     "privacyPolicy": "គោលការណ៍ភាពឯកជន",
-    "aboutUs": "អំពីយើង",
+    "aboutUs": "អំពីពួកយើង",
     "version": "កំណែ",
-    "contactUs": "ទាក់ទងមកយើង"
+    "contactUs": "ទាក់ទងមកយើង",
+    "accountSettings": "ការកំណត់គណនី",
+    "support": "ការគាំទ្រ និងព័ត៌មាន",
+    "deleteAccount": "លុបគណនី"
   },
   "notifications": {
     "chargingStarted": "បានចាប់ផ្តើមបញ្ចូលថ្ម",
@@ -126,5 +134,14 @@
     "unknownError": "កំហុសមិនស្គាល់បានកើតឡើង",
     "permissionDenied": "ការអនុញ្ញាតត្រូវបានបដិសេធ",
     "cameraPermission": "ត្រូវការការអនុញ្ញាតកាមេរ៉ាដើម្បីស្កេនកូដ QR"
+  },
+  "header": {
+    "changeLanguage": "ផ្លាស់ប្តូរភាសា"
+  },
+  "menu": {
+    "home": "ទំព័រដើម",
+    "history": "ប្រវត្តិ",
+    "wallet": "កាបូប",
+    "profile": "ប្រវត្តិរូប"
   }
 }

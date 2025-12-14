@@ -41,21 +41,21 @@ const HomeScreen = () => {
     const menuItems = [
         { 
             id: 1, 
-            name: 'Top Up', 
+            name: 'wallet.topUp', 
             icon: 'logo-usd', 
             color: '#10B981',
             onPress: () => navigate('TopUp') 
         },
         { 
             id: 2, 
-            name: 'History', 
+            name: 'menu.history', 
             icon: 'battery-charging', 
             color: '#3B82F6',
             onPress: () => navigate('History')
         },
         { 
             id: 3, 
-            name: 'Find Station', 
+            name: 'station.findStation', 
             icon: 'charging-station', 
             color: '#F59E0B',
             onPress: () => navigate('ListStation')
@@ -67,7 +67,7 @@ const HomeScreen = () => {
         getStation();
         fetchUser();
     }, []);
-
+    
     const handleRefresh = useCallback(async () => {
         await Promise.all([
             getMeWallet(),

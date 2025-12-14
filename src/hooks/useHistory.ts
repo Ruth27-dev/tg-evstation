@@ -1,11 +1,11 @@
-import { fetchHistory, fetchMeWalletTransactions } from "@/services/useApi";
+import { fetchHistory, fetchHistoryDetail } from "@/services/useApi";
 import { useHistoryStore } from "@/store/useHistoryStore";
 import { useState } from "react";
 
 export const useHistory = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isLoadMoreLoading, setIsLoadMoreLoading] = useState<boolean>(false);
-    const { chargerHistoryData, setChargerHistoryData } = useHistoryStore();
+    const { chargerHistoryData, setChargerHistoryData, setChargingHistoryDetails,chargingHistoryDetails } = useHistoryStore();
 
     const getChargerHistory = async (page: number = 1) => {
         try {
@@ -56,11 +56,25 @@ export const useHistory = () => {
         }
     }
 
+    const fetchDetail = async (id: number) => {
+        setIsLoading(true);
+        const response = await fetchHistoryDetail(id);
+        if (response?.data?.code === '000') {
+            setIsLoading(false);
+            setChargingHistoryDetails(response?.data?.data);
+        } else {
+            setIsLoading(false);
+            return null;
+        }
+    }
+
     return {
         isLoading,
         isLoadMoreLoading,
         chargerHistoryData,
-        getChargerHistory
+        getChargerHistory,
+        fetchDetail,
+        chargingHistoryDetails
     };
 }
 

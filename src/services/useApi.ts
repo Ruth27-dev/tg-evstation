@@ -192,4 +192,7 @@ export const fetchContact = (onError?: (err: any) => void) =>
 export const fetchFAQ = (onError?: (err: any) => void) =>
   api.post('v1/lookup/faq', {}, onError);
 
+export const fetchHistoryDetail = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/chargers/charging-history/${data}`, onError);
+
 export default api;

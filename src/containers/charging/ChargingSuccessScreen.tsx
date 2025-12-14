@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -10,40 +10,42 @@ import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralCo
 import { navigate } from '@/navigation/NavigationService';
 import { useEVConnector } from '@/hooks/useEVConnector';
 import { useEVStore } from '@/store/useEVStore';
+import CustomButton from '@/components/CustomButton';
+import { useHistory } from '@/hooks/useHistory';
+import Loading from '@/components/Loading';
 
-const ChargingSuccessScreen = ({ route }: any) => {
-    const { sessionDetail } = useEVStore();
+const ChargingSuccessScreen = ( props : any) => {
+    const { evConnect } = useEVStore();
+    const { sessionId } = props.route.params;
+    // console.log("SESSION ID SUCCESS SCREEN",evConnect)
 
     const { clearSessionDetail, clearEvConnect } = useEVConnector();
+    const { fetchDetail,chargingHistoryDetails } = useHistory();
+    const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
-    const calculateDuration = () => {
-        if (!sessionDetail?.started_at) return 'N/A';
-        const start = new Date(sessionDetail.started_at).getTime();
-        const end = sessionDetail.last_update_at ? new Date(sessionDetail.last_update_at).getTime() : new Date().getTime();
-        const diffMinutes = Math.floor((end - start) / 60000);
-        const hours = Math.floor(diffMinutes / 60);
-        const minutes = diffMinutes % 60;
-        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
-    };
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (evConnect?.session_id) {
+                fetchDetail(Number(evConnect.session_id));
+            }
+            setIsLoading(false)
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [evConnect]);
 
     const handleDone = () => {
-        clearSessionDetail();
         clearEvConnect();
+        clearSessionDetail();
         navigate('Main');
     };
 
     const handleBackPress = () => {
-        clearSessionDetail();
         clearEvConnect();
+        clearSessionDetail();
         navigate('Main');
     };
-    // React.useEffect(() => {
-    //     return () => {
-    //         clearSessionDetail();
-    //         clearEvConnect();
-    //     };
-    // }, [clearSessionDetail, clearEvConnect]);
-
+    if(isLoading) return <Loading/>
     return (
         <BaseComponent isBack={true} onPress={handleBackPress}>
             <ScrollView 
@@ -51,7 +53,6 @@ const ChargingSuccessScreen = ({ route }: any) => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.contentContainer}
             >
-                {/* Success Animation */}
                 <View style={styles.successContainer}>
                     <Lottie
                         source={require('@/assets/lotties/success.json')}
@@ -65,38 +66,36 @@ const ChargingSuccessScreen = ({ route }: any) => {
                     </Text>
                 </View>
 
-                {/* Main Stats Cards */}
                 <View style={styles.mainStatsContainer}>
                     <View style={styles.primaryStatCard} >
                         <MaterialCommunityIcons name="cash" size={40} color="#fff" />
                         <View style={styles.primaryStatContent}>
                             <Text style={styles.primaryStatLabel}>Total Cost</Text>
-                            <Text style={styles.primaryStatValue}>${sessionDetail?.price_so_far?.toFixed(2) || '0.00'}</Text>
+                            <Text style={styles.primaryStatValue}>${chargingHistoryDetails?.price_so_far?.toFixed(2) || '0.00'}</Text>
                         </View>
                     </View>
 
                     <View style={styles.secondaryStatsRow}>
                         <View style={styles.secondaryStatCard}>
                             <MaterialCommunityIcons name="lightning-bolt" size={28} color={Colors.secondaryColor} />
-                            <Text style={styles.secondaryStatValue}>{sessionDetail?.energy_kwh?.toFixed(2) || '0.00'}</Text>
+                            <Text style={styles.secondaryStatValue}>{chargingHistoryDetails?.energy_kwh?.toFixed(2) || '0.00'}</Text>
                             <Text style={styles.secondaryStatLabel}>kWh</Text>
                         </View>
 
                         <View style={styles.secondaryStatCard}>
                             <MaterialCommunityIcons name="battery-charging" size={28} color={Colors.secondaryColor} />
-                            <Text style={styles.secondaryStatValue}>{sessionDetail?.current_soc || '0'}%</Text>
+                            <Text style={styles.secondaryStatValue}>{chargingHistoryDetails?.current_soc || '0'}%</Text>
                             <Text style={styles.secondaryStatLabel}>Battery</Text>
                         </View>
 
                         <View style={styles.secondaryStatCard}>
                             <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.secondaryColor} />
-                            <Text style={styles.secondaryStatValue}>{calculateDuration()}</Text>
+                            <Text style={styles.secondaryStatValue}>{chargingHistoryDetails?.charging_minutes || '0'}</Text>
                             <Text style={styles.secondaryStatLabel}>Duration</Text>
                         </View>
                     </View>
                 </View>
 
-                {/* Session Details Card */}
                 <View
                     style={styles.detailsCard}
                 >
@@ -112,7 +111,7 @@ const ChargingSuccessScreen = ({ route }: any) => {
                                 <Text style={styles.detailItemLabel}>Date</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {sessionDetail?.started_at ? moment(sessionDetail.started_at).format('MMM DD, YYYY') : 'N/A'}
+                                {chargingHistoryDetails?.started_at ? moment(chargingHistoryDetails.started_at).format('MMM DD, YYYY') : 'N/A'}
                             </Text>
                         </View>
 
@@ -122,7 +121,7 @@ const ChargingSuccessScreen = ({ route }: any) => {
                                 <Text style={styles.detailItemLabel}>Started</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {sessionDetail?.started_at ? moment(sessionDetail.started_at).format('h:mm A') : 'N/A'}
+                                {chargingHistoryDetails?.started_at ? moment(chargingHistoryDetails.started_at).format('h:mm A') : 'N/A'}
                             </Text>
                         </View>
 
@@ -132,7 +131,7 @@ const ChargingSuccessScreen = ({ route }: any) => {
                                 <Text style={styles.detailItemLabel}>Completed</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {sessionDetail?.last_update_at ? moment(sessionDetail.last_update_at).format('h:mm A') : 'N/A'}
+                                {chargingHistoryDetails?.last_update_at ? moment(chargingHistoryDetails.last_update_at).format('h:mm A') : 'N/A'}
                             </Text>
                         </View>
 
@@ -142,19 +141,18 @@ const ChargingSuccessScreen = ({ route }: any) => {
                                 <Text style={styles.detailItemLabel}>Session ID</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {sessionDetail?.session_id?.slice(0, 12) || 'N/A'}
+                                {chargingHistoryDetails?.session_id?.slice(0, 12) || 'N/A'}
                             </Text>
                         </View>
                     </View>
                 </View>
 
-                <TouchableOpacity 
-                    style={styles.primaryButton}
+                <CustomButton 
+                    buttonTitle="Done"
                     onPress={handleDone}
-                >
-                    <Text style={styles.primaryButtonText}>Done</Text>
-                    <Ionicons name="checkmark-circle" size={22} color="#fff" />
-                </TouchableOpacity>
+                    buttonColor={Colors.secondaryColor}
+                />
+                
                 <View style={{ height: 30 }} />
             </ScrollView>
         </BaseComponent>
@@ -232,7 +230,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.white,
         borderRadius: 16,
-        padding: 16,
+        padding: 12,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: Colors.secondaryColor,

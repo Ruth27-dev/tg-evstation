@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
+import TextTranslation from '@/components/TextTranslation';
+import { useMeStore } from '@/store/useMeStore';
 
 interface BalanceSectionProps {
     balance: number;
@@ -11,17 +13,19 @@ interface BalanceSectionProps {
 }
 
 const BalanceSection: React.FC<BalanceSectionProps> = ({ balance, currency, onRefresh }) => {
+    const { userData } = useMeStore();
+
     return (
         <View style={styles.balanceContainer}>
             <View style={styles.balanceCard}>
                 <View style={styles.balanceHeader}>
-                    <Text style={styles.balanceLabel}>Total Balance</Text>
+                    <Text style={styles.balanceLabel}>{userData?.user_name}</Text>
                     <TouchableOpacity onPress={onRefresh}>
                         <Ionicons name="refresh" size={20} color={Colors.secondaryColor} />
                     </TouchableOpacity>
                 </View>
                 <Text style={styles.balanceAmount}>
-                    {currency} {balance.toFixed(2)}
+                    $ {balance.toFixed(2)}
                 </Text>
                 <View style={styles.goldBorder} />
             </View>
@@ -56,11 +60,10 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     balanceLabel: {
-        fontSize: FontSize.small,
+        fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#666666',
+        color: Colors.mainColor,
         textTransform: 'uppercase',
-        letterSpacing: 1,
     },
     balanceAmount: {
         fontSize: 25,

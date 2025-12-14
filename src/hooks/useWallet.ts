@@ -1,12 +1,12 @@
 import { fetchMeWallet, fetchMeWalletTransactions } from "@/services/useApi";
 import { useState } from "react";
 import { useWalletStore } from "@/store/useWalletStore";
+import Toast from 'react-native-toast-message';
 
 export const useWallet = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isLoadMoreLoading, setIsLoadMoreLoading] = useState<boolean>(false);
     const { setUserWalletBalance,userWalletBalance,setMeTransaction, meTransaction } = useWalletStore();
-
     const getMeWallet = async () => {
         try {
             setIsLoading(true);

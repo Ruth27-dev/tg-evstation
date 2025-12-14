@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, ScrollView, TouchableOpacity, Alert, AppState, AppStateStatus } from 'react-native';
+import React, { useEffect, useRef, useState, useCallback, useMemo, ReactNode } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -10,12 +10,6 @@ import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralCo
 import { useEVConnector } from '@/hooks/useEVConnector';
 import { useNavigation } from '@react-navigation/native';
 import * as Keychain from 'react-native-keychain';
-import { isEmpty } from 'lodash';
-
-interface WSMessage {
-    event_type: string;
-    data?: any;
-}
 
 const CIRCLE_SIZE = 220;
 const STROKE_WIDTH = 14;
@@ -23,137 +17,147 @@ const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 const ChargingDetailScreen = () => {
-    const animatedValue = useRef(new Animated.Value(0)).current;
     const navigation = useNavigation<any>();
-    const { sessionDetail, evConnect, postStop, getSessionDetail, clearSessionDetail } = useEVConnector();
-    const sessionId = evConnect?.session_id;
+    const { sessionDetail, evConnect, postStop, getSessionDetail } = useEVConnector();
     const ws = useRef<WebSocket | null>(null);
+    const reconnectTimeout = useRef<number | null>(null);
+    const lastMinutesRef = useRef<number | null>(null);
+    const lastChargingMinutesRef = useRef<number | null>(null);
+    const sessionIdRef = useRef<string | null>(null);
+
     const [connected, setConnected] = useState(false);
     const [accessToken, setAccessToken] = useState<string | null>(null);
-    const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
-    // Get access token
     useEffect(() => {
-        const getAccessToken = async () => {
+        // Store session ID in ref to persist even if evConnect is cleared
+        if (evConnect?.session_id) {
+            sessionIdRef.current = evConnect.session_id;
+        }
+    }, [evConnect?.session_id]);
+    
+    useEffect(() => {
+        (async () => {
             try {
                 const credentials = await Keychain.getGenericPassword();
-                if (credentials) {
-                    setAccessToken(credentials.password);
-                }
+                if (credentials) setAccessToken(credentials.password);
             } catch (error) {
-                console.error('Error retrieving token:', error);
+                console.error("Keychain error:", error);
             }
-        };
-        getAccessToken();
+        })();
     }, []);
 
-    const connectWebSocket = () => {
-        if (!accessToken) return;
-        
-        if (ws.current && ws.current.readyState !== WebSocket.CLOSED) {
+    const connectWebSocket = useCallback(() => {
+        const sessionId = sessionIdRef.current;
+        if (!accessToken || !sessionId) return;
+
+        if (ws.current) {
+            ws.current.onopen = null;
+            ws.current.onmessage = null;
+            ws.current.onerror = null;
+            ws.current.onclose = null;
             ws.current.close();
         }
 
-        const url = `wss://tgevstation.com/ws/mobile?token=${accessToken}`;
-        console.log('Connecting to WebSocket...');
-        ws.current = new WebSocket(url);
+        const socket = new WebSocket(`wss://tgevstation.com/ws/mobile?token=${accessToken}`);
+        ws.current = socket;
 
-        ws.current.onopen = () => {
-            console.log('WebSocket connected');
+        socket.onopen = () => {
             setConnected(true);
+            getSessionDetail(sessionId);
         };
 
-        ws.current.onmessage = (event) => {
-            console.log('RAW MESSAGE:', event.data);
-
+        socket.onmessage = (event) => {
             try {
                 const msg = JSON.parse(event.data);
                 if (msg.event_type === "METER_CHANGE") {
-                    if (sessionId) {
-                        getSessionDetail(sessionId);
-                    }
-                }
-            } catch (e) {
-                console.log('JSON PARSE ERROR:', e);
-            }
-        };
-
-        ws.current.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        ws.current.onclose = () => {
-            console.log('WebSocket disconnected');
-            setConnected(false);
-        };
-    };
-
-    useEffect(() => {
-        if (accessToken) {
-            connectWebSocket();
-        }
-
-        return () => {
-            if (ws.current) {
-                ws.current.close();
-            }
-        };
-    }, [accessToken]);
-
-    useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (
-                appStateRef.current.match(/inactive|background/) &&
-                nextAppState === 'active'
-            ) {
-                console.log('App returned to foreground, refreshing charging session');
-                
-                if (accessToken) {
-                    console.log('Reconnecting WebSocket...');
-                    connectWebSocket();
-                }
-                
-                if (!isEmpty(evConnect) && sessionId) {
-                    console.log('Fetching session detail for:', sessionId);
                     getSessionDetail(sessionId);
                 }
+            } catch (error) {
+                console.log("WS Parse Error:", error);
             }
-            appStateRef.current = nextAppState;
-        });
-
-        return () => {
-            subscription.remove();
         };
-    }, [evConnect, sessionId, getSessionDetail, accessToken]);
+
+        socket.onerror = () => console.log("WS error");
+
+        socket.onclose = () => {
+            setConnected(false);
+
+            if (!reconnectTimeout.current && sessionIdRef.current) {
+                reconnectTimeout.current = setTimeout(() => {
+                    connectWebSocket();
+                    reconnectTimeout.current = null;
+                }, 3000);
+            }
+        };
+    }, [accessToken, getSessionDetail]);
 
     useEffect(() => {
-        if (sessionDetail?.current_soc) {
-            Animated.timing(animatedValue, {
-                toValue: sessionDetail.current_soc,
-                duration: 1500,
-                useNativeDriver: false,
-            }).start();
+        const sessionId = sessionIdRef.current;
+        if (accessToken && sessionId) {
+            connectWebSocket();
+            getSessionDetail(sessionId);
         }
-    }, [sessionDetail?.current_soc]);
 
-    const formatTimeRemaining = () => {
-        const mins = sessionDetail?.minutes_remaining;
-        if (mins == null) return null;
+        return () => {
+            if (reconnectTimeout.current) {
+                clearTimeout(reconnectTimeout.current);
+                reconnectTimeout.current = null;
+            }
+            if (ws.current) {
+                ws.current.close();
+                ws.current = null;
+            }
+        };
+    }, [accessToken, connectWebSocket, getSessionDetail]);
+    
 
-        const hours = Math.floor(mins / 60);
-        const minutes = mins % 60;
+    useEffect(() => {
+        const val = sessionDetail?.minutes_remaining;
 
-        if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-        if (hours > 0) return `${hours}h`;
-        return `${minutes}m`;
-    };
+        if (val === null || val === undefined) {
+            return;
+        }
 
-    const batteryPercentage = sessionDetail?.current_soc || 0;
-    const energyConsumed = sessionDetail?.energy_kwh || 0;
-    const currentCost = sessionDetail?.price_so_far || 0;
-    const estimatedTimeRemaining = formatTimeRemaining();
+        lastMinutesRef.current = val;
+    }, [sessionDetail?.minutes_remaining]);
 
-    const strokeDashoffset = CIRCUMFERENCE - (CIRCUMFERENCE * batteryPercentage) / 100;
+    const displayMinutesRemaining = sessionDetail?.minutes_remaining ?? lastMinutesRef.current;
+
+
+    useEffect(() => {
+        const val = sessionDetail?.charging_minutes;
+
+        if (val === null || val === undefined) {
+            return;
+        }
+
+        lastChargingMinutesRef.current = val;
+    }, [sessionDetail?.charging_minutes]);
+
+    const displayChargingMinutes = sessionDetail?.charging_minutes ?? lastChargingMinutesRef.current;
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (state) => {
+            if (state === "active") {
+                const sessionId = sessionIdRef.current;
+                if (!connected && sessionId) connectWebSocket();
+                if (sessionId) getSessionDetail(sessionId);
+            }
+        });
+
+        return () => subscription.remove();
+    }, [connected, connectWebSocket, getSessionDetail]);
+
+    const batteryPercentage = sessionDetail?.current_soc ?? 0;
+    const energyConsumed = sessionDetail?.energy_kwh ?? 0;
+    const currentCost = sessionDetail?.price_so_far ?? 0;
+    const chargingMinutesValue = typeof displayChargingMinutes === 'number' ? displayChargingMinutes : '--';
+    const minutesRemainingValue = typeof displayMinutesRemaining === 'number' ? displayMinutesRemaining : '--';
+
+    const strokeDashoffset = useMemo(() =>
+        CIRCUMFERENCE - (CIRCUMFERENCE * batteryPercentage) / 100,
+        [batteryPercentage]
+    );
 
     const handleStopCharging = () => {
         Alert.alert(
@@ -167,94 +171,101 @@ const ChargingDetailScreen = () => {
                     onPress: async () => {
                         try {
                             await postStop();
-                            // Navigate to success screen with session data
                             navigation.replace('ChargingSuccess', {
                                 sessionData: sessionDetail
                             });
-                        } catch (error) {
-                            Alert.alert('Error', 'Failed to stop charging session');
+                        } catch {
+                            Alert.alert("Error", "Failed to stop charging session");
                         }
-                    },
-                },
+                    }
+                }
             ]
         );
     };
 
-    const renderCircularProgress = () => {
-        return (
-            <View style={styles.circularProgressContainer}>
-                <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
-                    {/* Background Circle */}
-                    <Circle
-                        cx={CIRCLE_SIZE / 2}
-                        cy={CIRCLE_SIZE / 2}
-                        r={RADIUS}
-                        stroke="#e0e0e0"
-                        strokeWidth={STROKE_WIDTH}
-                        fill="none"
-                    />
-                    {/* Progress Circle */}
-                    <Circle
-                        cx={CIRCLE_SIZE / 2}
-                        cy={CIRCLE_SIZE / 2}
-                        r={RADIUS}
-                        stroke={Colors.secondaryColor}
-                        strokeWidth={STROKE_WIDTH}
-                        fill="none"
-                        strokeDasharray={CIRCUMFERENCE}
-                        strokeDashoffset={strokeDashoffset}
-                        strokeLinecap="round"
-                        rotation="-90"
-                        origin={`${CIRCLE_SIZE / 2}, ${CIRCLE_SIZE / 2}`}
-                    />
-                </Svg>
-                <View style={styles.percentageContainer}>
-                    <Lottie
-                        source={require('@/assets/lotties/bettery.json')}
-                        autoPlay
-                        loop
-                        style={styles.chargingLottie}
-                    />
-                    <Text style={styles.percentageText}>{batteryPercentage}%</Text>
-                    <Text style={styles.percentageLabel}>Battery Level</Text>
-                </View>
+
+    const CircularProgress = useMemo(() => (
+        <View style={styles.circularProgressContainer}>
+            <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
+                <Circle
+                    cx={CIRCLE_SIZE / 2}
+                    cy={CIRCLE_SIZE / 2}
+                    r={RADIUS}
+                    stroke="#e0e0e0"
+                    strokeWidth={STROKE_WIDTH}
+                    fill="none"
+                />
+                <Circle
+                    cx={CIRCLE_SIZE / 2}
+                    cy={CIRCLE_SIZE / 2}
+                    r={RADIUS}
+                    stroke={Colors.secondaryColor}
+                    strokeWidth={STROKE_WIDTH}
+                    fill="none"
+                    strokeDasharray={CIRCUMFERENCE}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    rotation="-90"
+                    origin={`${CIRCLE_SIZE / 2}, ${CIRCLE_SIZE / 2}`}
+                />
+            </Svg>
+
+            <View style={styles.percentageContainer}>
+                <Lottie
+                    source={require('@/assets/lotties/bettery.json')}
+                    autoPlay
+                    loop
+                    style={styles.chargingLottie}
+                />
+                <Text style={styles.percentageText}>{batteryPercentage}%</Text>
+                <Text style={styles.percentageLabel}>Battery Level</Text>
             </View>
-        );
-    };
+        </View>
+    ), [batteryPercentage, strokeDashoffset]);
+
+ 
+    const statsData = useMemo(() => ([
+        {
+            title: "Energy",
+            value: energyConsumed.toFixed(2),
+            unit: "kWh",
+            icon: <Lottie source={require('@/assets/lotties/electricity.json')} autoPlay loop style={{ width: 35, height: 35 }} />
+        },
+        {
+            title: "Charging Time",
+            value: chargingMinutesValue,
+            unit: "minutes",
+            icon: <Lottie source={require('@/assets/lotties/charging.json')} autoPlay loop style={{ width: 90, height: 50 }} />
+        },
+        {
+            title: "Cost",
+            value: `$${currentCost.toFixed(2)}`,
+            unit: "current",
+            icon: <MaterialCommunityIcons name="cash" size={28} color={Colors.secondaryColor} />
+        },
+        {
+            title: "Estimated",
+            value: minutesRemainingValue,
+            unit: "minutes",
+            icon: <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.secondaryColor} />
+        }
+    ]), [chargingMinutesValue, currentCost, energyConsumed, minutesRemainingValue]);
 
     return (
-        <BaseComponent isBack={true} title="Charging Session">
-            <ScrollView contentContainerStyle={styles.contentContainer} style={styles.scrollView}>
-                <View style={styles.progressSection}>
-                    {renderCircularProgress()}
-                </View>
+        <BaseComponent isBack title="Charging Session">
+            <ScrollView style={styles.scrollView}>
+                <View style={styles.progressSection}>{CircularProgress}</View>
 
                 <View style={styles.statsGrid}>
-                    <View style={styles.statCard}>
-                        <MaterialCommunityIcons name="lightning-bolt" size={28} color={Colors.secondaryColor} />
-                        <Text style={styles.statLabel}>Energy</Text>
-                        <Text style={styles.statValue}>{energyConsumed.toFixed(2)}</Text>
-                        <Text style={styles.statUnit}>kWh</Text>
-                    </View>
-
-                    <View style={styles.statCard}>
-                        <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.secondaryColor} />
-                        <Text style={styles.statLabel}>Est. Finish Time</Text>
-                        <Text style={styles.statValue}>{!sessionDetail?.minutes_remaining? estimatedTimeRemaining: "N/A"}</Text>
-                    </View>
-
-                    <View style={styles.statCard}>
-                        <MaterialCommunityIcons name="cash" size={28} color={Colors.secondaryColor} />
-                        <Text style={styles.statLabel}>Cost</Text>
-                        <Text style={styles.statValue}>${currentCost.toFixed(2)}</Text>
-                        <Text style={styles.statUnit}>current</Text>
-                    </View>
-
-                    <View style={styles.statCard}>
-                        <Ionicons name="speedometer-outline" size={28} color={Colors.secondaryColor} />
-                        <Text style={styles.statLabel}>Status</Text>
-                        <Text style={[styles.statValue, { fontSize: FontSize.medium }]}>{sessionDetail?.status || 'N/A'}</Text>
-                    </View>
+                    {statsData.map((stat) => (
+                        <StatCard
+                            key={stat.title}
+                            title={stat.title}
+                            value={stat.value}
+                            unit={stat.unit}
+                            icon={stat.icon}
+                        />
+                    ))}
                 </View>
 
                 <View style={styles.infoBanner}>
@@ -263,11 +274,9 @@ const ChargingDetailScreen = () => {
                         Charging will automatically stop when battery reaches 100%
                     </Text>
                 </View>
-                <TouchableOpacity 
-                    style={styles.stopButton}
-                    onPress={handleStopCharging}
-                    activeOpacity={0.8}
-                >
+
+                {/* Stop Charging */}
+                <TouchableOpacity style={styles.stopButton} onPress={handleStopCharging}>
                     <MaterialCommunityIcons name="stop" size={24} color={Colors.white} />
                     <Text style={styles.stopButtonText}>Stop Charging</Text>
                 </TouchableOpacity>
@@ -276,83 +285,30 @@ const ChargingDetailScreen = () => {
     );
 };
 
-export default ChargingDetailScreen;
+type StatCardProps = {
+    title: string;
+    value: string | number;
+    unit: string;
+    icon: ReactNode;
+};
+
+const StatCard = React.memo(({ title, value, unit, icon }: StatCardProps) => (
+    <View style={styles.statCard}>
+        {icon}
+        <Text style={styles.statLabel}>{title}</Text>
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statUnit}>{unit}</Text>
+    </View>
+));
 
 const styles = StyleSheet.create({
     scrollView: {
         flex: 1,
-        padding:safePadding
-    },
-    contentContainer: {
-        flex:1
-    },
-    sessionInfo: {
-        backgroundColor: Colors.white,
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 16,
-    },
-    sessionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    sessionDetails: {
-        flex: 1,
-    },
-    sessionName: {
-        fontSize: FontSize.medium + 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-        marginBottom: 4,
-    },
-    sessionId: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-    },
-    container: {
-        flex: 1
-    },
-    header: {
-        marginBottom: 20,
-        alignItems: 'center',
-    },
-    statusIndicator: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    pulseContainer: {
-        width: 32,
-        height: 32,
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
-    },
-    pulse: {
-        position: 'absolute',
-        borderRadius: 20,
-        backgroundColor: Colors.secondaryColor,
-    },
-    pulseOuter: {
-        width: 32,
-        height: 32,
-        opacity: 0.2,
-    },
-    pulseInner: {
-        width: 24,
-        height: 24,
-        opacity: 0.4,
-    },
-    statusText: {
-        fontSize: FontSize.medium + 2,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.secondaryColor,
+        padding: safePadding,
     },
     progressSection: {
         alignItems: 'center',
-        marginVertical: 20,
+        marginTop: 20,
     },
     circularProgressContainer: {
         position: 'relative',
@@ -364,10 +320,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    chargingLottie: {
-        width: 70,
-        height: 70,
-    },
+    chargingLottie: { width: 70, height: 70 },
     percentageText: {
         fontSize: 40,
         fontFamily: CustomFontConstant.EnBold,
@@ -378,19 +331,18 @@ const styles = StyleSheet.create({
         fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
-        marginTop: 4,
     },
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        marginVertical: 20,
+        marginTop: 20,
         gap: 12,
     },
     statCard: {
         backgroundColor: Colors.backGroundColor,
         borderRadius: 16,
-        padding: 5,
+        padding: 10,
         width: '48%',
         alignItems: 'center',
         borderWidth: 1,
@@ -398,7 +350,6 @@ const styles = StyleSheet.create({
     },
     statLabel: {
         fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
         marginTop: 8,
     },
@@ -410,39 +361,6 @@ const styles = StyleSheet.create({
     },
     statUnit: {
         fontSize: FontSize.small - 1,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-        marginTop: 2,
-    },
-    detailsSection: {
-        backgroundColor: Colors.backGroundColor,
-        borderRadius: 16,
-        padding: 16,
-        marginTop: 10,
-        borderWidth: 1,
-        borderColor: Colors.secondaryColor,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.secondaryColor,
-    },
-    detailLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    detailLabel: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-    },
-    detailValue: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
     },
     infoBanner: {
@@ -451,54 +369,15 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.backGroundColor,
         padding: 14,
         borderRadius: 12,
-        marginTop: 16,
-        gap: 10,
+        marginTop: 20,
         borderWidth: 1,
         borderColor: Colors.secondaryColor,
-    },
-    infoText: {
-        flex: 1,
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-        lineHeight: 18,
-    },
-    sessionCard: {
-        backgroundColor: Colors.white,
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 16,
-    },
-    sectionTitle: {
-        fontSize: FontSize.medium + 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-        marginBottom: 16,
-    },
-    sessionRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-    },
-    sessionLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
         gap: 10,
     },
-    sessionLabel: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnRegular,
+    infoText: {
+        fontSize: FontSize.small,
         color: Colors.mainColor,
-    },
-    sessionValue: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-    },
-    divider: {
-        height: 1,
-        backgroundColor: Colors.secondaryColor,
+        flex: 1,
     },
     stopButton: {
         flexDirection: 'row',
@@ -507,8 +386,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#EF4444',
         paddingVertical: 16,
         borderRadius: 12,
-        gap: 8,
-        marginTop:20
+        marginTop: 20,
+        gap: 10,
     },
     stopButtonText: {
         fontSize: FontSize.medium,
@@ -516,3 +395,5 @@ const styles = StyleSheet.create({
         color: Colors.white,
     },
 });
+
+export default ChargingDetailScreen;

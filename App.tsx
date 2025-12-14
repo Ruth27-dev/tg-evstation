@@ -1,6 +1,6 @@
 import { NewAppScreen } from '@react-native/new-app-screen';
 import { NavigationContainer } from '@react-navigation/native';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, TextInput } from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -16,6 +16,17 @@ import { WebSocketProvider } from '@/context/WebSocketProvider';
 import { TransactionPollingProvider } from '@/context/TransactionPollingProvider';
 import { useNetworkConnection } from '@/hooks/useNetworkConnection';
 import NoInternet from '@/components/NoInternet';
+import Toast from 'react-native-toast-message';
+
+if ((Text as any).defaultProps?.allowFontScaling !== false) {
+  (Text as any).defaultProps = (Text as any).defaultProps || {};
+  (Text as any).defaultProps.allowFontScaling = false;
+}
+
+if ((TextInput as any).defaultProps?.allowFontScaling !== false) {
+  (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
+  (TextInput as any).defaultProps.allowFontScaling = false;
+}
 
 function App() {
   const { isConnected } = useNetworkConnection();
@@ -63,6 +74,7 @@ function App() {
             </TransactionPollingProvider>
           </WebSocketProvider>
           {!isConnected && (<NoInternet/>)}
+          <Toast />
         </ToastProvider>
       </AuthProvider>
     </SafeAreaProvider>

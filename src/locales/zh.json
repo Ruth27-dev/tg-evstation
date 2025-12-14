@@ -20,7 +20,9 @@
     "submit": "提交",
     "error": "错误",
     "success": "成功",
-    "signInToContinue": "登录以继续"
+    "signInToContinue": "登录以继续",
+    "chooseYourLanguage" : "选择您的语言",
+    "selectYourPreferredLanguage" : "选择您喜欢的应用界面语言"
   },
   "auth": {
     "login": "登录",
@@ -56,7 +58,8 @@
     "paymentSuccess": "支付成功",
     "topUpSuccess": "充值成功",
     "insufficientBalance": "余额不足",
-    "pleaseTopUp": "请充值钱包以继续"
+    "pleaseTopUp": "请充值钱包以继续",
+    "totalBalance": "总余额"
   },
   "charging": {
     "charging": "充电",
@@ -101,14 +104,19 @@
     "editProfile": "编辑个人资料",
     "settings": "设置",
     "language": "语言",
-    "selectLanguage": "选择您的首选语言",
+    "selectLanguage": "选择您喜欢的语言",
+    "changePassword": "更改密码",
+    "changeLanguage": "更改语言",
     "notifications": "通知",
     "helpSupport": "帮助与支持",
     "termsConditions": "条款与条件",
     "privacyPolicy": "隐私政策",
     "aboutUs": "关于我们",
     "version": "版本",
-    "contactUs": "联系我们"
+    "contactUs": "联系我们",
+    "accountSettings": "账户设置",
+    "support": "支持与信息",
+    "deleteAccount": "删除账户"
   },
   "notifications": {
     "chargingStarted": "充电已开始",
@@ -126,5 +134,14 @@
     "unknownError": "发生未知错误",
     "permissionDenied": "权限被拒绝",
     "cameraPermission": "需要相机权限才能扫描二维码"
+  },
+  "header": {
+    "changeLanguage": "更改语言"
+  },
+  "menu": {
+    "home": "首页",
+    "history": "历史",
+    "wallet": "钱包",
+    "profile": "个人资料"
   }
 }

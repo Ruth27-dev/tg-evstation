@@ -14,7 +14,7 @@ const BalanceCard = ({amount, currency = '$'}: BalanceCardProps) => {
             <View style={styles.balanceContent}>
                 <View>
                     <Text style={styles.balanceLabel}>Current Balance</Text>
-                    <Text style={styles.balanceAmount}>{currency} {amount?.toFixed(2)}</Text>
+                    <Text style={styles.balanceAmount}>$ {amount?.toFixed(2)}</Text>
                 </View>
                 <TouchableOpacity 
                     style={styles.topUpButton} 

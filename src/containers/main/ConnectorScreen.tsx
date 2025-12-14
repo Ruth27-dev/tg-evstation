@@ -1,6 +1,6 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { use, useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated } from "react-native";
+import React, { use, useEffect, useRef, useState, useMemo } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -14,13 +14,13 @@ import { navigate } from "@/navigation/NavigationService";
 import { useWalletStore } from "@/store/useWalletStore";
 import InsufficientBalanceModal from "@/components/InsufficientBalanceModal";
 
-const { width } = Dimensions.get('window');
-const SCAN_FRAME_SIZE = width * 0.8;
 const CIRCLE_SIZE = 200;
 const STROKE_WIDTH = 12;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 
 const ConnectorScreen = () => {
+    const { width } = useWindowDimensions();
+    const scanFrameSize = useMemo(() => width * 0.8, [width]);
     const { hasPermission, requestPermission } = useCameraPermission();
     const device = useCameraDevice('back', {
         physicalDevices: ['ultra-wide-angle-camera', 'wide-angle-camera', 'telephoto-camera']
@@ -42,7 +42,6 @@ const ConnectorScreen = () => {
     }, [hasPermission]);
 
     useEffect(() => {
-        // Activate camera only when we have both permission and device
         if (hasPermission && device) {
             setIsCameraActive(true);
         }
@@ -67,6 +66,11 @@ const ConnectorScreen = () => {
     const handleTopUp = () => {
         setShowBalanceModal(false);
         navigate('TopUp');
+    };
+
+    const handleRescan = () => {
+        setScannedCode(null);
+        setIsCameraActive(true);
     };
 
     const codeScanner = useCodeScanner({
@@ -105,33 +109,49 @@ const ConnectorScreen = () => {
         <BaseComponent isBack={false}>
             <View style={styles.container}>
                 <View style={styles.scannerContainer}>
-                    <View style={styles.scanFrame}>
+                    <View style={[styles.scanFrame, { width: scanFrameSize, height: scanFrameSize }]}>
                         {device && hasPermission && (
                             <Camera
                                 ref={camera}
                                 style={styles.camera}
                                 device={device}
+                                
                                 isActive={isCameraActive}
                                 torch={flash ? 'on' : 'off'}
                                 codeScanner={codeScanner}
                             />
                         )}
-                        <View style={styles.scanBorder} />
+                        <View style={styles.scanBorder} pointerEvents="none" />
                     </View>
                     <Text style={styles.instruction}>Position QR code in center</Text>
                 </View>
-                <TouchableOpacity 
-                    style={[styles.flashButton, flash && styles.flashActive]}
-                    onPress={() => setFlash(!flash)}
-                    activeOpacity={0.8}
-                >
-                    <Ionicons 
-                        name={flash ? "flash" : "flash-off"} 
-                        size={26} 
-                        color={flash ? Colors.white : Colors.mainColor} 
-                    />
-                    <Text style={[styles.flashText, flash && styles.flashTextActive]}>Flash</Text>
-                </TouchableOpacity>
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity 
+                        style={[styles.flashButton, flash && styles.flashActive]}
+                        onPress={() => setFlash(!flash)}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons 
+                            name={flash ? "flash" : "flash-off"} 
+                            size={26} 
+                            color={flash ? Colors.white : Colors.mainColor} 
+                        />
+                        <Text style={[styles.flashText, flash && styles.flashTextActive]}>Flash</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={styles.rescanButton}
+                        onPress={handleRescan}
+                        activeOpacity={0.8}
+                    >
+                        <MaterialCommunityIcons 
+                            name="camera-retake" 
+                            size={26} 
+                            color={Colors.mainColor} 
+                        />
+                        <Text style={styles.rescanText}>Rescan</Text>
+                    </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity 
                     style={styles.demoButton}
@@ -175,11 +195,10 @@ const styles = StyleSheet.create({
         paddingVertical: 40,
     },
     scanFrame: {
-        width: SCAN_FRAME_SIZE,
-        height: SCAN_FRAME_SIZE,
         justifyContent: 'center',
         alignItems: 'center',
         position: 'relative',
+        alignSelf: 'center',
     },
     camera: {
         position: 'absolute',
@@ -236,17 +255,22 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnBold,
         color: '#059669',
     },
+    buttonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        marginBottom: 120,
+    },
     flashButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        alignSelf: 'center',
         backgroundColor: Colors.white,
         paddingVertical: 14,
         paddingHorizontal: 28,
         borderRadius: 24,
         gap: 8,
-        marginBottom:120
     },
     flashActive: {
         backgroundColor: Colors.mainColor,
@@ -259,6 +283,21 @@ const styles = StyleSheet.create({
     },
     flashTextActive: {
         color: Colors.white,
+    },
+    rescanButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.white,
+        paddingVertical: 14,
+        paddingHorizontal: 28,
+        borderRadius: 24,
+        gap: 8,
+    },
+    rescanText: {
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
     },
     connectedContainer: {
         flex: 1,

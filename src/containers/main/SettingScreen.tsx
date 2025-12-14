@@ -11,6 +11,8 @@ import { navigate } from '@/navigation/NavigationService';
 import { useAuth } from "@/hooks/useAuth";
 import { useMeStore } from "@/store/useMeStore";
 import Loading from "@/components/Loading";
+import { useTranslation } from "@/hooks/useTranslation";
+import TextTranslation from "@/components/TextTranslation";
 
 interface SettingItem {
     id: string;
@@ -26,7 +28,7 @@ const SettingScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
     const { fetchUser,logout, isRequesting } = useAuth();
     const { userData } = useMeStore();
-
+    const { t } = useTranslation();
     useEffect(() => { 
         fetchUser();
     }, []);
@@ -93,7 +95,7 @@ const SettingScreen = () => {
     const accountSettings: SettingItem[] = [
         {
             id: '1',
-            title: 'Profile',
+            title: 'profile.profile',
             icon: 'person-outline',
             iconType: 'ionicons',
             onPress: handleProfilePress,
@@ -101,7 +103,7 @@ const SettingScreen = () => {
         },
         {
             id: '2',
-            title: 'Change Password',
+            title: 'profile.changePassword',
             icon: 'lock-closed-outline',
             iconType: 'ionicons',
             onPress: handleChangePassword,
@@ -109,7 +111,7 @@ const SettingScreen = () => {
         },
         {
             id: '3',
-            title: 'Change Language',
+            title: 'profile.changeLanguage',
             icon: 'language',
             iconType: 'ionicons',
             onPress: handleChangeLanguage,
@@ -117,7 +119,7 @@ const SettingScreen = () => {
         },
         {
             id: '4',
-            title: 'Logout',
+            title: 'auth.logout',
             icon: 'log-out-outline',
             iconType: 'ionicons',
             onPress: handleLogout,
@@ -125,7 +127,7 @@ const SettingScreen = () => {
         },
         {
             id: '5',
-            title: 'Delete Account',
+            title:'profile.deleteAccount',
             icon: 'trash-outline',
             iconType: 'ionicons',
             onPress: handleDeleteAccount,
@@ -137,7 +139,7 @@ const SettingScreen = () => {
     const supportSettings: SettingItem[] = [
         {
             id: '1',
-            title: 'Customer Support',
+            title: 'profile.helpSupport',
             icon: 'headset',
             iconType: 'material',
             onPress: handleCustomerSupport,
@@ -145,7 +147,7 @@ const SettingScreen = () => {
         },
         {
             id: '2',
-            title: 'Privacy',
+            title: 'profile.privacyPolicy',
             icon: 'shield-outline',
             iconType: 'ionicons',
             onPress: handlePrivacy,
@@ -153,7 +155,7 @@ const SettingScreen = () => {
         },
         {
             id: '3',
-            title: 'About Us',
+            title: 'profile.aboutUs',
             icon: 'information-circle-outline',
             iconType: 'ionicons',
             onPress: handleAboutUs,
@@ -191,12 +193,7 @@ const SettingScreen = () => {
                 ]}>
                     {renderIcon(item)}
                 </View>
-                <Text style={[
-                    styles.settingItemText,
-                    item.isDanger && { color: '#EF4444' }
-                ]}>
-                    {item.title}
-                </Text>
+                <TextTranslation textKey={item.title} fontSize={FontSize.medium} color={item.isDanger ? '#EF4444' : Colors.mainColor} />
             </View>
             {item.showArrow && (
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -231,14 +228,14 @@ const SettingScreen = () => {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Account Settings</Text>
+                    <TextTranslation textKey={'profile.accountSettings'} fontSize={FontSize.medium} isBold isPaddingBottom/>
                     <View style={styles.settingsCard}>
                         {accountSettings.map(renderSettingItem)}
                     </View>
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Support & Information</Text>
+                    <TextTranslation textKey={'profile.support'} fontSize={FontSize.medium} isBold isPaddingBottom/>
                     <View style={styles.settingsCard}>
                         {supportSettings.map(renderSettingItem)}
                     </View>

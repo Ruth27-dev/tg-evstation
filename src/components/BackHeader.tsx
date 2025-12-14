@@ -1,10 +1,11 @@
-import React, {memo, useCallback} from 'react';
-import { View, StyleSheet, Image, Text, Platform, TouchableOpacity } from 'react-native';
-import { CustomFontConstant, FontSize, Images, safePadding } from '@/constants/GeneralConstants';
+import React, {memo} from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
 import { Colors } from '@/theme';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { goBack } from '@/navigation/NavigationService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import TextTranslation from './TextTranslation';
 
 interface BackHeaderProps{
     textTitle?:string,
@@ -19,7 +20,7 @@ const BackHeader: React.FC<BackHeaderProps> = ({textTitle, onPress}) => {
                 <Ionicons name="arrow-back" size={25} color={Colors.mainColor} />
             </TouchableOpacity>
             <View style={{flex:1,flexDirection:'row',marginLeft:safePadding,justifyContent:'center'}}>
-                <Text style={[styles.headerText,{color:Colors.mainColor}]}>{textTitle}</Text>
+                <TextTranslation textKey={textTitle || ''} fontSize={FontSize.large} color={Colors.mainColor} isBold/>
             </View>
             <View style={{width:45}} />
         </View>

@@ -103,6 +103,7 @@ export interface History {
     last_update_at:        Date;
     price_so_far:          number;
     max_amount_cents:      null;
+    charging_minutes:null | number;
 }
 export interface EVStartResponse {
   status: string
@@ -124,7 +125,8 @@ export interface SessionDetail {
   last_update_at: string
   price_so_far: number
   max_amount_cents: any
-  ocpp_transaction_id: number
+  ocpp_transaction_id: number,
+  charging_minutes: number
 }
 
 export interface ContactResponse {

@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
+import TextTranslation from '@/components/TextTranslation';
 
 interface MenuItem {
     id: number;
@@ -32,7 +32,8 @@ const MenuGrid: React.FC<MenuGridProps> = ({ menuItems }) => {
                        
                         <Ionicons name={item.icon as any} size={35} color={Colors.mainColor} />
                         <View style={styles.menuGoldBorder} />
-                        <Text style={styles.menuText}>{item.name}</Text>
+                        <View style={{ height: 5 }} />
+                        <TextTranslation   textKey={item.name} fontSize={FontSize.medium} color={Colors.mainColor} />
                     </TouchableOpacity>
                 ))}
             </View>
@@ -47,7 +48,8 @@ const MenuGrid: React.FC<MenuGridProps> = ({ menuItems }) => {
                         
                         <FontAwesome5 name={menuItems[2].icon as any} size={50} color={Colors.mainColor} />
                         <View style={styles.menuGoldBorder} />
-                        <Text style={styles.menuTextLarge}>{menuItems[2].name}</Text>
+                        <View style={{ height: 5 }} />
+                        <TextTranslation  textKey={menuItems[2].name} fontSize={FontSize.medium} color={Colors.mainColor} />
                     </TouchableOpacity>
                 </View>
             )}

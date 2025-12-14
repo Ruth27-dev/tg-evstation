@@ -7,10 +7,7 @@ import { EVStartResponse, SessionDetail } from '@/types';
 interface EVStore {
     evConnect: EVStartResponse | null;
     setEvConnect: (data: any) => void;
-    clearEvConnect: () => void;
-    sessionDetail: SessionDetail | null;
-    setSessionDetail: (data: any) => void;
-    clearSessionDetail: () => void;
+    clearEvConnect: () => void
 }
 
 export const useEVStore = create<EVStore>()(
@@ -18,10 +15,7 @@ export const useEVStore = create<EVStore>()(
     (set) => ({
         evConnect: null,
         setEvConnect: (evConnect: EVStartResponse | null) => set({ evConnect }),
-        clearEvConnect: () => set({ evConnect: null }),
-        sessionDetail: null,
-        setSessionDetail: (sessionDetail: any) => set({ sessionDetail }),
-        clearSessionDetail: () => set({ sessionDetail: null }),
+        clearEvConnect: () => set({ evConnect: null })
     }),
     {
       name: StorageKey.ev,

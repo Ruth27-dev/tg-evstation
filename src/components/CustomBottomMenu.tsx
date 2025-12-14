@@ -1,12 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Keyboard, Animated, Image } from 'react-native';
-import HOMEICON from '@/assets/icons/home.svg';
-import ANALYTICSICON from '@/assets/icons/chart.svg';
-import MANAGEICON from '@/assets/icons/file.svg';
-import ORDERICON from '@/assets/icons/order.svg';
+import React, { useCallback,useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated, Image } from 'react-native';
 import ConnectorIcon from '@/assets/logo/logo_nobg.svg';
 import Feather from 'react-native-vector-icons/Feather';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Colors } from '@/theme';
@@ -15,18 +10,19 @@ import { useEVStore } from '@/store/useEVStore';
 import { isEmpty } from 'lodash';
 import ChargingMiniPlayer from './ChargingMiniPlayer';
 import { navigate } from '@/navigation/NavigationService';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
     const { evConnect } = useEVStore();
     const hasActiveCharging = !isEmpty(evConnect);
+    const { t } = useTranslation();
     
-    // Remove useMemo and directly create menuData to ensure fresh translations
     const menuData = [
-        { id: 1, name: "Home", icon: <Feather name="home" size={25}/> },
-        { id: 2, name: "History", icon: <FontAwesome5 name="file-invoice" size={25} /> },
+        { id: 1, name: t('menu.home'), icon: <Feather name="home" size={25}/> },
+        { id: 2, name: t('menu.history'), icon: <FontAwesome5 name="file-invoice" size={25} /> },
         { id: 3, name: '', icon: <ConnectorIcon /> },
-        { id: 4, name: "Wallet", icon: <FontAwesome5 name="wallet" size={25}/> },
-        { id: 5, name: "Settings", icon: <FontAwesome5 name="user-cog" size={25} /> },
+        { id: 4, name: t('menu.wallet'), icon: <FontAwesome5 name="wallet" size={25}/> },
+        { id: 5, name: t('menu.profile'), icon: <FontAwesome5 name="user-cog" size={25} /> },
     ];
 
     const renderButtonScan = useCallback((onPress: () => void, onLongPress: () => void, index: number, isFocused: boolean) => {
