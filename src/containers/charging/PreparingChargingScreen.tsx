@@ -4,9 +4,11 @@ import Lottie from 'lottie-react-native';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const PreparingChargingScreen = () => {
     const insets = useSafeAreaInsets();
+    const { t } = useTranslation();
     
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -17,8 +19,8 @@ const PreparingChargingScreen = () => {
                     loop
                     style={styles.lottie}
                 />
-                <Text style={styles.title}>Preparing Charging Session</Text>
-                <Text style={styles.subtitle}>Please wait while we initialize your charging station...</Text>
+                <Text style={styles.title}>{t('charging.preparingTitle')}</Text>
+                <Text style={styles.subtitle}>{t('charging.preparingSubtitle')}</Text>
                 
                 <View style={styles.dotsContainer}>
                     <View style={[styles.dot, styles.dotActive]} />

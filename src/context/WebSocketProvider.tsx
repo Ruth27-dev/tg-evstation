@@ -1,11 +1,10 @@
 import { useEVConnector } from '@/hooks/useEVConnector';
 import { useWallet } from '@/hooks/useWallet';
 import { navigate } from '@/navigation/NavigationService';
-import { useEVStore } from '@/store/useEVStore';
-import { isEmpty } from 'lodash';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as Keychain from 'react-native-keychain';
 import { AppState, AppStateStatus } from 'react-native';
+import { isEmpty } from 'lodash';
 
 interface WSMessage {
   type: string;
@@ -42,8 +41,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
   const { getMeWallet, getMeTransactions } = useWallet();
-  const { evConnect } = useEVStore();
-  const { getSessionDetail } = useEVConnector();
+  const { getSessionDetail, sessionDetail, evConnect, clearEvConnect, clearSessionDetail } = useEVConnector();
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   
   useEffect(() => {
@@ -56,26 +54,26 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, []);
 
   // Listen to AppState changes - check session when app becomes active
-  // useEffect(() => {
-  //   const subscription = AppState.addEventListener('change', (nextAppState) => {
-  //     if (
-  //       appStateRef.current.match(/inactive|background/) &&
-  //       nextAppState === 'active'
-  //     ) {
-  //       console.log('App returned to foreground, checking active session');
-  //       if (!isEmpty(evConnect) && evConnect?.session_id) {
-  //         const sessionId = evConnect.session_id;
-  //         console.log('Fetching session detail for:', sessionId);
-  //         getSessionDetail(sessionId);
-  //       }
-  //     }
-  //     appStateRef.current = nextAppState;
-  //   });
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App returned to foreground, checking active session');
+        if (!isEmpty(evConnect) && evConnect?.session_id) {
+          const sessionId = evConnect.session_id;
+          console.log('Fetching session detail for:', sessionId);
+          getSessionDetail(sessionId);
+        }
+      }
+      appStateRef.current = nextAppState;
+    });
 
-  //   return () => {
-  //     subscription.remove();
-  //   };
-  // }, [evConnect, getSessionDetail]);
+    return () => {
+      subscription.remove();
+    };
+  }, [evConnect, getSessionDetail]);
 
   const connect = () => {
     if (!accessToken) return;
@@ -87,10 +85,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       setConnected(true);
       
       // Check if there's an active charging session when reconnecting
-      // if (!isEmpty(evConnect) && evConnect?.session_id) {
-      //   const sessionId = evConnect.session_id;
-      //   getSessionDetail(sessionId);
-      // }
+      if (!isEmpty(evConnect) && evConnect?.session_id) {
+        const sessionId = evConnect.session_id;
+        getSessionDetail(sessionId);
+      }
     };
     ws.current.onmessage = (event) => {
 		// console.log("RAW MESSAGE:", event.data);
@@ -109,10 +107,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           transactionId: data.data?.id,
           date: data.data?.created_at,
         });
-			}else if (data.event_type === "START_CHARGING") {
+      }else if (data.event_type === "START_CHARGING") {
         navigate("ChargingDetail");
       }else if (data.event_type === "STOP_CHARGING") {
-        navigate("ChargingSuccess");
+        const sessionId = data.data;
+        clearEvConnect();
+        clearSessionDetail();
+        navigate("ChargingSuccess", { sessionId: sessionId });
       }
       // else if( data.event_type === "METER_CHANGE") {
       //   if(!isEmpty(evConnect?.session_id)){

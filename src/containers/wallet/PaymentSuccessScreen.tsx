@@ -9,6 +9,7 @@ import BaseComponent from '@/components/BaseComponent';
 import LottieView from 'lottie-react-native';
 import SuccessAnimation from '@/assets/lotties/success.json';
 import moment from 'moment';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface PaymentSuccessScreenProps {
     route?: {
@@ -23,9 +24,10 @@ interface PaymentSuccessScreenProps {
 const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ route }) => {
     const lottieRef = useRef<LottieView>(null);
     const fadeAnim = useRef(new Animated.Value(0)).current;
-
+    const { t } = useTranslation();
+    
     const amount = route?.params?.amount || 0;
-    const transactionId = route?.params?.transactionId || 'N/A';
+    const transactionId = route?.params?.transactionId || t('common.notAvailable');
     const date = route?.params?.date || new Date().toLocaleDateString();
 
     useEffect(() => {
@@ -39,7 +41,7 @@ const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ route }) =>
     }, []);
 
     return (
-        <BaseComponent isBack={true} onPress={()=>navigate('Main')}>
+        <BaseComponent isBack={true} onPress={()=>navigate('Main')} title="wallet.paymentSuccessHeader">
             <View style={styles.container}>
                 <View style={styles.lottieContainer}>
                     <LottieView
@@ -51,24 +53,24 @@ const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ route }) =>
                     />
                 </View>
                 <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
-                    <Text style={styles.successTitle}>Payment Successful!</Text>
+                    <Text style={styles.successTitle}>{t('wallet.paymentSuccessTitle')}</Text>
                     <Text style={styles.successSubtitle}>
-                        Your transaction has been completed successfully
+                        {t('wallet.paymentSuccessSubtitle')}
                     </Text>
 
                     <View style={styles.amountContainer}>
-                        <Text style={styles.amountLabel}>Amount Paid</Text>
+                        <Text style={styles.amountLabel}>{t('wallet.amountPaid')}</Text>
                         <Text style={styles.amount}>
                             {amount.toFixed(2)}
                         </Text>
                     </View>
 
                     <View style={styles.detailsCard}>
-                        <Text style={styles.detailsTitle}>Transaction Details</Text>
+                        <Text style={styles.detailsTitle}>{t('wallet.transactionDetails')}</Text>
                         <View style={styles.detailRow}>
                             <View style={styles.detailLeft}>
                                 <MaterialCommunityIcons name="receipt" size={20} color="#6B7280" />
-                                <Text style={styles.detailLabel}>Tran ID</Text>
+                                <Text style={styles.detailLabel}>{t('wallet.transactionId')}</Text>
                             </View>
                             <Text style={styles.detailValue}>{transactionId}</Text>
                         </View>
@@ -78,7 +80,7 @@ const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ route }) =>
                         <View style={styles.detailRow}>
                             <View style={styles.detailLeft}>
                                 <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-                                <Text style={styles.detailLabel}>Date</Text>
+                                <Text style={styles.detailLabel}>{t('wallet.transactionDate')}</Text>
                             </View>
                             <Text style={styles.detailValue}>{moment(date).format('MMMM DD, YYYY')}</Text>
                         </View>

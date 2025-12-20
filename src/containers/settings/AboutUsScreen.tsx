@@ -6,51 +6,32 @@ import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralCo
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Images } from "@/assets/images";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const AboutUsScreen = () => {
-    const handleWebsite = () => {
-        Linking.openURL('https://www.tgevstation.com');
-    };
-
-    const handleTerms = () => {
-        console.log('Open Terms of Service');
-    };
-
-    const handleLicenses = () => {
-        console.log('Open Open Source Licenses');
-    };
-
-    const handleSocial = (platform: string) => {
-        const urls: { [key: string]: string } = {
-            facebook: 'https://facebook.com/tgevstation',
-            twitter: 'https://twitter.com/tgevstation',
-            instagram: 'https://instagram.com/tgevstation',
-            linkedin: 'https://linkedin.com/company/tgevstation',
-        };
-        Linking.openURL(urls[platform]);
-    };
-
+    const { t } = useTranslation();
+    
     return (
-        <BaseComponent isBack={true} title="About Us">
+        <BaseComponent isBack={true} title="profile.aboutUs">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Header with Logo */}
                 <View style={styles.header}>
                     <Image source={Images.logo} style={styles.logo} />
                     <Text style={styles.appName}>TGEV Station</Text>
-                    <Text style={styles.tagline}>Powering Your Electric Journey</Text>
+                    <Text style={styles.tagline}>{t('about.poweringJourney')}</Text>
                 </View>
 
                 {/* About Section */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <Ionicons name="information-circle" size={24} color={Colors.mainColor} />
-                        <Text style={styles.cardTitle}>About TGEV Station</Text>
+                        <Text style={styles.cardTitle}>{t('about.aboutTitle')}</Text>
                     </View>
                     <Text style={styles.aboutText}>
-                        TGEV Station is Cambodia's leading electric vehicle charging network, dedicated to accelerating the transition to sustainable transportation. We provide reliable, fast, and accessible charging solutions for EV owners across the country.
+                        {t('about.description1')}
                     </Text>
                     <Text style={styles.aboutText}>
-                        Our mission is to make electric vehicle charging as convenient as possible, supporting a cleaner and greener future for Cambodia and the region.
+                        {t('about.description2')}
                     </Text>
                 </View>
 
@@ -58,7 +39,7 @@ const AboutUsScreen = () => {
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <Ionicons name="star" size={24} color={Colors.mainColor} />
-                        <Text style={styles.cardTitle}>Key Features</Text>
+                        <Text style={styles.cardTitle}>{t('about.keyFeatures')}</Text>
                     </View>
                     
                     <View style={styles.featureItem}>
@@ -66,9 +47,9 @@ const AboutUsScreen = () => {
                             <Ionicons name="flash" size={20} color="#3B82F6" />
                         </View>
                         <View style={styles.featureContent}>
-                            <Text style={styles.featureTitle}>Fast Charging Network</Text>
+                            <Text style={styles.featureTitle}>{t('about.featureFastCharging')}</Text>
                             <Text style={styles.featureDescription}>
-                                Access to high-speed charging stations across Cambodia
+                                {t('about.featureFastChargingDesc')}
                             </Text>
                         </View>
                     </View>
@@ -78,9 +59,9 @@ const AboutUsScreen = () => {
                             <Ionicons name="qr-code" size={20} color="#10B981" />
                         </View>
                         <View style={styles.featureContent}>
-                            <Text style={styles.featureTitle}>Easy QR Scanning</Text>
+                            <Text style={styles.featureTitle}>{t('about.featureQR')}</Text>
                             <Text style={styles.featureDescription}>
-                                Simply scan and start charging in seconds
+                                {t('about.featureQRDesc')}
                             </Text>
                         </View>
                     </View>
@@ -90,9 +71,9 @@ const AboutUsScreen = () => {
                             <Ionicons name="card" size={20} color="#EF4444" />
                         </View>
                         <View style={styles.featureContent}>
-                            <Text style={styles.featureTitle}>Secure Payments</Text>
+                            <Text style={styles.featureTitle}>{t('about.featurePayments')}</Text>
                             <Text style={styles.featureDescription}>
-                                Multiple payment options with secure transactions
+                                {t('about.featurePaymentsDesc')}
                             </Text>
                         </View>
                     </View>
@@ -102,9 +83,9 @@ const AboutUsScreen = () => {
                             <Ionicons name="location" size={20} color="#F59E0B" />
                         </View>
                         <View style={styles.featureContent}>
-                            <Text style={styles.featureTitle}>Station Finder</Text>
+                            <Text style={styles.featureTitle}>{t('about.featureStation')}</Text>
                             <Text style={styles.featureDescription}>
-                                Find nearby charging stations with real-time availability
+                                {t('about.featureStationDesc')}
                             </Text>
                         </View>
                     </View>

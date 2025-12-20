@@ -8,13 +8,14 @@ import { useWallet } from "@/hooks/useWallet";
 import CustomButton from "@/components/CustomButton";
 import PaymentTermsModal from "@/components/PaymentTermsModal";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view'
+import { useTranslation } from "@/hooks/useTranslation";
 
 const TopUpScreen = () => {
     const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
     const [customAmount, setCustomAmount] = useState('');
     const { userWalletBalance } = useWallet();
     const [showTermsModal, setShowTermsModal] = useState(false);
-    
+    const { t } = useTranslation(); 
 
     const quickAmounts = [5, 10, 20, 50, 100];
     const handleAmountSelect = (amount: number) => {
@@ -50,14 +51,14 @@ const TopUpScreen = () => {
     
 
     return (
-        <BaseComponent isBack={true} title="Top Up">
+        <BaseComponent isBack={true} title="wallet.topUp">
             <KeyboardAwareScrollView
                 style={{flex:1}}
                 extraScrollHeight={40}
             >
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Select Amount</Text>
+                    <Text style={styles.sectionTitle}>{t('wallet.selectAmount')}</Text>
                     <View style={styles.amountGrid}>
                         {quickAmounts.map((amount) => (
                             <TouchableOpacity
@@ -81,7 +82,7 @@ const TopUpScreen = () => {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Or Enter Custom Amount</Text>
+                    <Text style={styles.sectionTitle}>{t('wallet.orEnterCustomAmount')}</Text>
                     <View style={styles.customAmountContainer}>
                         <Text style={styles.currencySymbol}>$</Text>
                         <TextInput
@@ -101,17 +102,17 @@ const TopUpScreen = () => {
                         activeOpacity={0.7}
                     >
                         <Text style={styles.termsLink}>
-                            Payment Terms & Conditions
+                            {t('wallet.paymentTermsConditions')}
                         </Text>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.bottomContainer}>
                     <CustomButton
-                        buttonTitle={`Continue ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount}` : ''}`}
+                        buttonTitle={`${t('common.continue')} ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount}` : ''}`}
                         buttonColor={selectedAmount && selectedAmount > 0  ? Colors.mainColor : Colors.gray}
                         onPress={handleTopUp}
                         disabled={!selectedAmount || selectedAmount <= 0}
-                    />
+                    />``
 
                 </View>
                 <PaymentTermsModal

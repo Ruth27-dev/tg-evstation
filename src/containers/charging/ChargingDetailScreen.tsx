@@ -10,6 +10,7 @@ import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralCo
 import { useEVConnector } from '@/hooks/useEVConnector';
 import { useNavigation } from '@react-navigation/native';
 import * as Keychain from 'react-native-keychain';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const CIRCLE_SIZE = 220;
 const STROKE_WIDTH = 14;
@@ -24,6 +25,7 @@ const ChargingDetailScreen = () => {
     const lastMinutesRef = useRef<number | null>(null);
     const lastChargingMinutesRef = useRef<number | null>(null);
     const sessionIdRef = useRef<string | null>(null);
+    const { t } = useTranslation();
 
     const [connected, setConnected] = useState(false);
     const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -32,6 +34,15 @@ const ChargingDetailScreen = () => {
         // Store session ID in ref to persist even if evConnect is cleared
         if (evConnect?.session_id) {
             sessionIdRef.current = evConnect.session_id;
+        } else {
+            sessionIdRef.current = null;
+            lastMinutesRef.current = null;
+            lastChargingMinutesRef.current = null;
+            if (ws.current) {
+                ws.current.close();
+                ws.current = null;
+            }
+            setConnected(false);
         }
     }, [evConnect?.session_id]);
     
@@ -161,21 +172,28 @@ const ChargingDetailScreen = () => {
 
     const handleStopCharging = () => {
         Alert.alert(
-            'Stop Charging',
-            'Are you sure you want to stop charging?',
+            t('charging.stopCharging'),
+            t('charging.confirmStop'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Stop',
+                    text: t('charging.stopCharging'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
+                            const sessionData = sessionDetail;
+                            const sessionId =
+                                sessionDetail?.session_id ??
+                                sessionIdRef.current ??
+                                evConnect?.session_id ??
+                                null;
                             await postStop();
                             navigation.replace('ChargingSuccess', {
-                                sessionData: sessionDetail
+                                sessionData,
+                                sessionId
                             });
                         } catch {
-                            Alert.alert("Error", "Failed to stop charging session");
+                            Alert.alert(t('common.error'), t('charging.stopChargingError'));
                         }
                     }
                 }
@@ -218,41 +236,41 @@ const ChargingDetailScreen = () => {
                     style={styles.chargingLottie}
                 />
                 <Text style={styles.percentageText}>{batteryPercentage}%</Text>
-                <Text style={styles.percentageLabel}>Battery Level</Text>
+                <Text style={styles.percentageLabel}>{t('charging.batteryLevel')}</Text>
             </View>
         </View>
-    ), [batteryPercentage, strokeDashoffset]);
+    ), [batteryPercentage, strokeDashoffset, t]);
 
  
     const statsData = useMemo(() => ([
         {
-            title: "Energy",
+            title: t('charging.energy'),
             value: energyConsumed.toFixed(2),
             unit: "kWh",
             icon: <Lottie source={require('@/assets/lotties/electricity.json')} autoPlay loop style={{ width: 35, height: 35 }} />
         },
         {
-            title: "Charging Time",
+            title: t('charging.chargingTime'),
             value: chargingMinutesValue,
-            unit: "minutes",
+            unit: t('charging.minutes'),
             icon: <Lottie source={require('@/assets/lotties/charging.json')} autoPlay loop style={{ width: 90, height: 50 }} />
         },
         {
-            title: "Cost",
+            title: t('charging.cost'),
             value: `$${currentCost.toFixed(2)}`,
-            unit: "current",
+            unit: t('charging.current'),
             icon: <MaterialCommunityIcons name="cash" size={28} color={Colors.secondaryColor} />
         },
         {
-            title: "Estimated",
+            title: t('charging.estFinishTime'),
             value: minutesRemainingValue,
-            unit: "minutes",
+            unit: t('charging.minutes'),
             icon: <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.secondaryColor} />
         }
-    ]), [chargingMinutesValue, currentCost, energyConsumed, minutesRemainingValue]);
+    ]), [chargingMinutesValue, currentCost, energyConsumed, minutesRemainingValue, t]);
 
     return (
-        <BaseComponent isBack title="Charging Session">
+        <BaseComponent isBack title="charging.chargingSession">
             <ScrollView style={styles.scrollView}>
                 <View style={styles.progressSection}>{CircularProgress}</View>
 
@@ -271,14 +289,14 @@ const ChargingDetailScreen = () => {
                 <View style={styles.infoBanner}>
                     <Ionicons name="information-circle" size={18} color={Colors.secondaryColor} />
                     <Text style={styles.infoText}>
-                        Charging will automatically stop when battery reaches 100%
+                        {t('charging.autoStop')}
                     </Text>
                 </View>
 
                 {/* Stop Charging */}
                 <TouchableOpacity style={styles.stopButton} onPress={handleStopCharging}>
                     <MaterialCommunityIcons name="stop" size={24} color={Colors.white} />
-                    <Text style={styles.stopButtonText}>Stop Charging</Text>
+                    <Text style={styles.stopButtonText}>{t('charging.stopCharging')}</Text>
                 </TouchableOpacity>
             </ScrollView>
         </BaseComponent>

@@ -201,6 +201,7 @@ const SettingScreen = () => {
         </TouchableOpacity>
     );
     if(isRequesting) return <Loading/>
+    
     return (
         <BaseComponent isBack={false}>
             <ScrollView 
@@ -228,14 +229,14 @@ const SettingScreen = () => {
                 </View>
 
                 <View style={styles.section}>
-                    <TextTranslation textKey={'profile.accountSettings'} fontSize={FontSize.medium} isBold isPaddingBottom/>
+                    <TextTranslation textKey={'profile.accountSettings'} fontSize={FontSize.large} isBold isPaddingBottom/>
                     <View style={styles.settingsCard}>
                         {accountSettings.map(renderSettingItem)}
                     </View>
                 </View>
 
                 <View style={styles.section}>
-                    <TextTranslation textKey={'profile.support'} fontSize={FontSize.medium} isBold isPaddingBottom/>
+                    <TextTranslation textKey={'profile.support'} fontSize={FontSize.large} isBold isPaddingBottom/>
                     <View style={styles.settingsCard}>
                         {supportSettings.map(renderSettingItem)}
                     </View>

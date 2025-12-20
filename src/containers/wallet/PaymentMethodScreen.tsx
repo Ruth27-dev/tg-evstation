@@ -7,6 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTopUp } from "@/hooks/useTopUp";
 import CustomButton from "@/components/CustomButton";
 import PaymentTermsModal from "@/components/PaymentTermsModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PaymentMethod {
     id: string;
@@ -27,9 +28,9 @@ interface PaymentMethodScreenProps {
 
 const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
-    const [showTermsModal, setShowTermsModal] = useState(false);
+
     const { postTopUp ,isLoading } = useTopUp();
-    
+    const { t } = useTranslation();
     const amount = route?.params?.amount || 0;
 
     const paymentMethods: PaymentMethod[] = [
@@ -54,14 +55,13 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
     };
 
     return (
-        <BaseComponent isBack={true} title="Payment Method">
+        <BaseComponent isBack={true} title="wallet.selectPaymentMethod">
             <ScrollView 
                 style={styles.container} 
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
 
-                {/* Payment Methods Section */}
                 <View style={styles.section}>
                     <View style={styles.methodsContainer}>
                         {paymentMethods.map((method) => (
@@ -116,7 +116,7 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
 
             <View style={styles.bottomContainer}>
                 <CustomButton
-                    buttonTitle="Continue"
+                    buttonTitle={t('common.continue')}
                     buttonColor={selectedMethod ? Colors.mainColor : Colors.gray}
                     onPress={handleContinue}
                     disabled={!selectedMethod}

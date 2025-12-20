@@ -86,6 +86,7 @@ const HomeScreen = () => {
                             balance={Number(userWalletBalance?.balance) || 0}
                             currency={userWalletBalance?.currency ?? '$'}
                             onRefresh={handleRefresh}
+                            onTopUp={() => navigate('TopUp')}
                         />
 
                         <PromotionSlider 

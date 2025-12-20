@@ -81,6 +81,8 @@
 		<string>Khmer OS Kangrey.ttf</string>
 		<string>Lato-Bold.ttf</string>
 		<string>Lato-Regular.ttf</string>
+		<string>Basic-Regular.ttf</string>
+		<string>Siemreap-Regular.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

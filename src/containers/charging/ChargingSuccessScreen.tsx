@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,26 +13,33 @@ import { useEVStore } from '@/store/useEVStore';
 import CustomButton from '@/components/CustomButton';
 import { useHistory } from '@/hooks/useHistory';
 import Loading from '@/components/Loading';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const ChargingSuccessScreen = ( props : any) => {
     const { evConnect } = useEVStore();
-    const { sessionId } = props.route.params;
-    // console.log("SESSION ID SUCCESS SCREEN",evConnect)
+    const { sessionId } = props?.route?.params;
 
     const { clearSessionDetail, clearEvConnect } = useEVConnector();
     const { fetchDetail,chargingHistoryDetails } = useHistory();
     const [isLoading, setIsLoading] = React.useState<boolean>(true);
+    const { t } = useTranslation();
+
+    const resolvedSessionId = sessionId || evConnect?.session_id || null;
+    const summaryData = chargingHistoryDetails;
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (evConnect?.session_id) {
-                fetchDetail(Number(evConnect.session_id));
+            if (resolvedSessionId) {
+                const numericId = Number(resolvedSessionId);
+                if (!Number.isNaN(numericId)) {
+                    fetchDetail(numericId);
+                }
             }
             setIsLoading(false)
         }, 3000);
 
         return () => clearTimeout(timer);
-    }, [evConnect]);
+    }, [resolvedSessionId]);
 
     const handleDone = () => {
         clearEvConnect();
@@ -60,9 +67,9 @@ const ChargingSuccessScreen = ( props : any) => {
                         loop={false}
                         style={{height:200,width:200}}
                     />
-                    <Text style={styles.thankYouText}>Thank You!</Text>
+                    <Text style={styles.thankYouText}>{t('charging.thankYou')}</Text>
                     <Text style={styles.successMessage}>
-                        Your charging session has been completed successfully
+                        {t('charging.successMessage')}
                     </Text>
                 </View>
 
@@ -70,28 +77,28 @@ const ChargingSuccessScreen = ( props : any) => {
                     <View style={styles.primaryStatCard} >
                         <MaterialCommunityIcons name="cash" size={40} color="#fff" />
                         <View style={styles.primaryStatContent}>
-                            <Text style={styles.primaryStatLabel}>Total Cost</Text>
-                            <Text style={styles.primaryStatValue}>${chargingHistoryDetails?.price_so_far?.toFixed(2) || '0.00'}</Text>
+                            <Text style={styles.primaryStatLabel}>{t('charging.totalCost')}</Text>
+                            <Text style={styles.primaryStatValue}>${summaryData?.price_so_far?.toFixed(2) || '0.00'}</Text>
                         </View>
                     </View>
 
                     <View style={styles.secondaryStatsRow}>
                         <View style={styles.secondaryStatCard}>
                             <MaterialCommunityIcons name="lightning-bolt" size={28} color={Colors.secondaryColor} />
-                            <Text style={styles.secondaryStatValue}>{chargingHistoryDetails?.energy_kwh?.toFixed(2) || '0.00'}</Text>
-                            <Text style={styles.secondaryStatLabel}>kWh</Text>
+                            <Text style={styles.secondaryStatValue}>{summaryData?.energy_kwh?.toFixed(2) || '0.00'}</Text>
+                            <Text style={styles.secondaryStatLabel}>{t('charging.energyUnit')}</Text>
                         </View>
 
                         <View style={styles.secondaryStatCard}>
                             <MaterialCommunityIcons name="battery-charging" size={28} color={Colors.secondaryColor} />
-                            <Text style={styles.secondaryStatValue}>{chargingHistoryDetails?.current_soc || '0'}%</Text>
-                            <Text style={styles.secondaryStatLabel}>Battery</Text>
+                            <Text style={styles.secondaryStatValue}>{summaryData?.current_soc || '0'}%</Text>
+                            <Text style={styles.secondaryStatLabel}>{t('charging.batteryLabel')}</Text>
                         </View>
 
                         <View style={styles.secondaryStatCard}>
                             <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.secondaryColor} />
-                            <Text style={styles.secondaryStatValue}>{chargingHistoryDetails?.charging_minutes || '0'}</Text>
-                            <Text style={styles.secondaryStatLabel}>Duration</Text>
+                            <Text style={styles.secondaryStatValue}>{summaryData?.charging_minutes || '0'}</Text>
+                            <Text style={styles.secondaryStatLabel}>{t('charging.durationLabel')}</Text>
                         </View>
                     </View>
                 </View>
@@ -101,54 +108,54 @@ const ChargingSuccessScreen = ( props : any) => {
                 >
                     <View style={styles.detailsHeader}>
                         <MaterialCommunityIcons name="information" size={22} color={Colors.secondaryColor} />
-                        <Text style={styles.detailsTitle}>Session Details</Text>
+                        <Text style={styles.detailsTitle}>{t('charging.sessionDetails')}</Text>
                     </View>
 
                     <View style={styles.detailsList}>
                         <View style={styles.detailItem}>
                             <View style={styles.detailIconLabel}>
                                 <Ionicons name="calendar" size={20} color={Colors.secondaryColor} />
-                                <Text style={styles.detailItemLabel}>Date</Text>
+                                <Text style={styles.detailItemLabel}>{t('charging.date')}</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {chargingHistoryDetails?.started_at ? moment(chargingHistoryDetails.started_at).format('MMM DD, YYYY') : 'N/A'}
+                                {summaryData?.started_at ? moment(summaryData.started_at).format('MMM DD, YYYY') : t('common.notAvailable')}
                             </Text>
                         </View>
 
                         <View style={styles.detailItem}>
                             <View style={styles.detailIconLabel}>
                                 <Ionicons name="play-circle" size={20} color={Colors.secondaryColor} />
-                                <Text style={styles.detailItemLabel}>Started</Text>
+                                <Text style={styles.detailItemLabel}>{t('charging.started')}</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {chargingHistoryDetails?.started_at ? moment(chargingHistoryDetails.started_at).format('h:mm A') : 'N/A'}
+                                {summaryData?.started_at ? moment(summaryData.started_at).format('h:mm A') : t('common.notAvailable')}
                             </Text>
                         </View>
 
                         <View style={styles.detailItem}>
                             <View style={styles.detailIconLabel}>
                                 <Ionicons name="checkmark-circle" size={20} color={Colors.secondaryColor} />
-                                <Text style={styles.detailItemLabel}>Completed</Text>
+                                <Text style={styles.detailItemLabel}>{t('charging.completed')}</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {chargingHistoryDetails?.last_update_at ? moment(chargingHistoryDetails.last_update_at).format('h:mm A') : 'N/A'}
+                                {summaryData?.last_update_at ? moment(summaryData.last_update_at).format('h:mm A') : t('common.notAvailable')}
                             </Text>
                         </View>
 
                         <View style={styles.detailItem}>
                             <View style={styles.detailIconLabel}>
                                 <MaterialCommunityIcons name="identifier" size={20} color={Colors.secondaryColor} />
-                                <Text style={styles.detailItemLabel}>Session ID</Text>
+                                <Text style={styles.detailItemLabel}>{t('charging.sessionId')}</Text>
                             </View>
                             <Text style={styles.detailItemValue}>
-                                {chargingHistoryDetails?.session_id?.slice(0, 12) || 'N/A'}
+                                {summaryData?.session_id?.slice(0, 12) || t('common.notAvailable')}
                             </Text>
                         </View>
                     </View>
                 </View>
 
                 <CustomButton 
-                    buttonTitle="Done"
+                    buttonTitle={t('common.done')}
                     onPress={handleDone}
                     buttonColor={Colors.secondaryColor}
                 />

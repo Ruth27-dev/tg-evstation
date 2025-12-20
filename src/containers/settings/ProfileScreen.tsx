@@ -49,7 +49,7 @@ const ProfileScreen = () => {
     if(isRequesting) return <Loading />
 
     return (
-        <BaseComponent isBack={true} title="Profile">
+        <BaseComponent isBack={true} title="profile.profile">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 <View style={styles.card}>
                     <View>

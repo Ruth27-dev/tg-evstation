@@ -20,12 +20,13 @@ interface BaseComponentProps {
     title?: string;
     children?: React.ReactNode;
     onPress?: () => void;
+    hideHeader?: boolean;
 }
-const BaseComponent = ({isBack, title,children, onPress}: BaseComponentProps) => {
+const BaseComponent = ({isBack, title,children, onPress, hideHeader}: BaseComponentProps) => {
     return (
         <View style={{flex:1}}>
             {
-                isBack ? <BackHeader textTitle={title} onPress={onPress || goBack} /> : <MainHeader />
+                !hideHeader && (isBack ? <BackHeader textTitle={title} onPress={onPress || goBack} /> : <MainHeader />)
             }
             {children}
         </View>

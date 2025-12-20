@@ -8,6 +8,7 @@ import * as Keychain from 'react-native-keychain';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DeviceInfo from "react-native-device-info";
 import { useEVStore } from "@/store/useEVStore";
+import { useEVConnector } from "./useEVConnector";
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -16,7 +17,8 @@ export const useAuth = () => {
     const [isRequesting, setIsRequesting] = useState(false);
     const { setUserData } = useMeStore();
     const { setIsUserLogin } = useAuthStore();
-    const { clearEvConnect, clearSessionDetail } = useEVStore();
+    const { clearEvConnect } = useEVStore();
+    const { clearSessionDetail } = useEVConnector();
 
     const login = useCallback(async (phoneNumber: string, password: string) => {
         setIsLoading(true);

@@ -10,9 +10,10 @@ interface BalanceSectionProps {
     balance: number;
     currency: string;
     onRefresh: () => void;
+    onTopUp: () => void;
 }
 
-const BalanceSection: React.FC<BalanceSectionProps> = ({ balance, currency, onRefresh }) => {
+const BalanceSection: React.FC<BalanceSectionProps> = ({ balance, currency, onRefresh, onTopUp }) => {
     const { userData } = useMeStore();
 
     return (
@@ -24,9 +25,15 @@ const BalanceSection: React.FC<BalanceSectionProps> = ({ balance, currency, onRe
                         <Ionicons name="refresh" size={20} color={Colors.secondaryColor} />
                     </TouchableOpacity>
                 </View>
-                <Text style={styles.balanceAmount}>
-                    $ {balance.toFixed(2)}
-                </Text>
+                <View style={styles.balanceHeader}>
+                    <Text style={styles.balanceAmount}>
+                        $ {balance.toFixed(2)}
+                    </Text>
+                    <TouchableOpacity style={styles.topUpButton} onPress={onTopUp}>
+                        <Ionicons name="add-circle-outline" size={18} color={Colors.secondaryColor} style={{paddingRight:5}}/>
+                        <TextTranslation fontSize={FontSize.medium} color={Colors.mainColor} textKey="wallet.topUp" />
+                    </TouchableOpacity>
+                </View>
                 <View style={styles.goldBorder} />
             </View>
         </View>
@@ -57,7 +64,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 7,
     },
     balanceLabel: {
         fontSize: FontSize.medium,
@@ -69,6 +76,24 @@ const styles = StyleSheet.create({
         fontSize: 25,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
+    },
+    topUpButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderColor: Colors.secondaryColor,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        marginTop: 12,
+        alignSelf: 'flex-start',
+    },
+    topUpText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.secondaryColor,
+        marginLeft: 6,
     },
     goldBorder: {
         position: 'absolute',

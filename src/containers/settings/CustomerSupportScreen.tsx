@@ -8,11 +8,13 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useContact } from "@/hooks/useContact";
 import Loading from "@/components/Loading";
 import { useFAQ } from "@/hooks/useFQA";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const CustomerSupportScreen = () => {
     const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
     const { getContact , contactData, isLoading } = useContact();
     const { getFAQ, faqData } = useFAQ();
+    const { t } = useTranslation();
 
     useEffect(() => {
         getContact();
@@ -39,28 +41,28 @@ const CustomerSupportScreen = () => {
     if(isLoading) return <Loading/>
 
     return (
-        <BaseComponent isBack={true} title="Customer Support">
+        <BaseComponent isBack={true} title="profile.support">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.iconContainer}>
                         <Ionicons name="headset" size={32} color={Colors.mainColor} />
                     </View>
-                    <Text style={styles.title}>We're Here to Help</Text>
+                    <Text style={styles.title}>{t('support.title')}</Text>
                     <Text style={styles.subtitle}>
-                        Get in touch with our support team anytime
+                        {t('support.subtitle')}
                     </Text>
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Contact Us</Text>
+                    <Text style={styles.sectionTitle}>{t('support.contactUs')}</Text>
                     
                     <TouchableOpacity style={styles.contactCard} onPress={handleCall} activeOpacity={0.7}>
                         <View style={styles.contactIcon}>
                             <Ionicons name="call" size={35} color="#3B82F6" />
                         </View>
                         <View style={styles.contactInfo}>
-                            <Text style={styles.contactTitle}>Phone</Text>
+                            <Text style={styles.contactTitle}>{t('support.phone')}</Text>
                             <Text style={styles.contactDetail}>{contactData?.phone}</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -71,13 +73,13 @@ const CustomerSupportScreen = () => {
                             <FontAwesome name="telegram" size={35} color="#24A1DE" />
                         </View>
                         <View style={styles.contactInfo}>
-                            <Text style={styles.contactTitle}>Telegram</Text>
+                            <Text style={styles.contactTitle}>{t('support.telegram')}</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
+                    <Text style={styles.sectionTitle}>{t('support.faqTitle')}</Text>
                     {faqData?.map((faq, index) => (
                         <TouchableOpacity
                             key={index}

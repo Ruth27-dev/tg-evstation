@@ -1,8 +1,8 @@
 import BaseComponent from "@/components/BaseComponent";
-import { CustomFontConstant, FontSize, safePadding, safePaddingAndroid } from "@/constants/GeneralConstants";
+import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import { Colors } from "@/theme";
 import React, { useState, useEffect } from "react";
-import { Keyboard, StyleSheet, Text, View, Alert, ActivityIndicator, TouchableOpacity } from "react-native";
+import { Keyboard, StyleSheet, Text, View, Alert, TouchableOpacity } from "react-native";
 import {
   CodeField,
   Cursor,
@@ -11,7 +11,7 @@ import {
 } from 'react-native-confirmation-code-field';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { navigate } from '@/navigation/NavigationService';
-import CustomButton from "@/components/CustomButton";
+import { useTranslation } from "@/hooks/useTranslation";
 
 let interval: any;
 const CELL_COUNT: number = 6;
@@ -30,10 +30,11 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
     const [confirmation, setConfirmation] = useState<FirebaseAuthTypes.ConfirmationResult | null>(
         route?.params?.confirmation || null
     );
-    const [phoneNumber, setPhoneNumber] = useState<string>(route?.params?.phoneNumber || '+855 12 284 294');
+    const [phoneNumber, setPhoneNumber] = useState<string>(route?.params?.phoneNumber ?? '');
     const [DurationCode, setDurationCode] = useState<number>(60);
     const [isVerifying, setIsVerifying] = useState(false);
     const [isResending, setIsResending] = useState(false);
+    const { currentLanguage, t } = useTranslation();
     
     const ref = useBlurOnFulfill({value: code, cellCount: CELL_COUNT});
     const [props, getCellOnLayoutHandler] = useClearByFocusCell({
@@ -93,26 +94,23 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
             setIsResending(true);
             const formattedPhone = phoneNumber.replace(/\s/g, '');
             const newConfirmation = await auth().signInWithPhoneNumber(formattedPhone);
-            
             setConfirmation(newConfirmation);
             setDurationCode(60);
             setCode('');
-            Alert.alert('Success', 'Verification code sent successfully!');
         } catch (error: any) {
             console.error('Resend error:', error);
-            Alert.alert('Error', 'Failed to resend code. Please try again.');
         } finally {
             setIsResending(false);
         }
     };
 
     return (
-        <BaseComponent isBack={true} title="Verify">
+        <BaseComponent isBack={true} title='auth.verify'>
             <View style={style.container}>
                 <View style={style.headerSection}>
-                    <Text style={style.title}>Verification Code</Text>
+                    <Text style={style.title}>{t('auth.verificationCode')}</Text>
                     <Text style={style.description}>
-                        We've sent a 6-digit verification code to
+                        {t('auth.verificationCodeSent')}
                     </Text>
                     <Text style={style.phoneNumber}>{phoneNumber}</Text>
                 </View>
@@ -149,7 +147,7 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                 </View>
 
                 <View style={style.footerSection}>
-                    <Text style={style.resendText}>Didn't receive the code?</Text>
+                    <Text style={style.resendText}>{t('auth.didntReceiveCode')}</Text>
                     <TouchableOpacity 
                         onPress={handleResendCode}
                         disabled={DurationCode > 0 || isResending}
@@ -159,12 +157,12 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                             style.resendLink,
                             (DurationCode > 0 || isResending) && style.resendLinkDisabled
                         ]}>
-                            {isResending ? 'Sending...' : 'Resend Code'}
+                            {isResending ? t('common.loading') : t('auth.resendCode')}
                         </Text>
                     </TouchableOpacity>
                     {DurationCode > 0 && (
                         <Text style={style.timerText}>
-                            Resend in {DurationCode}s
+                            {t('auth.resendIn')} {DurationCode}
                         </Text>
                     )}
                 </View>

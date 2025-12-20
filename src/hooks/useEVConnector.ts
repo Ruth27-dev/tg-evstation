@@ -55,8 +55,8 @@ export const useEVConnector = () => {
             }
             const response = await evtStop(data);
             if(response?.data?.code === '000'){
-                // clearEvConnect();
-                // clearSessionDetail();
+                clearEvConnect();
+                clearSessionDetail();
             }
             return response;
         } catch (error) {

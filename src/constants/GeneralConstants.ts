@@ -17,10 +17,10 @@ export const screenSizes = {
 }
 
 export const CustomFontConstant = {
-    KantumruyPro:  "KantumruyPro-SemiBold",
-    Khmer: "Khmer OS Kangrey",
-    EnRegular: "Lato-Regular",
-    EnBold: "Lato-Bold",
+    KantumruyPro:  "Siemreap-Regular",
+    Khmer: "Siemreap-Regular",
+    EnRegular: "Basic-Regular",
+    EnBold: "Basic-Regular",
 }
 export const safePadding = '5%';
 export const safePaddingAndroid = '8%';

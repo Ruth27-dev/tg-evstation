@@ -3,6 +3,7 @@ import { Colors } from "@/theme";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { navigate } from "@/navigation/NavigationService";
+import TextTranslation from "./TextTranslation";
 
 interface BalanceCardProps{
     amount?:number;
@@ -13,7 +14,7 @@ const BalanceCard = ({amount, currency = '$'}: BalanceCardProps) => {
         <View style={styles.balanceCard}>
             <View style={styles.balanceContent}>
                 <View>
-                    <Text style={styles.balanceLabel}>Current Balance</Text>
+                    <TextTranslation textKey="wallet.totalBalance" fontSize={FontSize.medium} color={Colors.white}/>
                     <Text style={styles.balanceAmount}>$ {amount?.toFixed(2)}</Text>
                 </View>
                 <TouchableOpacity 
@@ -22,7 +23,7 @@ const BalanceCard = ({amount, currency = '$'}: BalanceCardProps) => {
                     onPress={() => navigate('TopUp')}
                 >
                     <Ionicons name="add-circle" size={24} color={Colors.white} />
-                    <Text style={styles.topUpText}>Top Up</Text>
+                    <TextTranslation textKey="wallet.topUp" fontSize={FontSize.medium} color={Colors.white}/>
                 </TouchableOpacity>
             </View>
         </View>

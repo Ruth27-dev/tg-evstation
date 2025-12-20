@@ -13,6 +13,7 @@ import AppLogo from '@/assets/logo/logo.svg';
 import BaseComponent from '@/components/BaseComponent';
 import { cleanPhoneNumber, validatePhoneNumber } from '@/utils';
 import ErrorBanner from '@/components/ErrorBanner';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface LoginFormData {
   phone: string;
@@ -24,6 +25,7 @@ const loginSchema = yup.object().shape({
   
 const RegisterScreen = () => {
 	const [countryCode, setCountryCode] = React.useState('+855');
+  const { currentLanguage, t } = useTranslation();
 
 	const {
 		control,
@@ -49,7 +51,7 @@ const RegisterScreen = () => {
 	}
 
 	return (
-        <BaseComponent isBack={true} title="Sign Up">
+        <BaseComponent isBack={true} title='auth.createAccount'>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -75,7 +77,7 @@ const RegisterScreen = () => {
                             {/* Logo Section */}
                             <View style={styles.headerSection}>
                                 <AppLogo width={180} height={180} />
-                                <Text style={styles.welcomeTitle}>Create your new account</Text>
+                                <Text style={styles.welcomeTitle}>{t('auth.createAccount')}</Text>
                             </View>
 
                             {/* Form Section */}
@@ -88,7 +90,7 @@ const RegisterScreen = () => {
                                 />
                                 <View style={{ height: 5 }} />
                                 <CustomButton
-                                    buttonTitle="Continue"
+                                    buttonTitle={t('common.continue')}
                                     onPress={handleSubmit(onSubmit)}
                                     isLoading={isLoading}
                                     buttonColor={
@@ -109,9 +111,9 @@ const RegisterScreen = () => {
                                 </View>
 
                                 <View style={styles.signUpContainer}>
-                                    <Text style={styles.signUpText}>Already have an account? </Text>
+                                    <Text style={styles.signUpText}>{t('auth.alreadyHaveAccount')}</Text>
                                     <TouchableOpacity onPress={() => navigate('Login')}>
-                                        <Text style={styles.signUpLink}>Sign In</Text>
+                                        <Text style={styles.signUpLink}>{t('auth.signIn')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>

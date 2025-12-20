@@ -1,4 +1,5 @@
 import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Colors } from "@/theme";
 import { countries, Country } from "@/utils/countries";
 import React, { useState } from "react";
@@ -28,6 +29,8 @@ const CountryPhoneInput: React.FC<Props> = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
   const insets = useSafeAreaInsets(); 
+  const { currentLanguage, t } = useTranslation();
+  
   const handleSelect = (country: Country) => {
     setSelectedCountry(country);
     setModalVisible(false);
@@ -52,7 +55,7 @@ const CountryPhoneInput: React.FC<Props> = ({
           value={value}
           onChangeText={onChange}
           keyboardType="phone-pad"
-          placeholder="Enter phone number"
+          placeholder={t('auth.phoneNumber')}
           placeholderTextColor={Colors.dividerColor}
           selectionColor={Colors.mainColor}
           maxLength={10}

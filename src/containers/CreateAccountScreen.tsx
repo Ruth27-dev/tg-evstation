@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import BaseComponent from '@/components/BaseComponent';
 import { cleanPhoneNumber, formatPhoneNumber } from '@/utils';
 import ErrorBanner from '@/components/ErrorBanner';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface CreateAccountFormData {
   phone: string;
@@ -33,7 +34,8 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
   const phoneNumberFromRoute = route?.params?.phoneNumber || '';
 	const [showPassword, setShowPassword] = useState(false);
 	const [acceptTerms, setAcceptTerms] = useState(false);
-	
+	const { t } = useTranslation();
+  
   const { login,isLoading, error,showError,setShowError,checkPhoneNumber, register } = useAuth();
   
 	const {
@@ -76,18 +78,18 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                         <View style={styles.contentWrapper}>
                             {/* Header Section */}
                             <View style={styles.headerSection}>
-                                <Text style={styles.welcomeTitle}>Create Your Account</Text>
+                                <Text style={styles.welcomeTitle}>{t('auth.createAccountTitle')}</Text>
                                 <Text style={styles.welcomeSubtitle}>
-									Join us today and start your EV charging journey
-								</Text>
+						{t('auth.createAccountSubtitle')}
+					</Text>
                             </View>
-							<ErrorBanner
-								visible={showError}
-								message={error || 'Invalid phone number or password. Please try again.'}
-								title="Create Account Failed"
-								onDismiss={() => {
-									setShowError(false);
-								}}
+						<ErrorBanner
+							visible={showError}
+							message={error || t('auth.invalidCredentials')}
+							title={t('auth.createAccountErrorTitle')}
+							onDismiss={() => {
+								setShowError(false);
+							}}
 								autoDismiss={true}
 								autoDismissDelay={3000}
 							/>
@@ -96,8 +98,8 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                             <View style={styles.formCard}>
                               {/* Phone Number */}
                               <CustomInputText
-                                labelText="Phone Number"
-                                placeHolderText="Your phone number"
+                                labelText={t('auth.phoneNumberLabel')}
+                                placeHolderText={t('auth.enterPhoneNumber')}
                                 control={control}
                                 name="phone"
                                 errors={errors}
@@ -111,8 +113,8 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
 
                               {/* Full Name */}
                               <CustomInputText
-                                labelText="Full Name"
-                                placeHolderText="Enter your full name"
+                                labelText={t('profile.fullName')}
+                                placeHolderText={t('profile.enterFullName')}
                                 control={control}
                                 name="fullName"
                                 errors={errors}
@@ -125,8 +127,8 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                               {/* Password */}
                               <View>
                                 <CustomInputText
-                                  labelText="Password"
-                                  placeHolderText="Create a strong password"
+                                  labelText={t('auth.passwordLabel')}
+                                  placeHolderText={t('auth.createPasswordPlaceholder')}
                                   control={control}
                                   name="password"
                                   errors={errors}
@@ -157,16 +159,16 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                                   {acceptTerms && <Ionicons name="checkmark" size={16} color={Colors.white} />}
                                 </View>
                                 <Text style={styles.checkboxText}>
-                                  I agree to the{' '}
-                                  <Text style={styles.checkboxLink}>Terms & Conditions</Text>
-                                  {' '}and{' '}
-                                  <Text style={styles.checkboxLink}>Privacy Policy</Text>
+                                  {t('auth.agreeTermsPrefix')}
+                                  <Text style={styles.checkboxLink}>{t('profile.termsConditions')}</Text>
+                                  {t('auth.agreeTermsConnector')}
+                                  <Text style={styles.checkboxLink}>{t('profile.privacyPolicy')}</Text>
                                 </Text>
                               </TouchableOpacity>
 
                               {/* Submit Button */}
                               <CustomButton
-                                buttonTitle="Create Account"
+                                buttonTitle={t('auth.createAccountButton')}
                                 onPress={handleSubmit(onSubmit)}
                                 isLoading={isLoading}
                                 buttonColor={isFormValid ? Colors.mainColor : Colors.disableColor}
@@ -177,9 +179,9 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                             {/* Footer */}
                             <View style={styles.footer}>
                                 <View style={styles.signInContainer}>
-                                    <Text style={styles.signInText}>Already have an account? </Text>
+                                    <Text style={styles.signInText}>{t('auth.alreadyHaveAccount')} </Text>
                                     <TouchableOpacity onPress={() => navigate('Login')}>
-                                        <Text style={styles.signInLink}>Sign In</Text>
+                                        <Text style={styles.signInLink}>{t('auth.signIn')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>

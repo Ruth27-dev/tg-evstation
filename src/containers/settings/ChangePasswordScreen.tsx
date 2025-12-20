@@ -96,7 +96,7 @@ const ChangePasswordScreen = () => {
     const passwordStrength = getPasswordStrength(newPassword);
 
     return (
-        <BaseComponent isBack={true} title="Change Password">
+        <BaseComponent isBack={true} title="profile.changePassword">
             <View style={styles.container}>
 
                 <View style={styles.header}>

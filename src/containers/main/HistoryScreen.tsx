@@ -11,6 +11,7 @@ import { History } from "@/types";
 import NoData from "@/components/NoData";
 import moment from "moment";
 import Loading from "@/components/Loading";
+import TextTranslation from "@/components/TextTranslation";
 
 const HistoryScreen = () => {
     const { getChargerHistory , chargerHistoryData,isLoading,isLoadMoreLoading} = useHistory();
@@ -94,7 +95,7 @@ const HistoryScreen = () => {
                             <Image source={Images.no_data} style={{width:24,height:24}}/>
                         </View>
                         <View style={styles.headerInfo}>
-                            <Text style={styles.sessionId}>Session #{item.session_id.slice(0, 8)}</Text>
+                            <Text style={styles.sessionId}>#{item.session_id.slice(0, 8)}</Text>
                             <View style={styles.dateRow}>
                                 <Ionicons name="calendar-outline" size={12} color="#9CA3AF" />
                                 <Text style={styles.dateText}>{formatDate(item.started_at)}</Text>
@@ -114,14 +115,14 @@ const HistoryScreen = () => {
                         <View style={styles.detailItem}>
                             <MaterialCommunityIcons name="lightning-bolt" size={20} color={Colors.mainColor} />
                             <View>
-                                <Text style={styles.detailLabel}>Energy</Text>
+                                <TextTranslation textKey="charging.energy" fontSize={12} color={Colors.gray} />
                                 <Text style={styles.detailValue}>{item.energy_kwh.toFixed(2)} kWh</Text>
                             </View>
                         </View>
                         <View style={styles.detailItem}>
                             <MaterialCommunityIcons name="battery-charging" size={20} color={Colors.mainColor} />
                             <View>
-                                <Text style={styles.detailLabel}>Battery</Text>
+                                <TextTranslation textKey="charging.batteryLevel" fontSize={12} color={Colors.gray} />
                                 <Text style={styles.detailValue}>{item.current_soc}%</Text>
                             </View>
                         </View>
@@ -131,14 +132,14 @@ const HistoryScreen = () => {
                         <View style={styles.detailItem}>
                             <MaterialCommunityIcons name="cash" size={20} color={Colors.mainColor} />
                             <View>
-                                <Text style={styles.detailLabel}>Total Cost</Text>
+                                <TextTranslation textKey="charging.cost" fontSize={12} color={Colors.gray} />
                                 <Text style={styles.detailValue}>${item.price_so_far.toFixed(2)}</Text>
                             </View>
                         </View>
                         <View style={styles.detailItem}>
                             <MaterialCommunityIcons name="clock-outline" size={20} color={Colors.mainColor} />
                             <View>
-                                <Text style={styles.detailLabel}>Last Update</Text>
+                                <TextTranslation textKey="charging.lastUpdate" fontSize={12} color={Colors.gray} />
                                 <Text style={styles.detailValue}>{formatTime(item.last_update_at)}</Text>
                             </View>
                         </View>
@@ -147,7 +148,7 @@ const HistoryScreen = () => {
 
                 <View style={styles.receiptButton}>
                     <Ionicons name="receipt-outline" size={16} color={Colors.mainColor} />
-                    <Text style={styles.receiptText}>View Details</Text>
+                    <TextTranslation textKey="charging.viewDetails" fontSize={FontSize.medium} color={Colors.mainColor} isBold/>
                 </View>
             </TouchableOpacity>
         );
@@ -370,13 +371,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#E5E7EB',
         marginVertical: 12,
     },
-    detailLabel: {
-        fontSize: FontSize.small - 1,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: '#6B7280',
-        fontWeight: '500',
-        marginBottom: 2,
-    },
     detailValue: {
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
@@ -392,12 +386,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.mainColor,
         gap: 6,
-    },
-    receiptText: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
-        fontWeight: '700',
     },
      footerLoader: {
         paddingVertical: 20,

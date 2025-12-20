@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -8,8 +8,8 @@ import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
 import CustomButton from '@/components/CustomButton';
 import CustomInputText from '@/components/CustomInputText';
-import CustomModal from '@/components/CustomModal';
 import ErrorBanner from '@/components/ErrorBanner';
+import LanguageSelectionModal, { LanguageSelectionModalRef } from '@/components/LanguageSelectionModal';
 import { navigate } from '@/navigation/NavigationService';
 import { useAuth } from '@/hooks/useAuth';
 import CustomPhoneInput from '@/components/CustomPhoneInput';
@@ -20,11 +20,10 @@ import AppLogo from '@/assets/logo/logo.svg';
 import { cleanPhoneNumber, validatePhoneNumber } from '@/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import TextTranslation from '@/components/TextTranslation';
-import { useLanguageStore } from '@/store/useTranslateStore';
 
 interface LoginFormData {
-  phone: string;
-  password: string;
+	phone: string;
+	password: string;
 }
 
 const loginSchema = yup.object().shape({
@@ -33,17 +32,10 @@ const loginSchema = yup.object().shape({
 });
   
 const LoginScreen = () => {
-  const [isShowPassword, setIsShowPassword] = useState(false);
-  const [isOTPLoading, setIsOTPLoading] = useState(false);
-  const [countryCode, setCountryCode] = useState('+855');
-  const { t, currentLanguage } = useTranslation();
-  const { setAppLanguage } = useLanguageStore();
-  
-	const languageModalRef = useRef<{
-		showModal: () => void;
-		hideModal: () => void;
-	} | null>(null);
-
+	const [isShowPassword, setIsShowPassword] = useState(false);
+	const [countryCode, setCountryCode] = useState('+855');
+	const { currentLanguage, t } = useTranslation();
+	const languageModalRef = useRef<LanguageSelectionModalRef>(null);
 	const { login,isLoading, error,showError,setShowError } = useAuth();
 	const {
 		control,
@@ -66,11 +58,6 @@ const LoginScreen = () => {
 		setCountryCode(country.dial_code);
 	}
 
-	const handleLanguageChange = (langCode: string) => {
-		setAppLanguage(langCode);
-		languageModalRef?.current?.hideModal();
-	};
-
 	const getLanguageIcon = () => {
 		switch (currentLanguage) {
 			case 'kh':
@@ -84,94 +71,16 @@ const LoginScreen = () => {
 
 	const renderTranslateIcon = useCallback(() => {
 		return (
-		<TouchableOpacity
-			activeOpacity={0.7}
-			onPress={() => languageModalRef?.current?.showModal()}
-			style={styles.languageButton}
-		>
-			{getLanguageIcon()}
-			<Ionicons name="chevron-down" size={20} color={Colors.mainColor} />
-		</TouchableOpacity>
+			<TouchableOpacity
+				activeOpacity={0.7}
+				onPress={() => languageModalRef?.current?.showModal()}
+				style={styles.languageButton}
+			>
+				{getLanguageIcon()}
+				<Ionicons name="chevron-down" size={20} color={Colors.mainColor} />
+			</TouchableOpacity>
 		);
 	}, [currentLanguage]);
-
-	const renderLang = useMemo(
-		() => (
-		<CustomModal
-			ref={languageModalRef}
-			animationType="fade"
-			children={
-			<TouchableOpacity 
-				style={styles.modalOverlay}
-				activeOpacity={1}
-				onPress={() => languageModalRef?.current?.hideModal()}
-			>
-				<TouchableOpacity 
-					style={styles.modalContent}
-					activeOpacity={1}
-					onPress={(e) => e.stopPropagation()}
-				>
-				<View style={styles.modalHeader}>
-					<Text style={styles.modalTitle}>{t('profile.selectLanguage')}</Text>
-					<TouchableOpacity 
-						onPress={() => languageModalRef?.current?.hideModal()}
-						style={styles.closeButton}
-					>
-						<Ionicons name="close" size={28} color={Colors.gray} />
-					</TouchableOpacity>
-				</View>
-				
-				<TouchableOpacity 
-					style={[styles.languageOption, currentLanguage === 'kh' && styles.languageOptionActive]}
-					onPress={() => handleLanguageChange('kh')}
-				>
-					<View style={styles.languageOptionLeft}>
-						<KhmerIcon width={30} height={30} />
-						<Text style={styles.languageOptionText}>ភាសាខ្មែរ (Khmer)</Text>
-					</View>
-					{currentLanguage === 'kh' ? (
-						<Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
-					) : (
-						<View style={styles.checkmarkPlaceholder} />
-					)}
-				</TouchableOpacity>
-				
-				<TouchableOpacity 
-					style={[styles.languageOption, currentLanguage === 'en' && styles.languageOptionActive]}
-					onPress={() => handleLanguageChange('en')}
-				>
-					<View style={styles.languageOptionLeft}>
-						<EnglishIcon width={30} height={30}/>
-						<Text style={[styles.languageOptionText, styles.englishText]}>English</Text>
-					</View>
-					{currentLanguage === 'en' ? (
-						<Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
-					) : (
-						<View style={styles.checkmarkPlaceholder} />
-					)}
-				</TouchableOpacity>
-
-				<TouchableOpacity 
-					style={[styles.languageOption, currentLanguage === 'zh' && styles.languageOptionActive]}
-					onPress={() => handleLanguageChange('zh')}
-				>
-					<View style={styles.languageOptionLeft}>
-						<ChinaIcon width={30} height={30} />
-						<Text style={[styles.languageOptionText, styles.englishText]}>中文 (Chinese)</Text>
-					</View>
-					{currentLanguage === 'zh' ? (
-						<Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
-					) : (
-						<View style={styles.checkmarkPlaceholder} />
-					)}
-				</TouchableOpacity>
-
-				</TouchableOpacity>
-			</TouchableOpacity>
-			}
-		/>
-		),[currentLanguage]
-	);
 
 	return (
 		<KeyboardAvoidingView
@@ -202,8 +111,8 @@ const LoginScreen = () => {
 
 						<View style={styles.headerSection}>
 							<AppLogo width={180} height={180} />
-              <TextTranslation textKey="common.welcome" fontSize={32} isBold />
-              <TextTranslation textKey="common.signInToContinue" fontSize={FontSize.medium} />
+							<TextTranslation textKey="common.welcome" fontSize={32} isBold />
+							<TextTranslation textKey="common.signInToContinue" fontSize={FontSize.medium} />
 						</View>
 
 						<View style={styles.formContainer}>
@@ -214,8 +123,8 @@ const LoginScreen = () => {
                 				onCountryChange={onCountryChange}
 							/>
 							<CustomInputText
-								placeHolderText="Enter password"
-								labelText="Enter password"
+								placeHolderText={t('auth.password')}
+								labelText={t('password')}
 								isRightIcon
 								control={control}
 								name="password"
@@ -231,11 +140,11 @@ const LoginScreen = () => {
 							/> 
 							
 							<TouchableOpacity style={styles.forgotPasswordContainer} onPress={()=>navigate('ForgetPassword')}>
-								<Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+								<Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
 							</TouchableOpacity>
 
 							<CustomButton
-								buttonTitle="Login"
+								buttonTitle={t('auth.login')}
 								onPress={handleSubmit(onSubmit)}
 								isLoading={isLoading}
 								buttonColor={
@@ -255,18 +164,17 @@ const LoginScreen = () => {
 							</View>
 
 							<View style={styles.signUpContainer}>
-								<Text style={styles.signUpText}>Don't have an account? </Text>
+								<Text style={styles.signUpText}>{t('auth.dontHaveAccount')}</Text>
 								<TouchableOpacity onPress={() => navigate('Register')}>
-									<Text style={styles.signUpLink}>Sign Up</Text>
+									<Text style={styles.signUpLink}>{t('auth.signUp')}</Text>
 								</TouchableOpacity>
 							</View>
 						</View>
 					</View>
 				</View>
-				{renderLang}
+				<LanguageSelectionModal ref={languageModalRef} />
 			</ScrollView>
 		</KeyboardAvoidingView>
-		
 	);
 };
 
@@ -404,68 +312,5 @@ const styles = StyleSheet.create({
     fontSize: FontSize.small,
     fontFamily: CustomFontConstant.EnRegular,
     fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  modalContent: {
-    width: '90%',
-    padding: 28,
-    borderRadius: 20,
-    backgroundColor: Colors.white,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modalTitle: {
-    fontSize: FontSize.large,
-    fontFamily: CustomFontConstant.EnBold,
-    color: Colors.mainColor,
-  },
-  closeButton: {
-    padding: 4,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-  },
-  languageOption: {
-    padding: 5,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'transparent',
-    marginBottom: 12,
-  },
-  languageOptionActive: {
-    borderColor: Colors.mainColor,
-    backgroundColor: '#EBF5F8',
-  },
-  languageOptionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  flagIconLarge: {
-    fontSize: 32,
-  },
-  languageOptionText: {
-    fontSize: FontSize.medium,
-    fontFamily: CustomFontConstant.EnRegular,
-    color: Colors.mainColor,
-  },
-  englishText: {
-    fontFamily: CustomFontConstant.EnRegular,
-  },
-  checkmarkPlaceholder: {
-    width: 24,
-    height: 24,
   },
 });

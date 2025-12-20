@@ -8,10 +8,13 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import moment from "moment";
 import { useHistory } from "@/hooks/useHistory";
 import Loading from "@/components/Loading";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const HistoryDetailScreen = (props:any) => {
     const { sessionId } = props.route?.params;
     const { fetchDetail,chargingHistoryDetails,isLoading } = useHistory();
+    const { t, tVar } = useTranslation();
+    
     useEffect(() => {
         fetchDetail(sessionId);
     }, [sessionId]);
@@ -46,7 +49,7 @@ const HistoryDetailScreen = (props:any) => {
     if(isLoading) return <Loading/>
 
     return (
-        <BaseComponent isBack={true} title="Charging Details">
+        <BaseComponent isBack={true} title="history.historyDetails">
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Status Header */}
                 <View style={styles.statusCard}>
@@ -66,22 +69,22 @@ const HistoryDetailScreen = (props:any) => {
                     <View style={styles.statBox}>
                         <MaterialCommunityIcons name="lightning-bolt" size={22} color={Colors.secondaryColor} />
                         <Text style={styles.statValue}>{chargingHistoryDetails?.energy_kwh.toFixed(2)}</Text>
-                        <Text style={styles.statLabel}>kWh</Text>
+                        <Text style={styles.statLabel}>{t('charging.energyUnit')}</Text>
                     </View>
                     <View style={styles.statBox}>
                         <MaterialCommunityIcons name="battery-charging" size={22} color={Colors.secondaryColor} />
                         <Text style={styles.statValue}>{chargingHistoryDetails?.current_soc}%</Text>
-                        <Text style={styles.statLabel}>Battery</Text>
+                        <Text style={styles.statLabel}>{t('charging.batteryLabel')}</Text>
                     </View>
                     <View style={styles.statBox}>
                         <MaterialCommunityIcons name="clock-outline" size={22} color={Colors.secondaryColor} />
                         <Text style={styles.statValue}>{chargingHistoryDetails?.charging_minutes}</Text>
-                        <Text style={styles.statLabel}>Minutes</Text>
+                        <Text style={styles.statLabel}>{t('charging.minutes')}</Text>
                     </View>
                     <View style={styles.statBox}>
                         <MaterialCommunityIcons name="cash" size={22} color={Colors.secondaryColor} />
                         <Text style={styles.statValue}>${chargingHistoryDetails?.price_so_far.toFixed(2)}</Text>
-                        <Text style={styles.statLabel}>Cost</Text>
+                        <Text style={styles.statLabel}>{t('charging.cost')}</Text>
                     </View>
                 </View>
 
@@ -89,11 +92,11 @@ const HistoryDetailScreen = (props:any) => {
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <Ionicons name="time-outline" size={18} color={Colors.mainColor} />
-                        <Text style={styles.cardTitle}>Session Timeline</Text>
+                        <Text style={styles.cardTitle}>{t('history.sessionTimeline')}</Text>
                     </View>
                     <View style={styles.timelineRow}>
                         <View style={styles.timelineCol}>
-                            <Text style={styles.timeLabel}>Started</Text>
+                            <Text style={styles.timeLabel}>{t('charging.started')}</Text>
                             <Text style={styles.timeValue}>{formatTimeLocal(chargingHistoryDetails?.started_at)}</Text>
                             <Text style={styles.dateValue}>{formatDate(chargingHistoryDetails?.started_at)}</Text>
                         </View>
@@ -103,7 +106,7 @@ const HistoryDetailScreen = (props:any) => {
                             <View style={styles.timelineDotSmall} />
                         </View>
                         <View style={styles.timelineCol}>
-                            <Text style={styles.timeLabel}>Updated</Text>
+                            <Text style={styles.timeLabel}>{t('history.updated')}</Text>
                             <Text style={styles.timeValue}>{formatTime(chargingHistoryDetails?.last_update_at)}</Text>
                         </View>
                     </View>
@@ -114,7 +117,7 @@ const HistoryDetailScreen = (props:any) => {
                     <View style={styles.infoRow}>
                         <MaterialCommunityIcons name="timer-outline" size={18} color={Colors.mainColor} />
                         <Text style={styles.infoText}>
-                            {chargingHistoryDetails?.minutes_remaining} minutes remaining
+                            {tVar('history.minutesRemaining', { minutes: chargingHistoryDetails?.minutes_remaining })}
                         </Text>
                     </View>
                 )}
@@ -122,7 +125,7 @@ const HistoryDetailScreen = (props:any) => {
                     <View style={styles.infoRow}>
                         <MaterialCommunityIcons name="credit-card-outline" size={18} color={Colors.mainColor} />
                         <Text style={styles.infoText}>
-                            Max amount: ${(chargingHistoryDetails?.max_amount_cents / 100).toFixed(2)}
+                            {tVar('history.maxAmount', { amount: (chargingHistoryDetails?.max_amount_cents / 100).toFixed(2) })}
                         </Text>
                     </View>
                 )}

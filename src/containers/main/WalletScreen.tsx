@@ -10,6 +10,8 @@ import { useWallet } from "@/hooks/useWallet";
 import { Transaction } from "@/types";
 import moment from "moment";
 import Loading from "@/components/Loading";
+import TextTranslation from "@/components/TextTranslation";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const WalletScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
@@ -19,7 +21,7 @@ const WalletScreen = () => {
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const { getMeWallet, userWalletBalance, meTransaction, getMeTransactions, isLoadMoreLoading,isLoading } = useWallet();
-    
+    const { t } = useTranslation();
     useEffect(() => {
         const loadInitialData = async () => {
             await getMeWallet();
@@ -68,7 +70,7 @@ const WalletScreen = () => {
         return (
             <View style={styles.footerLoader}>
                 <ActivityIndicator size="small" color={Colors.mainColor} />
-                <Text style={styles.loadingText}>Loading more...</Text>
+                <Text style={styles.loadingText}>{t('wallet.loadingMore')}</Text>
             </View>
         );
     };
@@ -115,6 +117,26 @@ const WalletScreen = () => {
                 return '#EF4444';
         }
     }
+    const textStatus = (status:string) =>{
+        switch (status) {
+        case 'PENDING':
+            return t('status.pending');
+        case 'COMPLETED':
+            return t('status.completed');
+        default:
+            return '';
+        }
+    }
+      const textType = (status:string) =>{
+        switch (status) {
+        case 'TOPUP':
+            return t('status.topUp');
+        case 'CHARGE':
+            return t('status.charge');
+        default:
+            return '';
+        }
+    }
     const handleTransactionPress = useCallback((transaction: Transaction) => {
         setSelectedTransaction(transaction);
         setModalVisible(true);
@@ -136,7 +158,7 @@ const WalletScreen = () => {
                     <Ionicons name={getTransactionIcon(item.type)} size={24} color={getTransactionColor(item.type)} />
                 </View>
                 <View style={styles.transactionDetails}>
-                    <Text style={styles.transactionDescription}>{item.type || 'No description'}</Text>
+                    <Text style={styles.transactionDescription}>{textType(item.type) || t('wallet.noDescription')}</Text>
                     <Text style={styles.transactionDate}>
                         {item.created_at 
                         ? moment.utc(item.created_at).local().format('MMM DD, YYYY hh:mm A')
@@ -153,14 +175,14 @@ const WalletScreen = () => {
                         :
                         <View style={[styles.statusBadge, { backgroundColor: itemStatus(item.status) }]}>
                             <Text style={[styles.statusText, { color: item.status === 'PENDING' ? '#F59E0B' :Colors.white  }]}>
-                                {item.status}
+                                {textStatus(item.status)}
                             </Text>
                         </View>
                     }
                 </View>
             </TouchableOpacity>
         )
-    }, [handleTransactionPress])
+    }, [handleTransactionPress, t])
 
     if(isLoading) return <Loading />
     
@@ -170,7 +192,7 @@ const WalletScreen = () => {
                 <BalanceCard amount={Number(userWalletBalance?.balance) || 0} currency={userWalletBalance?.currency ?? '$'} />
                 <View style={styles.transactionsSection}>
                     <View style={styles.transactionsHeader}>
-                        <Text style={styles.transactionsTitle}>Transaction History</Text>
+                        <TextTranslation textKey="wallet.transactionHistory" fontSize={FontSize.large} isBold={true}/>
                     </View>
 
                     <FlatList
