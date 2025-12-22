@@ -41,7 +41,7 @@ const HistoryDetailScreen = (props:any) => {
     };
 
     const formatTime = (dateString: any) => {
-        return moment.utc(dateString).local().format("hh:mm A");
+        return moment(dateString).local().format("hh:mm A");
     };
    
     const statusColors = getStatusColor(chargingHistoryDetails?.status);

@@ -70,9 +70,9 @@ const MainStackContainer = () => {
         <Stack.Screen name={'PaymentSuccess'} component={PaymentSuccessScreen} />
         <Stack.Screen name={'PaymentMethod'} component={PaymentMethodScreen} />
         <Stack.Screen name={'Notification'} component={NotificationScreen} />
-        <Stack.Screen name={'ChargingDetail'} component={ChargingDetailScreen} />
-        <Stack.Screen name={'ChargingSuccess'} component={ChargingSuccessScreen} />
-        <Stack.Screen name={'PreparingCharging'} component={PreparingChargingScreen} />
+        <Stack.Screen name={'ChargingDetail'} component={ChargingDetailScreen} options={{ gestureEnabled: false }}/>
+        <Stack.Screen name={'ChargingSuccess'} component={ChargingSuccessScreen} options={{ gestureEnabled: false }}/>
+        <Stack.Screen name={'PreparingCharging'} component={PreparingChargingScreen} options={{ gestureEnabled: false }}/>
       </Stack.Navigator>
     </>
   );
