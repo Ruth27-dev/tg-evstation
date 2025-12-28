@@ -1,5 +1,5 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
@@ -9,16 +9,22 @@ import CustomButton from "@/components/CustomButton";
 import PaymentTermsModal from "@/components/PaymentTermsModal";
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view'
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAmount } from "@/hooks/useAmount";
+import Loading from "@/components/Loading";
+import { Amount } from "@/types";
 
 const TopUpScreen = () => {
-    const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+    const [selectedAmount, setSelectedAmount] = useState<any>(null);
     const [customAmount, setCustomAmount] = useState('');
     const { userWalletBalance } = useWallet();
     const [showTermsModal, setShowTermsModal] = useState(false);
+    const { isLoading ,amountData,getAmount } = useAmount();
     const { t } = useTranslation(); 
 
-    const quickAmounts = [5, 10, 20, 50, 100];
-    const handleAmountSelect = (amount: number) => {
+    useEffect(()=>{
+        getAmount();
+    },[])
+    const handleAmountSelect = (amount: Amount) => {
         setSelectedAmount(amount);
         setCustomAmount('');
     };
@@ -27,7 +33,7 @@ const TopUpScreen = () => {
         const numericValue = text.replace(/[^0-9]/g, '');
         setCustomAmount(numericValue);
         if (numericValue) {
-            setSelectedAmount(parseInt(numericValue));
+            setSelectedAmount({ amount: parseInt(numericValue) });
         } else {
             setSelectedAmount(null);
         }
@@ -35,8 +41,9 @@ const TopUpScreen = () => {
 
     const handleTopUp = () => {
         navigate('PaymentMethod', {
-            amount: selectedAmount,
-            currency: userWalletBalance?.currency ?? '$'
+            amount: selectedAmount?.amount || parseInt(customAmount),
+            currency: userWalletBalance?.currency ?? '$',
+            promotionId: selectedAmount?.promotion_id ? selectedAmount.promotion_id : null,
         });
     };
 
@@ -48,7 +55,8 @@ const TopUpScreen = () => {
     const handleDeclineTerms = () => {
         setShowTermsModal(false);
     };
-    
+
+    if(isLoading) return <Loading/>
 
     return (
         <BaseComponent isBack={true} title="wallet.topUp">
@@ -60,22 +68,30 @@ const TopUpScreen = () => {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>{t('wallet.selectAmount')}</Text>
                     <View style={styles.amountGrid}>
-                        {quickAmounts.map((amount) => (
+                        {amountData?.map((item) => (
                             <TouchableOpacity
-                                key={amount}
+                                key={item?.id}
                                 style={[
                                     styles.amountButton,
-                                    selectedAmount === amount && !customAmount && styles.amountButtonSelected
+                                    selectedAmount?.amount === item.amount && !customAmount && styles.amountButtonSelected
                                 ]}
-                                onPress={() => handleAmountSelect(amount)}
+                                onPress={() => handleAmountSelect(item)}
                                 activeOpacity={0.7}
                             >
                                 <Text style={[
                                     styles.amountText,
-                                    selectedAmount === amount && !customAmount && styles.amountTextSelected
+                                    selectedAmount?.amount === item?.amount && !customAmount && styles.amountTextSelected
                                 ]}>
-                                    ${amount}
+                                    ${item?.amount}
                                 </Text>
+                                {item?.bonus_value ? (
+                                    <Text style={[
+                                        styles.bonusBadge,
+                                        selectedAmount?.amount === item?.amount && !customAmount && styles.bonusBadgeSelected
+                                    ]}>
+                                        +${item?.bonus_value}
+                                    </Text>
+                                ) : null}
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -108,10 +124,10 @@ const TopUpScreen = () => {
                 </View>
                 <View style={styles.bottomContainer}>
                     <CustomButton
-                        buttonTitle={`${t('common.continue')} ${selectedAmount && selectedAmount > 0 ? `$${selectedAmount}` : ''}`}
-                        buttonColor={selectedAmount && selectedAmount > 0  ? Colors.mainColor : Colors.gray}
+                        buttonTitle={`${t('common.continue')} ${selectedAmount?.amount && selectedAmount.amount > 0 ? `$${selectedAmount.amount}` : ''}`}
+                        buttonColor={selectedAmount?.amount && selectedAmount.amount > 0  ? Colors.mainColor : Colors.gray}
                         onPress={handleTopUp}
-                        disabled={!selectedAmount || selectedAmount <= 0}
+                        disabled={!selectedAmount?.amount || selectedAmount.amount <= 0}
                     />``
 
                 </View>
@@ -214,7 +230,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E5E7EB',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        flexDirection: 'row',
     },
     amountButtonSelected: {
         backgroundColor: Colors.mainColor,
@@ -306,5 +323,24 @@ const styles = StyleSheet.create({
         color: Colors.mainColor,
         textDecorationLine: 'underline',
         textAlign: 'center',
+    },
+    amountTopRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    bonusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        marginLeft: 6,
+        borderRadius: 12,
+        backgroundColor: '#EEF2FF',
+        color: Colors.mainColor,
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+    },
+    bonusBadgeSelected: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        color: Colors.white,
     },
 });

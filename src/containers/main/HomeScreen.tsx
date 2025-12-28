@@ -10,34 +10,14 @@ import Loading from "@/components/Loading";
 import BalanceSection from "./components/BalanceSection";
 import PromotionSlider from "./components/PromotionSlider";
 import MenuGrid from "./components/MenuGrid";
+import { useSlideShow } from "@/hooks/useSlideShow";
 
 const HomeScreen = () => {
     const [activeSlide, setActiveSlide] = useState(0);
     const { getMeWallet, userWalletBalance } = useWallet();
     const { getStation, isLoading } = useStation();
     const { fetchUser } = useAuth();
-
-    const promotions = [
-        {
-            id: 1,
-            title: "50% OFF First Charge",
-            subtitle: "New users only",
-            color: "#C9A961"
-        },
-        {
-            id: 2,
-            title: "Free Charging",
-            subtitle: "Top up $100 or more",
-            color: "#FFA500"
-        },
-        {
-            id: 3,
-            title: "Loyalty Rewards",
-            subtitle: "Earn points on every charge",
-            color: "#FF6B6B"
-        },
-    ];
-
+    const { getSlideShow,slideShowData } = useSlideShow();
     const menuItems = [
         { 
             id: 1, 
@@ -66,14 +46,16 @@ const HomeScreen = () => {
         getMeWallet();
         getStation();
         fetchUser();
+        getSlideShow();
     }, []);
     
     const handleRefresh = useCallback(async () => {
         await Promise.all([
             getMeWallet(),
-            getStation()
+            getStation(),
+            getSlideShow(),
         ]);
-    }, [getMeWallet, getStation]);
+    }, [getMeWallet, getStation, getSlideShow]);
 
     if(isLoading) return <Loading/>
 
@@ -90,7 +72,7 @@ const HomeScreen = () => {
                         />
 
                         <PromotionSlider 
-                            promotions={promotions}
+                            promotions={slideShowData ?? []}
                             activeSlide={activeSlide}
                             onSlideChange={setActiveSlide}
                         />

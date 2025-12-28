@@ -22,6 +22,7 @@ interface PaymentMethodScreenProps {
         params?: {
             amount?: number;
             currency?: string;
+            promotionId?: string | null;
         };
     };
 }
@@ -32,6 +33,7 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
     const { postTopUp ,isLoading } = useTopUp();
     const { t } = useTranslation();
     const amount = route?.params?.amount || 0;
+    const promotionId = route?.params?.promotionId || null;
 
     const paymentMethods: PaymentMethod[] = [
         { 
@@ -51,7 +53,7 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
     ];
 
     const handleContinue = () => {
-        postTopUp(amount.toString(), selectedMethod?.type || '');
+        postTopUp(amount.toString(), selectedMethod?.type || '', promotionId);
     };
 
     return (

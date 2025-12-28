@@ -1,6 +1,6 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,6 +9,7 @@ import CustomInputText from "@/components/CustomInputText";
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PasswordFormData {
     currentPassword: string;
@@ -16,34 +17,29 @@ interface PasswordFormData {
     confirmPassword: string;
 }
 
-const passwordSchema = yup.object().shape({
-    currentPassword: yup.string().required('Current password is required'),
-    newPassword: yup
-        .string()
-        .required('New password is required')
-        .min(8, 'Password must be at least 8 characters')
-        .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-        .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
-        .matches(/[0-9]/, 'Password must contain at least one number')
-        .test('not-same', 'New password must be different from current password', function(value) {
-            return value !== this.parent.currentPassword;
-        }),
-    confirmPassword: yup
-        .string()
-        .required('Please confirm your password')
-        .oneOf([yup.ref('newPassword')], 'Passwords do not match'),
-});
-
 const ChangePasswordScreen = () => {
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const { t } = useTranslation();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const passwordSchema = useMemo(() => yup.object().shape({
+        currentPassword: yup.string().trim().required(t('changePassword.validation.currentRequired')),
+        newPassword: yup
+            .string()
+            .trim()
+            .required(t('changePassword.validation.newRequired'))
+            .min(8, t('changePassword.validation.minLength')),
+        confirmPassword: yup
+            .string()
+            .trim()
+            .required(t('changePassword.validation.confirmRequired'))
+            .oneOf([yup.ref('newPassword')], t('changePassword.validation.match')),
+    }), [t]);
 
     const {
         control,
         handleSubmit,
         formState: { errors },
-        watch,
         reset,
     } = useForm<PasswordFormData>({
         resolver: yupResolver(passwordSchema),
@@ -54,46 +50,8 @@ const ChangePasswordScreen = () => {
         }
     });
 
-    const newPassword = watch('newPassword');
-
     const handleChangePassword = (data: PasswordFormData) => {
-        console.log('Change password:', data);
-        // Call API to change password
-        Alert.alert(
-            'Success',
-            'Your password has been changed successfully',
-            [
-                {
-                    text: 'OK',
-                    onPress: () => {
-                        reset();
-                        // Navigate back
-                    }
-                }
-            ]
-        );
     };
-
-    const getPasswordStrength = (password: string) => {
-        if (!password) return { strength: 0, label: '', color: '#E5E7EB' };
-        
-        let strength = 0;
-        if (password.length >= 8) strength++;
-        if (/[A-Z]/.test(password)) strength++;
-        if (/[a-z]/.test(password)) strength++;
-        if (/[0-9]/.test(password)) strength++;
-        if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-        if (strength <= 2) {
-            return { strength: 33, label: 'Weak', color: '#EF4444' };
-        } else if (strength <= 4) {
-            return { strength: 66, label: 'Medium', color: '#F59E0B' };
-        } else {
-            return { strength: 100, label: 'Strong', color: '#10B981' };
-        }
-    };
-
-    const passwordStrength = getPasswordStrength(newPassword);
 
     return (
         <BaseComponent isBack={true} title="profile.changePassword">
@@ -103,38 +61,15 @@ const ChangePasswordScreen = () => {
                     <View style={styles.iconContainer}>
                         <Ionicons name="lock-closed" size={28} color={Colors.mainColor} />
                     </View>
-                    <Text style={styles.title}>Update Your Password</Text>
+                    <Text style={styles.title}>{t('changePassword.title')}</Text>
                     <Text style={styles.subtitle}>
-                        Choose a strong password to protect your account
+                        {t('changePassword.subtitle')}
                     </Text>
                 </View>
-
-                {/* Current Password */}
+               
                 <CustomInputText
-                    labelText="Current Password"
-                    placeHolderText="Enter current password"
-                    control={control}
-                    name="currentPassword"
-                    errors={errors}
-                    isLeftIcon
-                    isRightIcon
-                    isPassword={!showCurrentPassword}
-                    renderLeftIcon={
-                        <Ionicons name="lock-closed-outline" size={20} color={Colors.mainColor} />
-                    }
-                    renderRightIcon={
-                        <Ionicons 
-                            name={showCurrentPassword ? "eye-off-outline" : "eye-outline"} 
-                            size={20} 
-                            color="#9CA3AF"
-                            onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                        />
-                    }
-                />
-                <View style={{ height: 10 }} />
-                <CustomInputText
-                    labelText="New Password"
-                    placeHolderText="Enter new password"
+                    labelText={t('changePassword.newPassword')}
+                    placeHolderText={t('changePassword.newPasswordPlaceholder')}
                     control={control}
                     name="newPassword"
                     errors={errors}
@@ -156,8 +91,8 @@ const ChangePasswordScreen = () => {
                 <View style={{ height: 10 }} />
                     
                 <CustomInputText
-                    labelText="Confirm New Password"
-                    placeHolderText="Re-enter new password"
+                    labelText={t('changePassword.confirmPassword')}
+                    placeHolderText={t('changePassword.confirmPasswordPlaceholder')}
                     control={control}
                     name="confirmPassword"
                     errors={errors}
@@ -179,7 +114,7 @@ const ChangePasswordScreen = () => {
                 <View style={{ height:40 }} />
                 {/* Submit Button */}
                 <CustomButton
-                    buttonTitle="Change Password"
+                    buttonTitle={t('profile.changePassword')}
                     onPress={handleSubmit(handleChangePassword)}
                     buttonColor={Colors.mainColor}
                 />

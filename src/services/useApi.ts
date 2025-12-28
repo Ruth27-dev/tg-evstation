@@ -195,4 +195,11 @@ export const fetchFAQ = (onError?: (err: any) => void) =>
 export const fetchHistoryDetail = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/chargers/charging-history/${data}`, onError);
 
+export const fetchSlideShow = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/lookup/slide-show`,data, onError);
+
+
+export const fetchTopupAmount = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/lookup/topup-amount`,data, onError);
+
 export default api;

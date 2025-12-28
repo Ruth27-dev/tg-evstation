@@ -172,6 +172,24 @@
     "support": "支持与信息",
     "deleteAccount": "删除账户"
   },
+  "changePassword": {
+    "title": "更新您的密码",
+    "subtitle": "选择一个强密码来保护您的账户",
+    "currentPassword": "当前密码",
+    "currentPasswordPlaceholder": "输入当前密码",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "输入新密码",
+    "confirmPassword": "确认新密码",
+    "confirmPasswordPlaceholder": "再次输入新密码",
+    "successMessage": "您的密码已成功更改",
+    "validation": {
+      "currentRequired": "当前密码为必填项",
+      "newRequired": "新密码为必填项",
+      "minLength": "密码长度至少为 8 个字符",
+      "confirmRequired": "请确认您的密码",
+      "match": "两次输入的密码不一致"
+    }
+  },
   "notifications": {
     "chargingStarted": "充电已开始",
     "chargingCompleted": "充电已完成",

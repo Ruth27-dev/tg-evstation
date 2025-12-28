@@ -54,26 +54,26 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, []);
 
   // Listen to AppState changes - check session when app becomes active
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (
-        appStateRef.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        console.log('App returned to foreground, checking active session');
-        if (!isEmpty(evConnect) && evConnect?.session_id) {
-          const sessionId = evConnect.session_id;
-          console.log('Fetching session detail for:', sessionId);
-          getSessionDetail(sessionId);
-        }
-      }
-      appStateRef.current = nextAppState;
-    });
+  // useEffect(() => {
+  //   const subscription = AppState.addEventListener('change', (nextAppState) => {
+  //     if (
+  //       appStateRef.current.match(/inactive|background/) &&
+  //       nextAppState === 'active'
+  //     ) {
+  //       console.log('App returned to foreground, checking active session');
+  //       if (!isEmpty(evConnect) && evConnect?.session_id) {
+  //         const sessionId = evConnect.session_id;
+  //         console.log('Fetching session detail for:', sessionId);
+  //         getSessionDetail(sessionId);
+  //       }
+  //     }
+  //     appStateRef.current = nextAppState;
+  //   });
 
-    return () => {
-      subscription.remove();
-    };
-  }, [evConnect, getSessionDetail]);
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // }, [evConnect, getSessionDetail]);
 
   const connect = () => {
     if (!accessToken) return;

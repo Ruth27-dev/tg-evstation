@@ -3,22 +3,14 @@ import { View, ScrollView, Image, StyleSheet, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from '@/theme';
 import { screenSizes } from '@/constants/GeneralConstants';
+import { SlideShow } from '@/types';
 
 const { width } = Dimensions.get('window');
-
-interface Promotion {
-    id: number;
-    title: string;
-    subtitle: string;
-    color: string;
-}
-
 interface PromotionSliderProps {
-    promotions: Promotion[];
+    promotions: SlideShow[];
     activeSlide: number;
     onSlideChange: (index: number) => void;
 }
-
 const PromotionSlider: React.FC<PromotionSliderProps> = ({ promotions, activeSlide, onSlideChange }) => {
     const scrollRef = useRef<ScrollView>(null);
 
@@ -56,7 +48,7 @@ const PromotionSlider: React.FC<PromotionSliderProps> = ({ promotions, activeSli
                     >
                         <View style={styles.promoContent}>
                             <Image 
-                                source={{uri: "https://img.freepik.com/premium-vector/electric-car-banner-design-with-ev-charger-station-modern-city_43880-390.jpg"}} 
+                                source={{uri: promo?.image}} 
                                 style={styles.promoImage}
                             />
                         </View>

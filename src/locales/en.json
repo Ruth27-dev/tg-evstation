@@ -172,6 +172,24 @@
     "support" : "Support & Information",
     "deleteAccount": "Delete Account"
   },
+  "changePassword": {
+    "title": "Update Your Password",
+    "subtitle": "Choose a strong password to protect your account",
+    "currentPassword": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPassword": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "successMessage": "Your password has been changed successfully",
+    "validation": {
+      "currentRequired": "Current password is required",
+      "newRequired": "New password is required",
+      "minLength": "Password must be at least 8 characters",
+      "confirmRequired": "Please confirm your password",
+      "match": "Passwords do not match"
+    }
+  },
   "notifications": {
     "chargingStarted": "Charging has started",
     "chargingCompleted": "Charging completed",

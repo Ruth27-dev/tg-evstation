@@ -172,6 +172,24 @@
     "support": "ការគាំទ្រ និងព័ត៌មាន",
     "deleteAccount": "លុបគណនី"
   },
+  "changePassword": {
+    "title": "កែប្រែពាក្យសម្ងាត់របស់អ្នក",
+    "subtitle": "ជ្រើសរើសពាក្យសម្ងាត់ដែលរឹងមាំដើម្បីការពារគណនីរបស់អ្នក",
+    "currentPassword": "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
+    "currentPasswordPlaceholder": "បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន",
+    "newPassword": "ពាក្យសម្ងាត់ថ្មី",
+    "newPasswordPlaceholder": "បញ្ចូលពាក្យសម្ងាត់ថ្មី",
+    "confirmPassword": "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី",
+    "confirmPasswordPlaceholder": "បញ្ចូលពាក្យសម្ងាត់ថ្មីម្តងទៀត",
+    "successMessage": "ពាក្យសម្ងាត់របស់អ្នកត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ",
+    "validation": {
+      "currentRequired": "ត្រូវការពាក្យសម្ងាត់បច្ចុប្បន្ន",
+      "newRequired": "ត្រូវការពាក្យសម្ងាត់ថ្មី",
+      "minLength": "ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិច 8 តួអក្សរ",
+      "confirmRequired": "សូមបញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក",
+      "match": "ពាក្យសម្ងាត់មិនត្រូវគ្នា"
+    }
+  },
   "notifications": {
     "chargingStarted": "បានចាប់ផ្តើមបញ្ចូលថ្ម",
     "chargingCompleted": "បញ្ចូលថ្មបានបញ្ចប់",

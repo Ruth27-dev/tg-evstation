@@ -144,3 +144,27 @@ export interface FAQResponse {
   status: string
   created_at: string
 }
+
+export interface SlideShow {
+  id:              string;
+  title:           string;
+  ordering_number: number;
+  action_type:     string;
+  action_value:    string;
+  status:          string;
+  created_at:      Date;
+  updated_at:      Date;
+  image:           string;
+}
+
+export interface Amount {
+    id:           string;
+    amount:       number;
+    currency:     string;
+    status:       string;
+    promotion_id: null;
+    bonus_type:   null;
+    bonus_value:  null;
+    created_at:   Date;
+    updated_at:   Date;
+}

@@ -8,12 +8,13 @@ export const useTopUp = () => {
     const { startPolling } = useTransactionPolling();
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const postTopUp = async (amount: string, type: string) => {
+    const postTopUp = async (amount: string, type: string,promotionId?: string | null) => {
         setIsLoading(true);
         try {
             const data = {
                 "amount": amount,
-                "payment_option": type
+                "payment_option": type,
+                "promotion_id": promotionId
             }
             const response = await topUp(data);
             if(response?.data?.code === '000'){

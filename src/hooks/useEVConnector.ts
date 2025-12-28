@@ -11,7 +11,7 @@ export const useEVConnector = () => {
     const { setEvConnect, clearEvConnect, evConnect } = useEVStore();
     const { sessionDetail, setSessionDetail, clearSessionDetail } = useSessionDetailStore();
 
-    const postStart = async (connector_id: string, id_tag:string) => {
+    const postStart = async (connector_id: string, id_tag:string): Promise<boolean> => {
         setIsLoading(true);
         try {
             const data = {
@@ -23,6 +23,7 @@ export const useEVConnector = () => {
                 if(response?.data?.data?.status === "SENT"){
                     setEvConnect(response?.data?.data);
                     navigate('PreparingCharging')
+                    return true;
                 }
             } else if(response?.data?.code === '023' || response?.data?.code === '022'){ 
                 Toast.show({
@@ -31,11 +32,12 @@ export const useEVConnector = () => {
                     text2: response?.data?.message || 'Charging cannot start due to an invalid connector.',
                     position: 'bottom',
                 });
-                return;
+                return false;
             }
+            return false;
         } catch (error) {
             console.error("Error fetching station:", error);
-            throw error;
+            return false;
         } finally {
             setIsLoading(false);
         }

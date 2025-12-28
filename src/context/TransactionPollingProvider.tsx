@@ -55,7 +55,6 @@ export const TransactionPollingProvider: React.FC<TransactionPollingProviderProp
 
         // Check if payment is approved
         if (data?.status === 'APPROVED' || data?.status === 'COMPLETED') {
-          console.log('Transaction APPROVED via polling, stopping');
           stopPolling();
           getMeWallet();
           getMeTransactions(1);
@@ -74,12 +73,8 @@ export const TransactionPollingProvider: React.FC<TransactionPollingProviderProp
   // Start polling function
   const startPolling = (transactionId: string) => {
     if (!transactionId) {
-      console.warn('Cannot start polling: transactionId is null');
       return;
     }
-
-    console.log('Starting transaction polling for:', transactionId);
-    
     // Stop any existing polling first
     stopPolling();
 
@@ -96,7 +91,6 @@ export const TransactionPollingProvider: React.FC<TransactionPollingProviderProp
 
     // Stop after 5 minutes (300000ms)
     pollingTimeoutRef.current = setTimeout(() => {
-      console.log('Transaction polling timeout after 5 minutes');
       stopPolling();
     }, 300000);
   };
@@ -104,7 +98,6 @@ export const TransactionPollingProvider: React.FC<TransactionPollingProviderProp
   // Listen to WebSocket messages
   useEffect(() => {
     if (lastMessage && lastMessage.event_type === 'WALLET_TOPUP_SUCCESS') {
-      console.log('WALLET_TOPUP_SUCCESS received via WebSocket, stopping polling');
       stopPolling();
     }
   }, [lastMessage]);
