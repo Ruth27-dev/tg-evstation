@@ -202,4 +202,10 @@ export const fetchSlideShow = (data:any,onError?: (err: any) => void) =>
 export const fetchTopupAmount = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/lookup/topup-amount`,data, onError);
 
+export const postDeleteUser = (onError?: (err: any) => void) =>
+  api.post(`v1/users/delete`, onError);
+
+export const fetchNitification = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/notifications/announcement`,data, onError);
+
 export default api;

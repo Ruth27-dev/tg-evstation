@@ -1,5 +1,5 @@
 import { goBack, navigate, reset } from "@/navigation/NavigationService";
-import { checkPhone, fetchUserDetail, postLogout, updateMe, userLogin, userRegister } from "@/services/useApi";
+import { checkPhone, fetchUserDetail, postDeleteUser, postLogout, updateMe, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import { useCallback, useState } from "react";
@@ -45,7 +45,7 @@ export const useAuth = () => {
         }
     }, []);
 
-    const checkPhoneNumber = async (phoneNumber: string, formattedPhone: string) => {
+    const checkPhoneNumber = async (phoneNumber: string, formattedPhone: string,isForget: boolean = false) => {
         setIsLoading(true); // Start loading
         const data = {
             phone_number: phoneNumber,
@@ -60,6 +60,51 @@ export const useAuth = () => {
                     navigate('Verify', { 
                         phoneNumber: formattedPhone,
                         confirmation: confirmation,
+                    });
+                } catch (error: any) {
+                    console.error('Error during phone sign-in:', error);
+                    let errorMessage = 'Failed to send OTP. Please try again.';
+                    if (error.code === 'auth/invalid-phone-number') {
+                        errorMessage = 'Invalid phone number format.';
+                    } else if (error.code === 'auth/too-many-requests') {
+                        errorMessage = 'Too many requests. Please try again later.';
+                    } else if (error.code === 'auth/network-request-failed') {
+                        errorMessage = 'Network error. Please check your connection.';
+                    } else {
+                        errorMessage = error?.message || 'An unexpected error occurred.';
+                    }
+
+                    setShowError(true);
+                    setError(errorMessage);
+                }
+            } else {
+                setShowError(true);
+                setError(response?.data?.message || 'Unknown error');
+            }
+        } catch (error: any) {
+            setShowError(true);
+            setError(error?.message || 'An unexpected error occurred.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const checkPhoneNumberAlreadyExist = async (phoneNumber: string, formattedPhone: string,isForget: boolean) => {
+        setIsLoading(true); // Start loading
+        const data = {
+            phone_number: phoneNumber,
+        };
+
+        try {
+            const response = await checkPhone(data);
+            if (response?.data?.code !== '000') {
+                try {
+                   const confirmation = await signInWithPhoneNumber(getAuth(), formattedPhone);
+
+                    navigate('Verify', { 
+                        phoneNumber: formattedPhone,
+                        confirmation: confirmation,
+                        isForget: isForget
                     });
                 } catch (error: any) {
                     console.error('Error during phone sign-in:', error);
@@ -158,6 +203,21 @@ export const useAuth = () => {
         setIsRequesting(false);
     }
 
+    const deleteAccount = async () => {
+        setIsRequesting(true);
+        const response = await postDeleteUser();
+        if(response.data?.code === '000'){
+            setUserData(null);
+            setIsUserLogin(false);
+            clearEvConnect();
+            clearSessionDetail();
+            await Keychain.resetGenericPassword();
+            await AsyncStorage.clear();
+            reset('Login');
+        }
+        setIsRequesting(false);
+    }
+
     const updateProfile = async (data:any) =>{
         setIsRequesting(true);
         const fcmToken = await AsyncStorage.getItem('@fcm_token');
@@ -189,6 +249,8 @@ export const useAuth = () => {
         checkPhoneNumber,
         register,
         isRequesting,
-        updateProfile
+        updateProfile,
+        checkPhoneNumberAlreadyExist,
+        deleteAccount
     };
 }

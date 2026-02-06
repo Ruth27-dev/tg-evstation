@@ -17,6 +17,7 @@ import { TransactionPollingProvider } from '@/context/TransactionPollingProvider
 import { useNetworkConnection } from '@/hooks/useNetworkConnection';
 import NoInternet from '@/components/NoInternet';
 import Toast from 'react-native-toast-message';
+import { setupNotifications } from '@/services/notifications';
 
 if ((Text as any).defaultProps?.allowFontScaling !== false) {
   (Text as any).defaultProps = (Text as any).defaultProps || {};
@@ -39,6 +40,8 @@ function App() {
     const initializeApp = async () => {
       DeviceRegistrationService.setApiBaseUrl('https://tgevstation.com');
       await FirebaseMessagingService.initialize();
+      // Subscribe all installed users to announcement topic
+      await FirebaseMessagingService.subscribeToTopic('announcement');
     };
 
     initializeApp();
@@ -47,7 +50,7 @@ function App() {
       FirebaseMessagingService.cleanup();
     };
   }, []);
-
+  useEffect(() => { setupNotifications(); }, []);
   const linking = {
     prefixes: [
       "myapp://",

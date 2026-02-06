@@ -98,7 +98,7 @@ class FirebaseMessagingService {
         
         return token;
       }
-
+ 
       return null;
     } catch (error) {
       console.error('Error getting FCM token:', error);

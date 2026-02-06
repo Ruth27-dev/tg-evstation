@@ -21,6 +21,7 @@ import ChangeLanguageScreen from '@/containers/settings/ChangeLanguageScreen';
 import CustomerSupportScreen from '@/containers/settings/CustomerSupportScreen';
 import PrivacyScreen from '@/containers/settings/PrivacyScreen';
 import AboutUsScreen from '@/containers/settings/AboutUsScreen';
+import DeleteAccountScreen from '@/containers/settings/DeleteAccountScreen';
 import TopUpScreen from '@/containers/main/TopUpScreen';
 import MapScreen from '@/containers/main/MapScreen';
 import KHQRViewScreen from '@/containers/wallet/KHQRViewScreen';
@@ -63,6 +64,7 @@ const MainStackContainer = () => {
         <Stack.Screen name={'CustomerSupportScreen'} component={CustomerSupportScreen} />
         <Stack.Screen name={'PrivacyScreen'} component={PrivacyScreen} />
         <Stack.Screen name={'AboutUsScreen'} component={AboutUsScreen} />
+        <Stack.Screen name={'DeleteAccountScreen'} component={DeleteAccountScreen} />
         <Stack.Screen name={'TopUp'} component={TopUpScreen} />
         <Stack.Screen name={'MapScreen'} component={MapScreen} />
         <Stack.Screen name={'KHQRView'} component={KHQRViewScreen} />
@@ -73,6 +75,7 @@ const MainStackContainer = () => {
         <Stack.Screen name={'ChargingDetail'} component={ChargingDetailScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name={'ChargingSuccess'} component={ChargingSuccessScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name={'PreparingCharging'} component={PreparingChargingScreen} options={{ gestureEnabled: false }}/>
+        <Tab.Screen name={'Connector'} component={ConnectorScreen} />
       </Stack.Navigator>
     </>
   );

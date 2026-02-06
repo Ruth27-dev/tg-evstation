@@ -21,6 +21,7 @@ interface VerifyScreenProps {
         params?: {
             phoneNumber?: string;
             confirmation?: FirebaseAuthTypes.ConfirmationResult;
+            isForget?: boolean;
         };
     };
 }

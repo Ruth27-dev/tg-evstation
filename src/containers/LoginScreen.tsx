@@ -16,6 +16,7 @@ import CustomPhoneInput from '@/components/CustomPhoneInput';
 import KhmerIcon from '@/assets/icon/kh.svg';
 import EnglishIcon from '@/assets/icon/en.svg';
 import ChinaIcon from '@/assets/icon/china.svg';
+import VietnameseIcon from '@/assets/icon/vn.svg';
 import AppLogo from '@/assets/logo/logo.svg';
 import { cleanPhoneNumber, validatePhoneNumber } from '@/utils';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -64,6 +65,8 @@ const LoginScreen = () => {
 				return <KhmerIcon width={30} height={30} />;
 			case 'zh':
 				return <ChinaIcon width={30} height={30} />;
+			case 'vn':
+				return <VietnameseIcon width={30} height={30} />;
 			default:
 				return <EnglishIcon width={30} height={30} />;
 		}

@@ -1,17 +1,55 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Modal, RefreshControl, ActivityIndicator } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Notification, NotificationType } from '@/types';
+import { Notification } from '@/types';
 import moment from 'moment';
+import { useNotification } from '@/hooks/useNotification';
+import Loading from '@/components/Loading';
+import NoData from '@/components/NoData';
 
 const NotificationScreen = () => {
-    const [selectedTab, setSelectedTab] = useState<NotificationType>('normal');
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+
+    const { getNotification, notificationData ,isLoadMoreLoading,isLoading } = useNotification();
+
+    useEffect(() => {
+        getNotification(1);
+    },[])
+    
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([
+                getNotification(1),
+            ]);
+        } catch (error) {
+            console.error('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [getNotification]);
+    const loadMore = useCallback(async () => {
+        if (isLoadMoreLoading || !hasMore) return;
+        const nextPage = currentPage + 1;
+        try {
+            const result = await getNotification(nextPage);
+            if (result.isLastPage || result.content.length === 0) {
+                setHasMore(false);
+            } else {
+                setCurrentPage(nextPage);
+            }
+        } catch (error) {
+            console.error('Load more error:', error);
+            setHasMore(false);
+        }
+    }, [isLoadMoreLoading, hasMore, currentPage, getNotification]);
 
     const handleNotificationPress = (notification: Notification) => {
         setSelectedNotification(notification);
@@ -23,69 +61,7 @@ const NotificationScreen = () => {
         setTimeout(() => setSelectedNotification(null), 300);
     };
 
-    const mockNotifications: Notification[] = [
-        {
-            id: '1',
-            type: 'normal',
-            title: 'Charging Complete',
-            message: 'Your vehicle has finished charging at Station A. Total charge: $15.50',
-            created_at: new Date('2025-12-04T10:30:00'),
-            read: false,
-        },
-        {
-            id: '2',
-            type: 'normal',
-            title: 'Payment Successful',
-            message: 'Your payment of $20.00 has been processed successfully.',
-            created_at: new Date('2025-12-04T09:15:00'),
-            read: true,
-        },
-        {
-            id: '3',
-            type: 'announcement',
-            title: 'New Station Opening',
-            message: 'We are excited to announce a new charging station opening at Downtown Plaza on December 10th!',
-            created_at: new Date('2025-12-03T14:00:00'),
-            read: false,
-        },
-        {
-            id: '4',
-            type: 'announcement',
-            title: 'Maintenance Notice',
-            message: 'Station B will undergo scheduled maintenance on December 5th from 2 AM to 6 AM.',
-            created_at: new Date('2025-12-03T08:00:00'),
-            read: true,
-        },
-        {
-            id: '5',
-            type: 'normal',
-            title: 'Charging Started',
-            message: 'Charging session started at Station C. Current rate: $0.25/kWh',
-            created_at: new Date('2025-12-02T16:45:00'),
-            read: true,
-        },
-        {
-            id: '6',
-            type: 'announcement',
-            title: 'Holiday Hours',
-            message: 'Our customer support will have limited hours during the holiday season. Please check our website for details.',
-            created_at: new Date('2025-12-01T12:00:00'),
-            read: false,
-        },
-    ];
-
-    const filteredNotifications = mockNotifications.filter(
-        (notification) => notification.type === selectedTab
-    );
-
-    const getNotificationIcon = (type: NotificationType, read: boolean) => {
-        if (type === 'announcement') {
-            return (
-                <View style={[styles.iconContainer, { backgroundColor: `${Colors.secondaryColor}15` }]}>
-                    <MaterialCommunityIcons name="bullhorn" size={24} color={Colors.secondaryColor} />
-                </View>
-            );
-        }
+    const getNotificationIcon = (read: boolean) => {
         return (
             <View style={[styles.iconContainer, { backgroundColor: `${Colors.mainColor}15` }]}>
                 <Ionicons name="notifications" size={24} color={Colors.mainColor} />
@@ -98,19 +74,19 @@ const NotificationScreen = () => {
             <TouchableOpacity 
                 style={[
                     styles.notificationItem,
-                    !item.read && styles.unreadNotification
+                    item.status === "UNREAD" && styles.unreadNotification
                 ]}
                 activeOpacity={0.7}
                 onPress={() => handleNotificationPress(item)}
             >
-                {getNotificationIcon(item.type, item.read)}
+                {getNotificationIcon(item.status === "UNREAD" ? false : true)}
                 
                 <View style={styles.notificationContent}>
                     <View style={styles.notificationHeader}>
                         <Text style={styles.notificationTitle} numberOfLines={1}>
                             {item.title}
                         </Text>
-                        {!item.read && <View style={styles.unreadDot} />}
+                        {item.status === "UNREAD" && <View style={styles.unreadDot} />}
                     </View>
                     
                     <Text style={styles.notificationMessage} numberOfLines={2}>
@@ -125,81 +101,39 @@ const NotificationScreen = () => {
         );
     }, []);
 
-    const renderEmptyState = () => (
-        <View style={styles.emptyState}>
-            <Ionicons 
-                name={selectedTab === 'announcement' ? 'megaphone-outline' : 'notifications-outline'} 
-                size={64} 
-                color="#D1D5DB" 
-            />
-            <Text style={styles.emptyStateText}>
-                No {selectedTab === 'announcement' ? 'announcements' : 'notifications'} yet
-            </Text>
-            <Text style={styles.emptyStateSubtext}>
-                {selectedTab === 'announcement' 
-                    ? 'Important announcements will appear here'
-                    : 'Your activity notifications will appear here'}
-            </Text>
-        </View>
-    );
-
+    const renderFooter = () => {
+        if (!isLoadMoreLoading) return null;
+        return (
+            <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={Colors.mainColor} />
+                <Text style={styles.loadingText}>Loading more...</Text>
+            </View>
+        );
+    };
+    if(isLoading) return <Loading />
+    
     return (
         <BaseComponent isBack={true} title="Notifications">
             <View style={styles.container}>
-                {/* Tab Selector */}
-                <View style={styles.tabContainer}>
-                    <TouchableOpacity
-                        style={[
-                            styles.tab,
-                            selectedTab === 'normal' && styles.activeTab
-                        ]}
-                        onPress={() => setSelectedTab('normal')}
-                    >
-                        <Ionicons 
-                            name="notifications" 
-                            size={20} 
-                            color={selectedTab === 'normal' ? Colors.white : Colors.mainColor} 
-                        />
-                        <Text style={[
-                            styles.tabText,
-                            selectedTab === 'normal' && styles.activeTabText
-                        ]}>
-                            Notifications
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[
-                            styles.tab,
-                            selectedTab === 'announcement' && styles.activeTab
-                        ]}
-                        onPress={() => setSelectedTab('announcement')}
-                    >
-                        <MaterialCommunityIcons 
-                            name="bullhorn" 
-                            size={20} 
-                            color={selectedTab === 'announcement' ? Colors.white : Colors.mainColor} 
-                        />
-                        <Text style={[
-                            styles.tabText,
-                            selectedTab === 'announcement' && styles.activeTabText
-                        ]}>
-                            Announcements
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Notifications List */}
                 <FlatList
-                    data={filteredNotifications}
+                    data={notificationData}
                     renderItem={renderNotificationItem}
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContent}
-                    ListEmptyComponent={renderEmptyState}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={[Colors.mainColor]}
+                            tintColor={Colors.mainColor}
+                        />
+                    }
+                    ListEmptyComponent={<NoData/>}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={renderFooter}
                 />
-
-                {/* Notification Detail Modal */}
                 <Modal
                     visible={modalVisible}
                     transparent={true}
@@ -211,7 +145,7 @@ const NotificationScreen = () => {
                             {selectedNotification && (
                                 <>
                                     <View style={styles.modalHeader}>
-                                        {getNotificationIcon(selectedNotification.type, selectedNotification.read)}
+                                        {getNotificationIcon(selectedNotification.status === "UNREAD" ? false : true)}
                                         <TouchableOpacity 
                                             style={styles.closeButton}
                                             onPress={closeModal}
@@ -228,7 +162,7 @@ const NotificationScreen = () => {
                                             <Text style={styles.modalTitle}>
                                                 {selectedNotification.title}
                                             </Text>
-                                            {!selectedNotification.read && (
+                                            {selectedNotification.status === "UNREAD" && (
                                                 <View style={styles.modalUnreadBadge}>
                                                     <Text style={styles.modalUnreadText}>New</Text>
                                                 </View>
@@ -247,17 +181,7 @@ const NotificationScreen = () => {
                                         <Text style={styles.modalMessage}>
                                             {selectedNotification.message}
                                         </Text>
-
-                                        {selectedNotification.type === 'announcement' && (
-                                            <View style={styles.modalTypeTag}>
-                                                <MaterialCommunityIcons 
-                                                    name="bullhorn" 
-                                                    size={16} 
-                                                    color={Colors.secondaryColor} 
-                                                />
-                                                <Text style={styles.modalTypeText}>Announcement</Text>
-                                            </View>
-                                        )}
+                                       
                                     </ScrollView>
 
                                     <TouchableOpacity 
@@ -513,5 +437,17 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium + 1,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.white,
+    },
+    footerLoader: {
+        paddingVertical: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 8,
+    },
+    loadingText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: Colors.mainColor,
     },
 });

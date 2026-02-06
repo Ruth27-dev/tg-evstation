@@ -172,6 +172,44 @@
     "support" : "Support & Information",
     "deleteAccount": "Delete Account"
   },
+  "deleteAccount": {
+    "title": "Delete Account",
+    "warningTitle": "Permanent Action",
+    "warningMessage": "Deleting your account is permanent and cannot be undone. All your data will be permanently removed from our servers.",
+    "accountInfo": "Account Information",
+    "userName": "Name",
+    "phoneNumber": "Phone",
+    "whatDeleted": "What Will Be Deleted",
+    "items": {
+      "personalInfo": "Personal information and profile",
+      "chargingHistory": "Charging history and sessions",
+      "walletBalance": "Wallet balance and transactions",
+      "notifications": "Notification preferences",
+      "preferences": "App settings and preferences"
+    },
+    "reasonTitle": "Why are you leaving?",
+    "reasonSubtitle": "Help us improve by sharing your reason (optional)",
+    "reasons": {
+      "notUsing": "Not using the service anymore",
+      "privacyConcerns": "Privacy concerns",
+      "tooExpensive": "Too expensive",
+      "technicalIssues": "Technical issues",
+      "switchingService": "Switching to another service",
+      "other": "Other"
+    },
+    "feedbackTitle": "Additional Feedback",
+    "feedbackPlaceholder": "Tell us more about your experience (optional)...",
+    "confirmTitle": "Confirm Account Deletion",
+    "confirmInstructions": "Type 'DELETE' below to confirm account deletion",
+    "confirmPlaceholder": "Type DELETE here",
+    "deleteButton": "Delete My Account",
+    "cancel": "Cancel",
+    "error": "Error",
+    "confirmationError": "Please type 'DELETE' to confirm",
+    "finalConfirmTitle": "Final Confirmation",
+    "finalConfirmMessage": "This action cannot be undone. Are you absolutely sure you want to delete your account?",
+    "helpText": "Need help? Contact our support team before deleting your account. We're here to help resolve any issues."
+  },
   "changePassword": {
     "title": "Update Your Password",
     "subtitle": "Choose a strong password to protect your account",

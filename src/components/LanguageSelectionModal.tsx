@@ -5,6 +5,7 @@ import CustomModal from '@/components/CustomModal';
 import KhmerIcon from '@/assets/icon/kh.svg';
 import EnglishIcon from '@/assets/icon/en.svg';
 import ChinaIcon from '@/assets/icon/china.svg';
+import VietnameseIcon from '@/assets/icon/vn.svg';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -98,6 +99,20 @@ const LanguageSelectionModal = forwardRef<LanguageSelectionModalRef>((props, ref
                 <Text style={[styles.languageOptionText, styles.englishText]}>中文 (Chinese)</Text>
               </View>
               {currentLanguage === 'zh' ? (
+                <Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
+              ) : (
+                <View style={styles.checkmarkPlaceholder} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.languageOption, currentLanguage === 'vn' && styles.languageOptionActive]}
+              onPress={() => handleLanguageChange('vn')}
+            >
+              <View style={styles.languageOptionLeft}>
+                <VietnameseIcon width={30} height={30} />
+                <Text style={[styles.languageOptionText, styles.englishText]}>Tiếng Việt (Vietnamese)</Text>
+              </View>
+              {currentLanguage === 'vn' ? (
                 <Ionicons name="checkmark-circle" size={24} color={Colors.mainColor} />
               ) : (
                 <View style={styles.checkmarkPlaceholder} />

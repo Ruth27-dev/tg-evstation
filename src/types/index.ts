@@ -79,19 +79,6 @@ export interface Pagination {
     last:           boolean;
 }
 
-export type NotificationType = 'normal' | 'announcement';
-
-export interface Notification {
-    id:             string;
-    type:           NotificationType;
-    title:          string;
-    message:        string;
-    created_at:     Date;
-    read:           boolean;
-    icon?:          string;
-    action?:        string;
-}
-
 export interface History {
     session_id:            string;
     status:                string;
@@ -168,3 +155,21 @@ export interface Amount {
     created_at:   Date;
     updated_at:   Date;
 }
+
+export interface Notification {
+    id:         string;
+    title:      string;
+    image:      null;
+    message:    string;
+    status:     string;
+    priority:   string;
+    read_at:    string;
+    created_at: Date;
+    created_by: CreatedBy;
+}
+
+export interface CreatedBy {
+    id:       string;
+    username: string;
+}
+

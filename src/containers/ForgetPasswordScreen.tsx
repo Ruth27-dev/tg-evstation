@@ -10,6 +10,9 @@ import CustomButton from '@/components/CustomButton';
 import { Colors } from '@/theme';
 import { navigate } from '@/navigation/NavigationService';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAuth } from '@/hooks/useAuth';
+import { cleanPhoneNumber, validatePhoneNumber } from '@/utils';
+import ErrorBanner from '@/components/ErrorBanner';
 
 interface ForgetFormData {
   phone: string;
@@ -17,17 +20,21 @@ interface ForgetFormData {
 
 const ForgetPasswordScreen = () => {
     const { t } = useTranslation();
+    const [countryCode, setCountryCode] = React.useState('+855');
     const forgetSchema = useMemo(() => yup.object().shape({
         phone: yup.string().required(t('auth.enterPhoneNumber'))
     }), [t]);
-
+    const { login,isLoading, error,showError,setShowError,checkPhoneNumberAlreadyExist } = useAuth();
+    
     const { control, handleSubmit,watch, formState: { errors } } = useForm<ForgetFormData>({
         resolver: yupResolver(forgetSchema),
     });
     
 
     const onSubmit: SubmitHandler<ForgetFormData> = data => {
-        navigate('Verify');
+        const formattedPhone = `${countryCode}${validatePhoneNumber(data.phone)}`;
+        const phone_number = cleanPhoneNumber(formattedPhone);
+        checkPhoneNumberAlreadyExist(phone_number,formattedPhone,true);
     };
 
 	return (
@@ -43,7 +50,7 @@ const ForgetPasswordScreen = () => {
 				<CustomButton
 					buttonTitle={t('common.next')}
 					onPress={handleSubmit(onSubmit)}
-                    isLoading={false}
+                    isLoading={isLoading}
                     buttonColor={
                         !watch('phone') || watch('phone').length < 8
                         ? Colors.disableColor
@@ -52,6 +59,16 @@ const ForgetPasswordScreen = () => {
                     disabled={!watch('phone') || watch('phone').length < 8}
                 />
             </View>
+            <ErrorBanner
+                visible={showError}
+                message={error || 'Invalid phone number or password. Please try again.'}
+                title="Login Failed"
+                onDismiss={() => {
+                    setShowError(false);
+                }}
+                autoDismiss={true}
+                autoDismissDelay={3000}
+            />
         </BaseComponent>
     )
 }
