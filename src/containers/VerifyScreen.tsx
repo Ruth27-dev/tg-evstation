@@ -1,7 +1,7 @@
 import BaseComponent from "@/components/BaseComponent";
 import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import { Colors } from "@/theme";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Keyboard, StyleSheet, Text, View, Alert, TouchableOpacity } from "react-native";
 import {
   CodeField,
@@ -12,8 +12,8 @@ import {
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { navigate } from '@/navigation/NavigationService';
 import { useTranslation } from "@/hooks/useTranslation";
+import NetInfo from "@react-native-community/netinfo";
 
-let interval: any;
 const CELL_COUNT: number = 6;
 
 interface VerifyScreenProps {
@@ -32,10 +32,12 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
         route?.params?.confirmation || null
     );
     const [phoneNumber, setPhoneNumber] = useState<string>(route?.params?.phoneNumber ?? '');
-    const [DurationCode, setDurationCode] = useState<number>(60);
+    const [DurationCode, setDurationCode] = useState<number>(30);
     const [isVerifying, setIsVerifying] = useState(false);
     const [isResending, setIsResending] = useState(false);
-    const { currentLanguage, t } = useTranslation();
+    const [networkHint, setNetworkHint] = useState<string | null>(null);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const { t } = useTranslation();
     
     const ref = useBlurOnFulfill({value: code, cellCount: CELL_COUNT});
     const [props, getCellOnLayoutHandler] = useClearByFocusCell({
@@ -45,22 +47,66 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
 
     // Timer countdown
     useEffect(() => {
-        if (DurationCode > 0) {
-            interval = setInterval(() => {
-                setDurationCode(prev => prev - 1);
-            }, 1000);
+        if (DurationCode <= 0) {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+            return;
         }
-        return () => clearInterval(interval);
+
+        intervalRef.current = setInterval(() => {
+            setDurationCode(prev => prev - 1);
+        }, 1000);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
     }, [DurationCode]);
+
+    useEffect(() => {
+        NetInfo.fetch().then((state) => {
+            if (state.type === 'wifi') {
+                setNetworkHint('Having trouble? Try switching to mobile data.');
+            } else {
+                setNetworkHint(null);
+            }
+        });
+    }, []);
+
+    const normalizePhoneForOtp = (phone: string): string => {
+        const trimmed = phone.replace(/\s/g, '');
+        return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
+    };
+
+    const getOtpErrorMessage = (error: any): string => {
+        switch (error?.code) {
+            case 'auth/invalid-phone-number':
+                return 'Invalid phone number format.';
+            case 'auth/too-many-requests':
+                return 'Too many requests. Please try again later.';
+            case 'auth/network-request-failed':
+                return 'Network error. Please check your connection.';
+            case 'auth/captcha-check-failed':
+                return 'Verification check failed. Please try again.';
+            case 'auth/invalid-app-credential':
+                return 'App verification failed. Please restart and try again.';
+            default:
+                return error?.message || 'Failed to resend OTP. Please try again.';
+        }
+    };
 
     // Auto verify when code is complete
     useEffect(() => {
         if (code.length === CELL_COUNT) {
             handleVerifyOTP();
         }
-    }, [code]);
+    }, [code, handleVerifyOTP]);
 
-    const handleVerifyOTP = async () => {
+    const handleVerifyOTP = useCallback(async () => {
         if (!confirmation) {
             Alert.alert('Error', 'Verification session expired. Please request a new code.');
             return;
@@ -86,20 +132,22 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
         } finally {
             setIsVerifying(false);
         }
-    };
+    }, [code, confirmation, phoneNumber]);
 
     const handleResendCode = async () => {
         if (DurationCode > 0 || isResending) return;
 
         try {
             setIsResending(true);
-            const formattedPhone = phoneNumber.replace(/\s/g, '');
+            const formattedPhone = normalizePhoneForOtp(phoneNumber);
             const newConfirmation = await auth().signInWithPhoneNumber(formattedPhone);
             setConfirmation(newConfirmation);
-            setDurationCode(60);
+            setPhoneNumber(formattedPhone);
+            setDurationCode(30);
             setCode('');
         } catch (error: any) {
             console.error('Resend error:', error);
+            Alert.alert('Error', getOtpErrorMessage(error));
         } finally {
             setIsResending(false);
         }
@@ -126,6 +174,7 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                         keyboardType="number-pad"
                         textContentType="oneTimeCode"
                         autoComplete="one-time-code"
+                        editable={!isVerifying}
                         rootStyle={style.codeFieldRoot}
                         onSubmitEditing={() => {
                             Keyboard.dismiss();
@@ -148,15 +197,26 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                 </View>
 
                 <View style={style.footerSection}>
+                    {(isResending || isVerifying) && (
+                        <Text style={style.statusText}>Verifying your number...</Text>
+                    )}
+                    {DurationCode <= 0 && !isResending && !isVerifying && (
+                        <Text style={style.timeoutText}>
+                            Network seems unstable. Try mobile data or retry.
+                        </Text>
+                    )}
+                    {networkHint && (
+                        <Text style={style.hintText}>{networkHint}</Text>
+                    )}
                     <Text style={style.resendText}>{t('auth.didntReceiveCode')}</Text>
                     <TouchableOpacity 
                         onPress={handleResendCode}
-                        disabled={DurationCode > 0 || isResending}
+                        disabled={DurationCode > 0 || isResending || isVerifying}
                         activeOpacity={0.7}
                     >
                         <Text style={[
                             style.resendLink,
-                            (DurationCode > 0 || isResending) && style.resendLinkDisabled
+                            (DurationCode > 0 || isResending || isVerifying) && style.resendLinkDisabled
                         ]}>
                             {isResending ? t('common.loading') : t('auth.resendCode')}
                         </Text>
@@ -262,6 +322,27 @@ const style = StyleSheet.create({
         fontFamily: CustomFontConstant.EnRegular,
         color: '#6B7280',
         marginBottom: 8,
+    },
+    statusText: {
+        fontSize: FontSize.small + 1,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: Colors.mainColor,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    timeoutText: {
+        fontSize: FontSize.small + 1,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#DC2626',
+        marginBottom: 6,
+        textAlign: 'center',
+    },
+    hintText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#6B7280',
+        marginBottom: 10,
+        textAlign: 'center',
     },
     resendLink: {
         fontSize: FontSize.medium,

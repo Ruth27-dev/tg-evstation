@@ -1,9 +1,8 @@
 import { useEVConnector } from '@/hooks/useEVConnector';
 import { useWallet } from '@/hooks/useWallet';
 import { navigate } from '@/navigation/NavigationService';
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import * as Keychain from 'react-native-keychain';
-import { AppState, AppStateStatus } from 'react-native';
 import { isEmpty } from 'lodash';
 
 interface WSMessage {
@@ -38,11 +37,41 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const ws = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
   const { getMeWallet, getMeTransactions } = useWallet();
-  const { getSessionDetail, sessionDetail, evConnect, clearEvConnect, clearSessionDetail } = useEVConnector();
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const { getSessionDetail, evConnect, clearEvConnect, clearSessionDetail } = useEVConnector();
+  const evConnectRef = useRef(evConnect);
+  const getSessionDetailRef = useRef(getSessionDetail);
+  const clearEvConnectRef = useRef(clearEvConnect);
+  const clearSessionDetailRef = useRef(clearSessionDetail);
+  const getMeWalletRef = useRef(getMeWallet);
+  const getMeTransactionsRef = useRef(getMeTransactions);
+
+  useEffect(() => {
+    evConnectRef.current = evConnect;
+  }, [evConnect]);
+
+  useEffect(() => {
+    getSessionDetailRef.current = getSessionDetail;
+  }, [getSessionDetail]);
+
+  useEffect(() => {
+    clearEvConnectRef.current = clearEvConnect;
+  }, [clearEvConnect]);
+
+  useEffect(() => {
+    clearSessionDetailRef.current = clearSessionDetail;
+  }, [clearSessionDetail]);
+
+  useEffect(() => {
+    getMeWalletRef.current = getMeWallet;
+  }, [getMeWallet]);
+
+  useEffect(() => {
+    getMeTransactionsRef.current = getMeTransactions;
+  }, [getMeTransactions]);
   
   useEffect(() => {
     const fetchToken = async () => {
@@ -53,29 +82,41 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     fetchToken();
   }, []);
 
-  // Listen to AppState changes - check session when app becomes active
-  // useEffect(() => {
-  //   const subscription = AppState.addEventListener('change', (nextAppState) => {
-  //     if (
-  //       appStateRef.current.match(/inactive|background/) &&
-  //       nextAppState === 'active'
-  //     ) {
-  //       console.log('App returned to foreground, checking active session');
-  //       if (!isEmpty(evConnect) && evConnect?.session_id) {
-  //         const sessionId = evConnect.session_id;
-  //         console.log('Fetching session detail for:', sessionId);
-  //         getSessionDetail(sessionId);
-  //       }
-  //     }
-  //     appStateRef.current = nextAppState;
-  //   });
+  const matchesActiveChargeEvent = (message: WSMessage) => {
+    const activeSession = evConnectRef.current;
+    if (!activeSession) return false;
 
-  //   return () => {
-  //     subscription.remove();
-  //   };
-  // }, [evConnect, getSessionDetail]);
+    const payload = message?.data;
+    const payloadSessionId =
+      payload?.session_id ??
+      payload?.charging_session_id ??
+      payload?.id ??
+      (typeof payload === 'string' ? payload : null);
+    const payloadConnectorId = payload?.connector_id;
+    const payloadConnectorNumber = payload?.connector_number;
+    const payloadChargerPointId = payload?.charger_point_id;
 
-  const connect = () => {
+    if (payloadSessionId && String(payloadSessionId) === String(activeSession.session_id)) {
+      return true;
+    }
+
+    if (payloadConnectorId && String(payloadConnectorId) === String(activeSession.connector_id)) {
+      return true;
+    }
+
+    if (
+      payloadConnectorNumber !== undefined &&
+      payloadChargerPointId &&
+      Number(payloadConnectorNumber) === Number(activeSession.connector_number) &&
+      String(payloadChargerPointId) === String(activeSession.charger_point_id)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const connect = useCallback(() => {
     if (!accessToken) return;
 
     const url = `wss://tgevstation.com/ws/mobile?token=${accessToken}`; 
@@ -85,9 +126,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       setConnected(true);
       
       // Check if there's an active charging session when reconnecting
-      if (!isEmpty(evConnect) && evConnect?.session_id) {
-        const sessionId = evConnect.session_id;
-        getSessionDetail(sessionId);
+      if (!isEmpty(evConnectRef.current) && evConnectRef.current?.session_id) {
+        const sessionId = evConnectRef.current.session_id;
+        getSessionDetailRef.current(sessionId);
       }
     };
     ws.current.onmessage = (event) => {
@@ -100,19 +141,28 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 			setLastMessage(data);
 
 			if (data.event_type === "WALLET_TOPUP_SUCCESS") {
-        getMeWallet();
-        getMeTransactions(1);
+        getMeWalletRef.current();
+        getMeTransactionsRef.current(1);
         navigate("PaymentSuccess", {
           amount: data.data?.amount,
           transactionId: data.data?.id,
           date: data.data?.created_at,
         });
       }else if (data.event_type === "START_CHARGING") {
+        if (!matchesActiveChargeEvent(data)) {
+          return;
+        }
         navigate("ChargingDetail");
       }else if (data.event_type === "STOP_CHARGING") {
-        const sessionId = data.data;
-        clearEvConnect();
-        clearSessionDetail();
+        if (!matchesActiveChargeEvent(data)) {
+          return;
+        }
+        const sessionId =
+          data.data?.session_id ??
+          data.data?.charging_session_id ??
+          data.data;
+        clearEvConnectRef.current();
+        clearSessionDetailRef.current();
         navigate("ChargingSuccess", { sessionId: sessionId });
       }
       // else if( data.event_type === "METER_CHANGE") {
@@ -134,9 +184,14 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     ws.current.onclose = () => {
       setConnected(false);
-      setTimeout(connect, 2000); // Attempt to reconnect after 2 seconds
+      if (!reconnectTimeoutRef.current) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = null;
+          connect();
+        }, 2000);
+      }
     };
-  };
+  }, [accessToken]);
 
   const send = (data: WSMessage) => {
     if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
@@ -152,9 +207,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       connect(); // Connect once the token is retrieved
     }
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       ws.current?.close(); // Cleanup WebSocket on unmount
     };
-  }, [accessToken]); // Reconnect when token or URL changes
+  }, [accessToken, connect]); // Reconnect when token or URL changes
 
   return (
     <WSContext.Provider value={{ connected, send, lastMessage }}>

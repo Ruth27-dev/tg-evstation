@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Dimensions, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { safePadding } from "@/constants/GeneralConstants";
 import BaseComponent from "@/components/BaseComponent";
 import { useWallet } from "@/hooks/useWallet";
@@ -11,13 +11,16 @@ import BalanceSection from "./components/BalanceSection";
 import PromotionSlider from "./components/PromotionSlider";
 import MenuGrid from "./components/MenuGrid";
 import { useSlideShow } from "@/hooks/useSlideShow";
-
+import DeviceInfo from "react-native-device-info";
 const HomeScreen = () => {
     const [activeSlide, setActiveSlide] = useState(0);
     const { getMeWallet, userWalletBalance } = useWallet();
     const { getStation, isLoading } = useStation();
     const { fetchUser } = useAuth();
     const { getSlideShow,slideShowData } = useSlideShow();
+    const isTablet = DeviceInfo.isTablet();
+    const isIPad = Platform.OS === 'ios' && DeviceInfo.getModel().toLowerCase().includes('ipad');
+
     const menuItems = [
         { 
             id: 1, 
@@ -61,7 +64,7 @@ const HomeScreen = () => {
 
     return (
        <BaseComponent isBack={false}>
-            <ScrollView style={{flex:1}} contentContainerStyle={{paddingBottom: 20,flexGrow:1}}>
+            <ScrollView style={{flex:1}} contentContainerStyle={{paddingBottom:isIPad || isTablet ? 70 : 20,flexGrow:1}}>
                 <View style={styles.headerGradient}>
                     <View style={{padding:safePadding}}>
                         <BalanceSection 

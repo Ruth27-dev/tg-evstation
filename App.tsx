@@ -1,15 +1,11 @@
-import { NewAppScreen } from '@react-native/new-app-screen';
 import { NavigationContainer } from '@react-navigation/native';
-import { StatusBar, StyleSheet, Text, TextInput } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { Linking, StatusBar, Text, TextInput } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RouteContainer from './src/navigation/RouteContainer';
 import { navigationRef } from './src/navigation/NavigationService';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/components/ToastProvider';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import FirebaseMessagingService from '@/services/FirebaseMessagingService';
 import DeviceRegistrationService from '@/services/DeviceRegistrationService';
 import { WebSocketProvider } from '@/context/WebSocketProvider';
@@ -18,6 +14,8 @@ import { useNetworkConnection } from '@/hooks/useNetworkConnection';
 import NoInternet from '@/components/NoInternet';
 import Toast from 'react-native-toast-message';
 import { setupNotifications } from '@/services/notifications';
+import AppUpdateModal from '@/components/AppUpdateModal';
+import { checkForAppUpdate, AppUpdateInfo } from '@/services/appUpdate';
 
 if ((Text as any).defaultProps?.allowFontScaling !== false) {
   (Text as any).defaultProps = (Text as any).defaultProps || {};
@@ -31,6 +29,8 @@ if ((TextInput as any).defaultProps?.allowFontScaling !== false) {
 
 function App() {
   const { isConnected } = useNetworkConnection();
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   
   if (__DEV__) {
     require("./ReactotronConfig");
@@ -51,6 +51,16 @@ function App() {
     };
   }, []);
   useEffect(() => { setupNotifications(); }, []);
+  useEffect(() => {
+    const runUpdateCheck = async () => {
+      const info = await checkForAppUpdate();
+      if (info?.shouldUpdate) {
+        setUpdateInfo(info);
+        setShowUpdateModal(true);
+      }
+    };
+    runUpdateCheck();
+  }, []);
   const linking = {
     prefixes: [
       "myapp://",
@@ -76,6 +86,20 @@ function App() {
               </NavigationContainer>
             </TransactionPollingProvider>
           </WebSocketProvider>
+          {updateInfo && (
+            <AppUpdateModal
+              visible={showUpdateModal}
+              latestVersion={updateInfo.latestVersion}
+              message={updateInfo.message}
+              force={updateInfo.force}
+              onLater={() => setShowUpdateModal(false)}
+              onUpdate={() => {
+                if (updateInfo.storeUrl) {
+                  Linking.openURL(updateInfo.storeUrl);
+                }
+              }}
+            />
+          )}
           {!isConnected && (<NoInternet/>)}
           <Toast />
         </ToastProvider>
@@ -83,11 +107,5 @@ function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;

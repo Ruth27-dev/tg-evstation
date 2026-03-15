@@ -6,6 +6,7 @@ import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize, screenSizes } from '@/constants/GeneralConstants';
 import { Content } from '@/types';
 import { calculateDistance } from '@/utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface StationCardProps {
     station: Content;
@@ -20,6 +21,7 @@ const StationCard: React.FC<StationCardProps> = ({
     currentLocation, 
     onPress 
 }) => {
+    const { t } = useTranslation();
     // Calculate total connectors
     const totalConnectors = station?.chargers.reduce((total: number, charger: any) => 
         total + (charger.connector?.length || 0), 0
@@ -98,7 +100,7 @@ const StationCard: React.FC<StationCardProps> = ({
                     </View>
 
                     <View style={styles.detailButton}>
-                        <Text style={styles.detailButtonText}>View Details</Text>
+                        <Text style={styles.detailButtonText}>{t('common.viewDetails')}</Text>
                         <Ionicons name="arrow-forward" size={18} color={Colors.white} />
                     </View>
                 </View>

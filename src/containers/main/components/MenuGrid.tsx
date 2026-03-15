@@ -10,7 +10,6 @@ interface MenuItem {
     id: number;
     name: string;
     icon: string;
-    color: string;
     onPress: () => void;
 }
 

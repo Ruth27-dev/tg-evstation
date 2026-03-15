@@ -1,4 +1,4 @@
-import { AppState, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 
@@ -22,12 +22,19 @@ export async function setupNotifications() {
 
   // Foreground messages → show a local notification yourself
   messaging().onMessage(async (rm) => {
-    console.log(rm)
+    if (isOtpMessage(rm)) {
+      return;
+    }
+    if (Platform.OS === 'ios') {
+      // Do not show foreground alerts on iOS (can interfere with OTP UX)
+      return;
+    }
+    console.log(rm);
     await displayFromRemoteMessage(rm);
   });
 
   // Optional: handle taps while app is open
-  notifee.onForegroundEvent(({ type, detail }) => {
+  notifee.onForegroundEvent(({ type, detail: _detail }) => {
     if (type === EventType.PRESS) {
       // e.g. navigate with detail.notification?.data
     }
@@ -35,6 +42,12 @@ export async function setupNotifications() {
 }
 
 export async function displayFromRemoteMessage(rm: FirebaseMessagingTypes.RemoteMessage) {
+  if (isOtpMessage(rm)) {
+    return;
+  }
+  if (Platform.OS === 'ios') {
+    return;
+  }
   const title:any = rm.notification?.title ?? rm.data?.title ?? 'Notification';
   const body:any  = rm.notification?.body  ?? rm.data?.body  ?? '';
 
@@ -54,6 +67,22 @@ export async function displayFromRemoteMessage(rm: FirebaseMessagingTypes.Remote
       sound: 'default',
     },
   });
+}
+
+function isOtpMessage(rm: FirebaseMessagingTypes.RemoteMessage): boolean {
+  const title = (rm.notification?.title ?? rm.data?.title ?? '').toString().toLowerCase();
+  const body = (rm.notification?.body ?? rm.data?.body ?? '').toString().toLowerCase();
+  const dataType = (rm.data?.type ?? rm.data?.notification_type ?? rm.data?.category ?? '').toString().toLowerCase();
+
+  return (
+    title.includes('otp') ||
+    body.includes('otp') ||
+    title.includes('verification') ||
+    body.includes('verification') ||
+    dataType.includes('otp') ||
+    dataType.includes('verification') ||
+    dataType.includes('auth')
+  );
 }
 
 // Quick local test to ensure Notifee is wired correctly

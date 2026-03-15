@@ -1,7 +1,7 @@
 import { navigate } from "@/navigation/NavigationService";
 import {  topUp } from "@/services/useApi";
 import { useState } from "react";
-import { Linking } from "react-native";
+import { Alert, Linking, Platform } from "react-native";
 import { useTransactionPolling } from "@/context/TransactionPollingProvider";
 
 export const useTopUp = () => {
@@ -19,20 +19,38 @@ export const useTopUp = () => {
             const response = await topUp(data);
             if(response?.data?.code === '000'){
                 const transactionId = response.data.data?.id || response.data.data?.transaction_id;
+                const redirectUrl = response.data.data?.redirectUrl;
+                const deepLink = response.data.data?.abapay_deeplink;
+                const checkoutQrUrl = response.data.data?.checkout_qr_url;
                 
-                // Start polling for transaction status
                 if (transactionId) {
-                    console.log('Transaction initiated, starting polling for ID:', transactionId);
                     startPolling(transactionId);
                 }
+                if(redirectUrl){
+                    navigate('KHQRView', {source: redirectUrl, setIsPay: false});
+                }else if(checkoutQrUrl){
+                    navigate('KHQRView', {source: checkoutQrUrl, setIsPay: false});
 
-                if(response.data.data.redirectUrl){
-                    navigate('KHQRView', {source: response.data.data.redirectUrl, setIsPay: false});
+                    if (deepLink) {
+                        try {
+                            if (Platform.OS === "android") {
+                                setTimeout(() => {
+                                    Linking.openURL(deepLink).catch((err) => {
+                                        console.warn("Failed to open ABA deep link:", err);
+                                    });
+                                }, 200);
+                            } else {
+                                await Linking.openURL(deepLink);
+                            }
+                        } catch (err) {
+                            console.warn("Failed to open ABA deep link:", err);
+                        }
+                    }
                 }else{
-                    Linking.openURL(response.data.data.abapay_deeplink);
-                    navigate('KHQRView', {source: response.data.data.checkout_qr_url, setIsPay: false});
+                    Alert.alert('Top up failed', 'No payment URL received. Please try again.');
                 }
-                
+            }else{
+                Alert.alert('Top up failed', response?.data?.message || 'Please try again.');
             }
             return response;
         } catch (error) {
@@ -48,4 +66,3 @@ export const useTopUp = () => {
         isLoading,
     };
 }
-

@@ -21,6 +21,7 @@ import AppLogo from '@/assets/logo/logo.svg';
 import { cleanPhoneNumber, validatePhoneNumber } from '@/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import TextTranslation from '@/components/TextTranslation';
+import BaseComponent from '@/components/BaseComponent';
 
 interface LoginFormData {
 	phone: string;
@@ -86,98 +87,91 @@ const LoginScreen = () => {
 	}, [currentLanguage]);
 
 	return (
-		<KeyboardAvoidingView
-			style={{ flex: 1 }}
-			behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-		>
-			<ScrollView
-				contentContainerStyle={{ flexGrow: 1 }}
-				keyboardShouldPersistTaps="handled"
-				showsVerticalScrollIndicator={false}
+		<BaseComponent isBack={true} title='auth.login'>
+			<KeyboardAvoidingView
+				style={{ flex: 1 }}
+				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
 			>
-				<View style={styles.container}>
-					<ErrorBanner
-						visible={showError}
-						message={error || 'Invalid phone number or password. Please try again.'}
-						title="Login Failed"
-						onDismiss={() => {
-							setShowError(false);
-						}}
-						autoDismiss={true}
-						autoDismissDelay={3000}
-					/>
-					
-					<View style={styles.contentWrapper}>
-						<View style={[styles.languageContainer,{top:Platform.OS === 'ios' ? safePadding : 15}]}>
-							{renderTranslateIcon()}
-						</View>
-
-						<View style={styles.headerSection}>
-							<AppLogo width={180} height={180} />
-							<TextTranslation textKey="common.welcome" fontSize={32} isBold />
-							<TextTranslation textKey="common.signInToContinue" fontSize={FontSize.medium} />
-						</View>
-
-						<View style={styles.formContainer}>
-							<CustomPhoneInput
-								control={control}
-								name="phone"
-								errors={errors}
-                				onCountryChange={onCountryChange}
-							/>
-							<CustomInputText
-								placeHolderText={t('auth.password')}
-								labelText={t('password')}
-								isRightIcon
-								control={control}
-								name="password"
-								errors={errors}
-								isLeftIcon
-								isPassword={!isShowPassword}
-								renderLeftIcon={
-									<Ionicons name="lock-closed" style={styles.inputIcon} size={22}/>
-								}
-                				renderRightIcon={
-									<Ionicons name={isShowPassword ? "eye-off" : "eye"} style={styles.inputIcon} size={22} onPress={()=> setIsShowPassword(!isShowPassword)}/>
-								}
-							/> 
-							
-							<TouchableOpacity style={styles.forgotPasswordContainer} onPress={()=>navigate('ForgetPassword')}>
-								<Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
-							</TouchableOpacity>
-
-							<CustomButton
-								buttonTitle={t('auth.login')}
-								onPress={handleSubmit(onSubmit)}
-								isLoading={isLoading}
-								buttonColor={
-									!watch('phone') || watch('phone').length < 8 || !watch('password')
-									? Colors.disableColor
-									: Colors.mainColor
-								}
-								disabled={!watch('phone') || watch('phone').length < 8 || !watch('password')}
-							/>
-						</View>
+				<ScrollView
+					contentContainerStyle={{ flexGrow: 1 }}
+					keyboardShouldPersistTaps="handled"
+					showsVerticalScrollIndicator={false}
+				>
+					<View style={styles.container}>
+						<ErrorBanner
+							visible={showError}
+							message={error || 'Invalid phone number or password. Please try again.'}
+							title="Login Failed"
+							onDismiss={() => {
+								setShowError(false);
+							}}
+							autoDismiss={true}
+							autoDismissDelay={3000}
+						/>
 						
-						<View style={styles.footer}>
-							<View style={styles.dividerContainer}>
-								<View style={styles.divider} />
-								<Text style={styles.dividerText}>or</Text>
-								<View style={styles.divider} />
-							</View>
-
-							<View style={styles.signUpContainer}>
-								<Text style={styles.signUpText}>{t('auth.dontHaveAccount')}</Text>
-								<TouchableOpacity onPress={() => navigate('Register')}>
-									<Text style={styles.signUpLink}>{t('auth.signUp')}</Text>
+						<View style={styles.contentWrapper}>
+							<View style={styles.formContainer}>
+								<CustomPhoneInput
+									control={control}
+									name="phone"
+									errors={errors}
+									onCountryChange={onCountryChange}
+								/>
+								<CustomInputText
+									placeHolderText={t('auth.password')}
+									labelText={t('password')}
+									isRightIcon
+									control={control}
+									name="password"
+									errors={errors}
+									isLeftIcon
+									isPassword={!isShowPassword}
+									renderLeftIcon={
+										<Ionicons name="lock-closed" style={styles.inputIcon} size={22}/>
+									}
+									renderRightIcon={
+										<Ionicons name={isShowPassword ? "eye-off" : "eye"} style={styles.inputIcon} size={22} onPress={()=> setIsShowPassword(!isShowPassword)}/>
+									}
+								/> 
+								
+								<TouchableOpacity style={styles.forgotPasswordContainer} onPress={()=>navigate('ForgetPassword')}>
+									<Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
 								</TouchableOpacity>
+
+								<CustomButton
+									buttonTitle={t('auth.login')}
+									onPress={handleSubmit(onSubmit)}
+									isLoading={isLoading}
+									buttonColor={
+										!watch('phone') || watch('phone').length < 8 || !watch('password')
+										? Colors.disableColor
+										: Colors.mainColor
+									}
+									disabled={!watch('phone') || watch('phone').length < 8 || !watch('password')}
+								/>
+							</View>
+							
+							<View style={styles.footer}>
+								<View style={styles.dividerContainer}>
+									<View style={styles.divider} />
+									<Text style={styles.dividerText}>or</Text>
+									<View style={styles.divider} />
+								</View>
+
+								<View style={styles.signUpContainer}>
+									<Text style={styles.signUpText}>{t('auth.dontHaveAccount')}</Text>
+									<TouchableOpacity onPress={() => navigate('Register')}>
+										<Text style={styles.signUpLink}>{t('auth.signUp')}</Text>
+									</TouchableOpacity>
+								</View>
 							</View>
 						</View>
 					</View>
-				</View>
-				<LanguageSelectionModal ref={languageModalRef} />
-			</ScrollView>
-		</KeyboardAvoidingView>
+					<LanguageSelectionModal ref={languageModalRef} />
+				</ScrollView>
+			</KeyboardAvoidingView>
+		</BaseComponent>
+	
 	);
 };
 
@@ -195,8 +189,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   contentWrapper: {
-    flex: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 20,
   },

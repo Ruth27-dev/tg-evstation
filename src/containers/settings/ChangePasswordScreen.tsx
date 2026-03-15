@@ -10,9 +10,9 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PasswordFormData {
-    currentPassword: string;
     newPassword: string;
     confirmPassword: string;
 }
@@ -21,9 +21,8 @@ const ChangePasswordScreen = () => {
     const { t } = useTranslation();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+    const { onChangePassword,isRequesting } = useAuth();
     const passwordSchema = useMemo(() => yup.object().shape({
-        currentPassword: yup.string().trim().required(t('changePassword.validation.currentRequired')),
         newPassword: yup
             .string()
             .trim()
@@ -44,13 +43,20 @@ const ChangePasswordScreen = () => {
     } = useForm<PasswordFormData>({
         resolver: yupResolver(passwordSchema),
         defaultValues: {
-            currentPassword: '',
             newPassword: '',
             confirmPassword: '',
         }
     });
 
-    const handleChangePassword = (data: PasswordFormData) => {
+    const handleChangePassword = async (data: PasswordFormData) => {
+        const payload = {
+            password:data.confirmPassword
+        }
+        const ok = await onChangePassword(payload);
+        if (ok) {
+            Alert.alert(t('changePassword.title'), t('changePassword.successMessage'));
+            reset();
+        }
     };
 
     return (
@@ -117,6 +123,7 @@ const ChangePasswordScreen = () => {
                     buttonTitle={t('profile.changePassword')}
                     onPress={handleSubmit(handleChangePassword)}
                     buttonColor={Colors.mainColor}
+                    isLoading={isRequesting}
                 />
             </View>
         </BaseComponent>

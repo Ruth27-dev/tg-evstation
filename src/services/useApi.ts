@@ -208,4 +208,7 @@ export const postDeleteUser = (onError?: (err: any) => void) =>
 export const fetchNitification = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/notifications/announcement`,data, onError);
 
+export const changePassword = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/change-password`,data, onError);
+
 export default api;

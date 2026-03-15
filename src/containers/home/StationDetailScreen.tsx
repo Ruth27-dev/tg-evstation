@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Linking } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking } from "react-native";
 import BaseComponent from "@/components/BaseComponent";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { Content, Charger, Connector } from "@/types";
+import { Charger, Connector } from "@/types";
 import { useStationStore } from "@/store/useStationStore";
 import { navigate } from "@/navigation/NavigationService";
+import { useTranslation } from "@/hooks/useTranslation";
 
 
-const StationDetailScreen = ({ route }: any) => {
+const StationDetailScreen = ({ route: _route }: any) => {
     const { selectedStation, clearStation } = useStationStore();
+    const { t, tVar } = useTranslation();
 
-    // Clear station when component unmounts
     useEffect(() => {
         return () => {
             clearStation();
         };
-    }, []);
+    }, [clearStation]);
 
     const isStationOpen = selectedStation?.status === 'ACTIVE';
 
-    // Process chargers data
     const processedChargers: any= selectedStation?.chargers.map((charger: Charger) => {
         const availableConnectors = charger.connector.filter(
             (conn: Connector) => conn.status === 'AVAILABLE' || conn.status === 'PREPARING'
@@ -42,12 +41,12 @@ const StationDetailScreen = ({ route }: any) => {
 
     // Get amenities list
     const amenitiesList = [
-        { key: 'wifi', label: 'WiFi', icon: 'wifi', value: selectedStation?.wifi },
-        { key: 'cafe', label: 'Cafe', icon: 'cafe', value: selectedStation?.cafe },
-        { key: 'restrooms', label: 'Restroom', icon: 'man', value: selectedStation?.restrooms },
-        { key: 'parking_fee', label: 'Parking', icon: 'car', value: selectedStation?.parking_fee },
-        { key: 'shopping', label: 'Shopping', icon: 'storefront', value: selectedStation?.shopping },
-        { key: 'playground', label: 'Playground', icon: 'game-controller', value: selectedStation?.playground },
+        { key: 'wifi', label: t('station.wifi'), icon: 'wifi', value: selectedStation?.wifi },
+        { key: 'cafe', label: t('station.cafe'), icon: 'cafe', value: selectedStation?.cafe },
+        { key: 'restrooms', label: t('station.restroom'), icon: 'man', value: selectedStation?.restrooms },
+        { key: 'parking_fee', label: t('station.parking'), icon: 'car', value: selectedStation?.parking_fee },
+        { key: 'shopping', label: t('station.shopping'), icon: 'storefront', value: selectedStation?.shopping },
+        { key: 'playground', label: t('station.playground'), icon: 'game-controller', value: selectedStation?.playground },
     ].filter(amenity => amenity.value);
 
     const handleNavigate = () => {
@@ -97,7 +96,7 @@ const StationDetailScreen = ({ route }: any) => {
                                 styles.availabilityText,
                                 { color: charger.availableCount > 0 ? Colors.secondaryColor : '#EF4444' }
                             ]}>
-                                {charger.availableCount}/{charger.totalCount} Available
+                                {tVar('station.availableCount', { available: charger.availableCount, total: charger.totalCount })}
                             </Text>
                         </View>
                     </View>
@@ -107,14 +106,14 @@ const StationDetailScreen = ({ route }: any) => {
     };
 
     return (
-        <BaseComponent isBack={true} title="Station Details">
+        <BaseComponent isBack={true} title={t('station.detailsTitle')}>
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 
                 <View style={styles.imageContainer}>
                     <Image source={{ uri: selectedStation?.image }} style={styles.stationImage} resizeMode="cover" />
                     <View style={styles.statusBadge}>
                         <View style={[styles.statusDot, { backgroundColor: isStationOpen ? Colors.secondaryColor : '#EF4444' }]} />
-                        <Text style={styles.statusText}>{isStationOpen ? 'Open' : 'Closed'} • 24/7</Text>
+                        <Text style={styles.statusText}>{isStationOpen ? t('station.openNow') : t('station.closed')} • 24/7</Text>
                     </View>
                 </View>
 
@@ -132,7 +131,7 @@ const StationDetailScreen = ({ route }: any) => {
                             <View style={styles.actionIconContainer}>
                                 <Ionicons name="navigate" size={20} color={Colors.mainColor} />
                             </View>
-                            <Text style={styles.actionText}>Navigate</Text>
+                            <Text style={styles.actionText}>{t('station.navigate')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={styles.actionButton} 
@@ -143,7 +142,7 @@ const StationDetailScreen = ({ route }: any) => {
                             <View style={styles.actionIconContainer}>
                                 <Ionicons name="call" size={20} color={Colors.mainColor} />
                             </View>
-                            <Text style={styles.actionText}>Call</Text>
+                            <Text style={styles.actionText}>{t('station.call')}</Text>
                         </TouchableOpacity>
                         {/* <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
                             <View style={styles.actionIconContainer}>
@@ -155,7 +154,7 @@ const StationDetailScreen = ({ route }: any) => {
 
                     {/* Location Info */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Location</Text>
+                        <Text style={styles.sectionTitle}>{t('station.location')}</Text>
                         <View style={[styles.locationCard,{alignItems:'center'}]}>
                             <Ionicons name="location" size={20} color={Colors.mainColor} />
                             <Text style={styles.addressText}>{selectedStation?.address}</Text>
@@ -164,7 +163,7 @@ const StationDetailScreen = ({ route }: any) => {
 
                     {amenitiesList?.length > 0 && (
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Amenities</Text>
+                            <Text style={styles.sectionTitle}>{t('station.amenities')}</Text>
                             <View style={styles.amenitiesContainer}>
                                 {amenitiesList.map((amenity) => (
                                     <View key={amenity.key} style={styles.amenityChip}>
@@ -177,13 +176,13 @@ const StationDetailScreen = ({ route }: any) => {
                     )}
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Available Chargers</Text>
+                        <Text style={styles.sectionTitle}>{t('station.availableChargers')}</Text>
                         {processedChargers.map(renderChargerType)}
                     </View>
 
                     <TouchableOpacity style={styles.startButton} activeOpacity={0.8} onPress={()=>navigate('Connector')}>
                         <MaterialCommunityIcons name="lightning-bolt" size={24} color={Colors.white} />
-                        <Text style={styles.startButtonText}>Start Charging</Text>
+                        <Text style={styles.startButtonText}>{t('station.startCharging')}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

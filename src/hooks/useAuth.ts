@@ -1,9 +1,9 @@
 import { goBack, navigate, reset } from "@/navigation/NavigationService";
-import { checkPhone, fetchUserDetail, postDeleteUser, postLogout, updateMe, userLogin, userRegister } from "@/services/useApi";
+import { changePassword, checkPhone, fetchUserDetail, postDeleteUser, postLogout, updateMe, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import { useCallback, useState } from "react";
-import { getAuth, signInWithPhoneNumber } from '@react-native-firebase/auth';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import * as Keychain from 'react-native-keychain';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DeviceInfo from "react-native-device-info";
@@ -11,6 +11,7 @@ import { useEVStore } from "@/store/useEVStore";
 import { useEVConnector } from "./useEVConnector";
 
 export const useAuth = () => {
+    const SKIP_OTP = true; // Temporary bypass for all environments
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const  [error, setError] = useState<string | null>(null);
     const [showError, setShowError] = useState(false);
@@ -19,6 +20,41 @@ export const useAuth = () => {
     const { setIsUserLogin } = useAuthStore();
     const { clearEvConnect } = useEVStore();
     const { clearSessionDetail } = useEVConnector();
+
+    const normalizePhoneForOtp = (phone: string): string => {
+        const trimmed = phone.replace(/\s/g, '');
+        return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
+    };
+
+    const getOtpErrorMessage = (err: any): string => {
+        switch (err?.code) {
+            case 'auth/invalid-phone-number':
+                return 'Invalid phone number format.';
+            case 'auth/too-many-requests':
+                return 'Too many requests. Please try again later.';
+            case 'auth/network-request-failed':
+                return 'Network error. Please check your connection.';
+            case 'auth/captcha-check-failed':
+                return 'Verification check failed. Please try again.';
+            case 'auth/invalid-app-credential':
+                return 'App verification failed. Please restart and try again.';
+            default:
+                return err?.message || 'Failed to send OTP. Please try again.';
+        }
+    };
+
+    const sendOtp = async (phone: string): Promise<FirebaseAuthTypes.ConfirmationResult | null> => {
+        try {
+            const normalizedPhone = normalizePhoneForOtp(phone);
+            console.log('Attempting to send OTP to:', normalizedPhone);
+            return await auth().signInWithPhoneNumber(normalizedPhone);
+        } catch (err: any) {
+            console.error('Error during phone sign-in:', err);
+            setShowError(true);
+            setError(getOtpErrorMessage(err));
+            return null;
+        }
+    };
 
     const login = useCallback(async (phoneNumber: string, password: string) => {
         setIsLoading(true);
@@ -38,14 +74,14 @@ export const useAuth = () => {
                 setIsLoading(false);
                 setShowError(true);
                 setError(response?.data?.message || 'Login failed. Please check your credentials and try again.');}
-        } catch (error: any) {
+        } catch (err: any) {
             setIsLoading(false);
             setShowError(true);
-            setError(error?.message || 'Login failed. Please check your credentials and try again.');
+            setError(err?.message || 'Login failed. Please check your credentials and try again.');
         }
-    }, []);
+    }, [setIsUserLogin]);
 
-    const checkPhoneNumber = async (phoneNumber: string, formattedPhone: string,isForget: boolean = false) => {
+    const checkPhoneNumber = async (phoneNumber: string, formattedPhone: string,_isForget: boolean = false) => {
         setIsLoading(true); // Start loading
         const data = {
             phone_number: phoneNumber,
@@ -54,36 +90,24 @@ export const useAuth = () => {
         try {
             const response = await checkPhone(data);
             if (response?.data?.code === '000') {
-                try {
-                   const confirmation = await signInWithPhoneNumber(getAuth(), formattedPhone);
-
+                if (SKIP_OTP) {
+                    navigate('CreateAccount', { phoneNumber: normalizePhoneForOtp(formattedPhone) });
+                    return;
+                }
+                const confirmation = await sendOtp(formattedPhone);
+                if (confirmation) {
                     navigate('Verify', { 
-                        phoneNumber: formattedPhone,
-                        confirmation: confirmation,
+                        phoneNumber: normalizePhoneForOtp(formattedPhone),
+                        confirmation,
                     });
-                } catch (error: any) {
-                    console.error('Error during phone sign-in:', error);
-                    let errorMessage = 'Failed to send OTP. Please try again.';
-                    if (error.code === 'auth/invalid-phone-number') {
-                        errorMessage = 'Invalid phone number format.';
-                    } else if (error.code === 'auth/too-many-requests') {
-                        errorMessage = 'Too many requests. Please try again later.';
-                    } else if (error.code === 'auth/network-request-failed') {
-                        errorMessage = 'Network error. Please check your connection.';
-                    } else {
-                        errorMessage = error?.message || 'An unexpected error occurred.';
-                    }
-
-                    setShowError(true);
-                    setError(errorMessage);
                 }
             } else {
                 setShowError(true);
                 setError(response?.data?.message || 'Unknown error');
             }
-        } catch (error: any) {
+        } catch (err: any) {
             setShowError(true);
-            setError(error?.message || 'An unexpected error occurred.');
+            setError(err?.message || 'An unexpected error occurred.');
         } finally {
             setIsLoading(false);
         }
@@ -98,37 +122,29 @@ export const useAuth = () => {
         try {
             const response = await checkPhone(data);
             if (response?.data?.code !== '000') {
-                try {
-                   const confirmation = await signInWithPhoneNumber(getAuth(), formattedPhone);
-
-                    navigate('Verify', { 
-                        phoneNumber: formattedPhone,
-                        confirmation: confirmation,
-                        isForget: isForget
-                    });
-                } catch (error: any) {
-                    console.error('Error during phone sign-in:', error);
-                    let errorMessage = 'Failed to send OTP. Please try again.';
-                    if (error.code === 'auth/invalid-phone-number') {
-                        errorMessage = 'Invalid phone number format.';
-                    } else if (error.code === 'auth/too-many-requests') {
-                        errorMessage = 'Too many requests. Please try again later.';
-                    } else if (error.code === 'auth/network-request-failed') {
-                        errorMessage = 'Network error. Please check your connection.';
+                if (SKIP_OTP) {
+                    if (isForget) {
+                        navigate('ChangePasswordScreen');
                     } else {
-                        errorMessage = error?.message || 'An unexpected error occurred.';
+                        navigate('CreateAccount', { phoneNumber: normalizePhoneForOtp(formattedPhone) });
                     }
-
-                    setShowError(true);
-                    setError(errorMessage);
+                    return;
+                }
+                const confirmation = await sendOtp(formattedPhone);
+                if (confirmation) {
+                    navigate('Verify', { 
+                        phoneNumber: normalizePhoneForOtp(formattedPhone),
+                        confirmation,
+                        isForget,
+                    });
                 }
             } else {
                 setShowError(true);
                 setError(response?.data?.message || 'Unknown error');
             }
-        } catch (error: any) {
+        } catch (err: any) {
             setShowError(true);
-            setError(error?.message || 'An unexpected error occurred.');
+            setError(err?.message || 'An unexpected error occurred.');
         } finally {
             setIsLoading(false);
         }
@@ -157,10 +173,10 @@ export const useAuth = () => {
                     ? Object.values(errorData).flat().join(', ') 
                     : 'Registration failed. Please try again.';
                 setError(errorMessage);}
-        } catch (error: any) {
+        } catch (err: any) {
             setIsLoading(false);
             setShowError(true);
-            setError(error?.message || 'Registration failed. Please try again.');
+            setError(err?.message || 'Registration failed. Please try again.');
         }
     }
 
@@ -178,8 +194,8 @@ export const useAuth = () => {
       try {
         const credentials = await Keychain.getGenericPassword();
         return credentials ? credentials.password : null;
-      } catch (error) {
-        console.error('Error retrieving token:', error);
+      } catch (err) {
+        console.error('Error retrieving token:', err);
         return null;
       }
     };
@@ -238,6 +254,21 @@ export const useAuth = () => {
             setIsRequesting(false);
         }
     }
+
+    const onChangePassword = async (data:any): Promise<boolean> => {
+        setIsRequesting(true);
+        const response = await changePassword(data);
+        if(response.data?.code === '000'){
+            await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
+            setIsRequesting(false);
+            return true;
+        }else{
+            setIsRequesting(false);
+            setShowError(true);
+            setError(response?.data?.message || 'Change password failed. Please try again.');
+            return false;
+        }
+    }
     return {
         isLoading,
         login,
@@ -251,6 +282,7 @@ export const useAuth = () => {
         isRequesting,
         updateProfile,
         checkPhoneNumberAlreadyExist,
-        deleteAccount
+        deleteAccount,
+        onChangePassword
     };
 }

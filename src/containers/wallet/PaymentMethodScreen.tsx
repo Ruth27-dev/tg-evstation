@@ -6,7 +6,6 @@ import { CustomFontConstant, FontSize, Images, safePadding } from "@/constants/G
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTopUp } from "@/hooks/useTopUp";
 import CustomButton from "@/components/CustomButton";
-import PaymentTermsModal from "@/components/PaymentTermsModal";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface PaymentMethod {
@@ -52,8 +51,14 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
         }
     ];
 
-    const handleContinue = () => {
-        postTopUp(amount.toString(), selectedMethod?.type || '', promotionId);
+    const handleContinue = async () => {
+        if (isLoading || !selectedMethod) return;
+
+        try {
+            await postTopUp(amount.toString(), selectedMethod.type, promotionId);
+        } catch (error) {
+            Alert.alert(t('common.error'), t('common.somethingWentWrong'));
+        }
     };
 
     return (
@@ -121,7 +126,7 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
                     buttonTitle={t('common.continue')}
                     buttonColor={selectedMethod ? Colors.mainColor : Colors.gray}
                     onPress={handleContinue}
-                    disabled={!selectedMethod}
+                    disabled={!selectedMethod || isLoading}
                     isLoading={isLoading}
                 />
             </View>

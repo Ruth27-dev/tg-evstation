@@ -1,7 +1,8 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import SplashScreen from '@/containers/SplashScreen';
+import AuthChoiceScreen from '@/containers/AuthChoiceScreen';
 import LoginScreen from '@/containers/LoginScreen';
 import ForgetPasswordScreen from '@/containers/ForgetPasswordScreen';
 import VerifyScreen from '@/containers/VerifyScreen';
@@ -50,6 +51,7 @@ const MainStackContainer = () => {
           component={SplashScreen}
           options={{gestureEnabled: false, animation: 'fade'}}
         />
+        <Stack.Screen name={'AuthChoice'} component={AuthChoiceScreen} />
         <Stack.Screen name={'Login'} component={LoginScreen} />
         <Stack.Screen name={'ForgetPassword'} component={ForgetPasswordScreen} />
         <Stack.Screen name={'Verify'} component={VerifyScreen} />

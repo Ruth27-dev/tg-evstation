@@ -73,13 +73,6 @@ const RegisterScreen = () => {
 								autoDismiss={true}
 								autoDismissDelay={3000}
 							/>
-					
-                            {/* Logo Section */}
-                            <View style={styles.headerSection}>
-                                <AppLogo width={180} height={180} />
-                                <Text style={styles.welcomeTitle}>{t('auth.createAccount')}</Text>
-                            </View>
-
                             {/* Form Section */}
                             <View style={styles.formContainer}>
                                 <CustomPhoneInput

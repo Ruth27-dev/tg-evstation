@@ -7,6 +7,7 @@ import Crypto from 'react-native-quick-crypto';
 
 const DEVICE_REGISTERED_KEY = '@device_registered';
 const DEVICE_ID_KEY = '@device_id';
+const DEVICE_REGISTRATION_STATE_KEY = '@device_registration_state';
 
 interface DeviceRegistrationPayload {
   os_version: string;
@@ -21,6 +22,13 @@ interface DeviceRegistrationResponse {
   success: boolean;
   message?: string;
   data?: any;
+}
+
+interface DeviceRegistrationState {
+  deviceId: string | null;
+  fcmToken: string | null;
+  registeredAt: string;
+  response: DeviceRegistrationResponse;
 }
 
 class DeviceRegistrationService {
@@ -58,11 +66,14 @@ class DeviceRegistrationService {
     try {
       this.isRegistering = true;
 
-      // Check if device is already registered
-      const isRegistered = await this.isDeviceRegistered();
-      if (isRegistered) {
-        console.log('Device already registered');
-        return { success: true, message: 'Device already registered' };
+      // Check if device is already registered and we have a saved state
+      const [isRegistered, cachedState] = await Promise.all([
+        this.isDeviceRegistered(),
+        this.getStoredRegistrationState(),
+      ]);
+      if (isRegistered && cachedState?.response?.success) {
+        console.log('Device already registered (cached)');
+        return cachedState.response;
       }
 
       // Get device information
@@ -73,12 +84,25 @@ class DeviceRegistrationService {
         return { success: false, message: 'FCM token not available' };
       }
 
+      // If already registered and token hasn't changed, avoid re-registering
+      const storedState = cachedState;
+      if (isRegistered && storedState?.fcmToken && storedState.fcmToken === deviceInfo.fcm_token) {
+        console.log('Device already registered (token unchanged)');
+        return storedState.response ?? { success: true, message: 'Device already registered' };
+      }
+
       // Send registration request to backend
       const response = await this.sendRegistrationRequest(deviceInfo);
 
       if (response.success) {
         // Mark device as registered
         await this.markDeviceAsRegistered();
+        await this.storeRegistrationState({
+          deviceId: deviceInfo.device_id,
+          fcmToken: deviceInfo.fcm_token,
+          registeredAt: new Date().toISOString(),
+          response,
+        });
         console.log('Device registered successfully:', response);
       }
 
@@ -101,6 +125,7 @@ class DeviceRegistrationService {
     try {
       // Clear registration status
       await AsyncStorage.removeItem(DEVICE_REGISTERED_KEY);
+      await AsyncStorage.removeItem(DEVICE_REGISTRATION_STATE_KEY);
       
       // Register again
       return await this.registerDevice();
@@ -240,6 +265,30 @@ class DeviceRegistrationService {
     }
   }
 
+  private async getStoredRegistrationState(): Promise<DeviceRegistrationState | null> {
+    try {
+      const raw = await AsyncStorage.getItem(DEVICE_REGISTRATION_STATE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as DeviceRegistrationState;
+      return parsed && parsed.response?.success ? parsed : null;
+    } catch (error) {
+      console.error('Error reading stored registration state:', error);
+      return null;
+    }
+  }
+
+  private async storeRegistrationState(state: DeviceRegistrationState): Promise<void> {
+    try {
+      await AsyncStorage.setItem(DEVICE_REGISTRATION_STATE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error('Error storing registration state:', error);
+    }
+  }
+
+  public async getRegistrationState(): Promise<DeviceRegistrationState | null> {
+    return this.getStoredRegistrationState();
+  }
+
   /**
    * Check if device is already registered
    */
@@ -286,6 +335,7 @@ class DeviceRegistrationService {
 
       // Clear local registration
       await AsyncStorage.removeItem(DEVICE_REGISTERED_KEY);
+      await AsyncStorage.removeItem(DEVICE_REGISTRATION_STATE_KEY);
       console.log('Device unregistered');
     } catch (error) {
       console.error('Error unregistering device:', error);

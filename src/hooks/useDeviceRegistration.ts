@@ -30,6 +30,7 @@ export const useDeviceRegistration = (): UseDeviceRegistration => {
 
   useEffect(() => {
     loadDeviceId();
+    loadRegistrationState();
   }, []);
 
   const loadDeviceId = async () => {
@@ -38,6 +39,18 @@ export const useDeviceRegistration = (): UseDeviceRegistration => {
       setDeviceId(id);
     } catch (err: any) {
       console.error('Error loading device ID:', err);
+    }
+  };
+
+  const loadRegistrationState = async () => {
+    try {
+      const state = await DeviceRegistrationService.getRegistrationState();
+      setIsRegistered(Boolean(state?.response?.success));
+      if (state?.deviceId) {
+        setDeviceId(state.deviceId);
+      }
+    } catch (err: any) {
+      console.error('Error loading registration state:', err);
     }
   };
 

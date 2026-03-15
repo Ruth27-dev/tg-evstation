@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 import { Colors } from '@/theme';
-import Images from '@/assets/images';
 import { reset } from '@/navigation/NavigationService';
 import { useAuth } from '@/context/AuthContext';
 import AppLogo from '@/assets/logo/logo.svg';
@@ -12,7 +11,7 @@ const SplashScreen = () => {
             if (isAuthenticated) {
                 reset('Main');
             } else {
-                reset('Login');
+                reset('AuthChoice');
             }
         }, 1500);
         

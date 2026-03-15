@@ -56,7 +56,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access to your Camera for QR code scanning.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your app needs your location to show nearby points of interest.</string>
+	<string>We use your location to show nearby EV charging stations on the map.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
