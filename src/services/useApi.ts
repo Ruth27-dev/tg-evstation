@@ -211,4 +211,16 @@ export const fetchNitification = (data:any,onError?: (err: any) => void) =>
 export const changePassword = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/auth/change-password`,data, onError);
 
+export const requestOTP = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/register/v1.0.0`,data, onError);
+
+export const resendOTP = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/resend-otp`,data, onError);
+
+export const verifyOTP = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/verify-otp`,data, onError);
+
+export const postRegister = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/complete`,data, onError);
+
 export default api;

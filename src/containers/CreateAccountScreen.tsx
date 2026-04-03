@@ -30,13 +30,14 @@ const createAccountSchema = yup.object().shape({
 		.required('Password is required')
 });
   
-const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: string } } }) => {
+const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: string,register_token?: string } } }) => {
   const phoneNumberFromRoute = route?.params?.phoneNumber || '';
+  const registerToken = route?.params?.register_token || '';
 	const [showPassword, setShowPassword] = useState(false);
 	const [acceptTerms, setAcceptTerms] = useState(false);
 	const { t } = useTranslation();
   
-  const { login,isLoading, error,showError,setShowError,checkPhoneNumber, register } = useAuth();
+  const { isLoading, error,showError,setShowError, register } = useAuth();
   
 	const {
 		control,
@@ -58,7 +59,7 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
 		}
 		const { phone, fullName, password } = data;
 		Keyboard.dismiss();
-		register(cleanPhoneNumber(phone), fullName, password);
+		register(registerToken, fullName, password);
 	};
 
 	const isFormValid = watch('phone') && watch('fullName') && watch('password') && acceptTerms;

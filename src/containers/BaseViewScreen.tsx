@@ -42,7 +42,7 @@ const BaseViewScreen = (props: any) => {
         }
     }
     const onLgout = () => {
-        logout(userData?.s_phone_login, userData?.s_id);
+        logout();
     };
   
     return (

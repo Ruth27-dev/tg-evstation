@@ -8,4 +8,9 @@ export interface UserAuth {
     created_at:   Date;
     updated_at:   Date;
     password:     null;
+    login_at?:    string | null;
+    loginAt?:     string | null;
+    s_id?:        string;
+    s_name?:      string;
+    s_phone_login?: string;
 }

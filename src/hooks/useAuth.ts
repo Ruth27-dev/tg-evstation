@@ -1,9 +1,8 @@
-import { goBack, navigate, reset } from "@/navigation/NavigationService";
-import { changePassword, checkPhone, fetchUserDetail, postDeleteUser, postLogout, updateMe, userLogin, userRegister } from "@/services/useApi";
+import { goBack, navigate, replace, reset } from "@/navigation/NavigationService";
+import { changePassword, checkPhone, fetchUserDetail, postDeleteUser, postLogout, postRegister, requestOTP, resendOTP, updateMe, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import { useCallback, useState } from "react";
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import * as Keychain from 'react-native-keychain';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DeviceInfo from "react-native-device-info";
@@ -11,7 +10,6 @@ import { useEVStore } from "@/store/useEVStore";
 import { useEVConnector } from "./useEVConnector";
 
 export const useAuth = () => {
-    const SKIP_OTP = true; // Temporary bypass for all environments
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const  [error, setError] = useState<string | null>(null);
     const [showError, setShowError] = useState(false);
@@ -24,36 +22,6 @@ export const useAuth = () => {
     const normalizePhoneForOtp = (phone: string): string => {
         const trimmed = phone.replace(/\s/g, '');
         return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
-    };
-
-    const getOtpErrorMessage = (err: any): string => {
-        switch (err?.code) {
-            case 'auth/invalid-phone-number':
-                return 'Invalid phone number format.';
-            case 'auth/too-many-requests':
-                return 'Too many requests. Please try again later.';
-            case 'auth/network-request-failed':
-                return 'Network error. Please check your connection.';
-            case 'auth/captcha-check-failed':
-                return 'Verification check failed. Please try again.';
-            case 'auth/invalid-app-credential':
-                return 'App verification failed. Please restart and try again.';
-            default:
-                return err?.message || 'Failed to send OTP. Please try again.';
-        }
-    };
-
-    const sendOtp = async (phone: string): Promise<FirebaseAuthTypes.ConfirmationResult | null> => {
-        try {
-            const normalizedPhone = normalizePhoneForOtp(phone);
-            console.log('Attempting to send OTP to:', normalizedPhone);
-            return await auth().signInWithPhoneNumber(normalizedPhone);
-        } catch (err: any) {
-            console.error('Error during phone sign-in:', err);
-            setShowError(true);
-            setError(getOtpErrorMessage(err));
-            return null;
-        }
     };
 
     const login = useCallback(async (phoneNumber: string, password: string) => {
@@ -88,19 +56,14 @@ export const useAuth = () => {
         };
 
         try {
-            const response = await checkPhone(data);
+            const response = await requestOTP(data);
             if (response?.data?.code === '000') {
-                if (SKIP_OTP) {
-                    navigate('CreateAccount', { phoneNumber: normalizePhoneForOtp(formattedPhone) });
-                    return;
-                }
-                const confirmation = await sendOtp(formattedPhone);
-                if (confirmation) {
-                    navigate('Verify', { 
-                        phoneNumber: normalizePhoneForOtp(formattedPhone),
-                        confirmation,
-                    });
-                }
+                navigate('Verify', {
+                    phoneNumber: normalizePhoneForOtp(formattedPhone),
+                    isForget: false,
+                    sessionToken: response?.data?.data?.session_token || null,
+                    expires_in: response?.data?.data?.expires_in || null,
+                });
             } else {
                 setShowError(true);
                 setError(response?.data?.message || 'Unknown error');
@@ -122,22 +85,12 @@ export const useAuth = () => {
         try {
             const response = await checkPhone(data);
             if (response?.data?.code !== '000') {
-                if (SKIP_OTP) {
-                    if (isForget) {
-                        navigate('ChangePasswordScreen');
-                    } else {
-                        navigate('CreateAccount', { phoneNumber: normalizePhoneForOtp(formattedPhone) });
-                    }
-                    return;
-                }
-                const confirmation = await sendOtp(formattedPhone);
-                if (confirmation) {
-                    navigate('Verify', { 
-                        phoneNumber: normalizePhoneForOtp(formattedPhone),
-                        confirmation,
-                        isForget,
-                    });
-                }
+                const otp = await requestOTP({phone_number: phoneNumber});
+                console.log('OTP Response:', otp);
+                // navigate('Verify', {
+                //     phoneNumber: normalizePhoneForOtp(formattedPhone),
+                //     isForget,
+                // });
             } else {
                 setShowError(true);
                 setError(response?.data?.message || 'Unknown error');
@@ -150,15 +103,15 @@ export const useAuth = () => {
         }
     };
 
-    const register = async (phoneNumber: string, name:string ,password: string) => {
+    const register = async (register_token: string, name:string ,password: string) => {
         setIsLoading(true);
         const data = {
-            phone_number: phoneNumber,
             user_name: name,
             password: password,
+            register_token: register_token
         }
         try {
-            const response = await userRegister(data);
+            const response = await postRegister(data);
             if(response?.data?.code === '000'){
                 setIsLoading(false);
                 await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
