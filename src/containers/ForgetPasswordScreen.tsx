@@ -24,7 +24,7 @@ const ForgetPasswordScreen = () => {
     const forgetSchema = useMemo(() => yup.object().shape({
         phone: yup.string().required(t('auth.enterPhoneNumber'))
     }), [t]);
-    const { login,isLoading, error,showError,setShowError,checkPhoneNumberAlreadyExist } = useAuth();
+    const { login,isLoading, error,showError,setShowError,forgetPassword } = useAuth();
     
     const { control, handleSubmit,watch, formState: { errors } } = useForm<ForgetFormData>({
         resolver: yupResolver(forgetSchema),
@@ -34,7 +34,7 @@ const ForgetPasswordScreen = () => {
     const onSubmit: SubmitHandler<ForgetFormData> = data => {
         const formattedPhone = `${countryCode}${validatePhoneNumber(data.phone)}`;
         const phone_number = cleanPhoneNumber(formattedPhone);
-        checkPhoneNumberAlreadyExist(phone_number,formattedPhone,true);
+        forgetPassword(phone_number,formattedPhone);
     };
 
 	return (

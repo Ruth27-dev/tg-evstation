@@ -22,26 +22,54 @@ const HomeScreen = () => {
     const isIPad = Platform.OS === 'ios' && DeviceInfo.getModel().toLowerCase().includes('ipad');
 
     const menuItems = [
-        { 
-            id: 1, 
-            name: 'wallet.topUp', 
-            icon: 'logo-usd', 
-            color: '#10B981',
-            onPress: () => navigate('TopUp') 
+        {
+            id: 1,
+            name: 'wallet.topUp',
+            icon: 'logo-usd',
+            iconLib: 'ionicons' as const,
+            onPress: () => navigate('TopUp')
         },
-        { 
-            id: 2, 
-            name: 'menu.history', 
-            icon: 'battery-charging', 
-            color: '#3B82F6',
+        {
+            id: 2,
+            name: 'menu.history',
+            icon: 'battery-charging',
+            iconLib: 'ionicons' as const,
             onPress: () => navigate('History')
         },
-        { 
-            id: 3, 
-            name: 'station.findStation', 
-            icon: 'charging-station', 
-            color: '#F59E0B',
+        {
+            id: 3,
+            name: 'station.findStation',
+            icon: 'charging-station',
+            iconLib: 'fontawesome5' as const,
             onPress: () => navigate('ListStation')
+        },
+        {
+            id: 4,
+            name: 'menu.vehicleRental',
+            icon: 'car',
+            iconLib: 'fontawesome5' as const,
+            onPress: () => navigate('VehicleRental', { title: 'menu.vehicleRental', icon: 'car' })
+        },
+        {
+            id: 5,
+            name: 'menu.hotelBooking',
+            icon: 'hotel',
+            iconLib: 'fontawesome5' as const,
+            onPress: () => navigate('HotelBooking', { title: 'menu.hotelBooking', icon: 'hotel' })
+        },
+        {
+            id: 6,
+            name: 'menu.restaurantBooking',
+            icon: 'utensils',
+            iconLib: 'fontawesome5' as const,
+            onPress: () => navigate('RestaurantBooking', { title: 'menu.restaurantBooking', icon: 'utensils' })
+        },
+        {
+            id: 7,
+            name: 'menu.martShop',
+            icon: 'store',
+            iconLib: 'fontawesome5' as const,
+            onPress: () => navigate('MartShop', { title: 'menu.martShop', icon: 'store' })
         },
     ];
 
@@ -66,7 +94,7 @@ const HomeScreen = () => {
        <BaseComponent isBack={false}>
             <ScrollView style={{flex:1}} contentContainerStyle={{paddingBottom:isIPad || isTablet ? 70 : 20,flexGrow:1}}>
                 <View style={styles.headerGradient}>
-                    <View style={{padding:safePadding}}>
+                    <View style={{padding:safePadding,marginBottom: 50}}>
                         <BalanceSection 
                             balance={Number(userWalletBalance?.balance) || 0}
                             currency={userWalletBalance?.currency ?? '$'}

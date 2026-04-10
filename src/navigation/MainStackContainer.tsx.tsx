@@ -33,6 +33,7 @@ import ChargingDetailScreen from '@/containers/charging/ChargingDetailScreen';
 import ChargingSuccessScreen from '@/containers/charging/ChargingSuccessScreen';
 import ListStationScreen from '@/containers/home/ListStationScreen';
 import PreparingChargingScreen from '@/containers/charging/PreparingChargingScreen';
+import ComingSoonScreen from '@/containers/ComingSoonScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -77,6 +78,10 @@ const MainStackContainer = () => {
         <Stack.Screen name={'ChargingDetail'} component={ChargingDetailScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name={'ChargingSuccess'} component={ChargingSuccessScreen} options={{ gestureEnabled: false }}/>
         <Stack.Screen name={'PreparingCharging'} component={PreparingChargingScreen} options={{ gestureEnabled: false }}/>
+        <Stack.Screen name={'VehicleRental'} component={ComingSoonScreen} />
+        <Stack.Screen name={'HotelBooking'} component={ComingSoonScreen} />
+        <Stack.Screen name={'RestaurantBooking'} component={ComingSoonScreen} />
+        <Stack.Screen name={'MartShop'} component={ComingSoonScreen} />
         <Tab.Screen name={'Connector'} component={ConnectorScreen} />
       </Stack.Navigator>
     </>

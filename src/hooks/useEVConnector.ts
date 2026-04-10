@@ -5,6 +5,10 @@ import { useSessionDetailStore } from "@/store/useSessionDetailStore";
 import { useState, useCallback } from "react";
 import Toast from 'react-native-toast-message';
 
+const SESSION_DETAIL_DEBOUNCE_MS = 1200;
+const inflightSessionRequests = new Map<string, Promise<void>>();
+const lastSessionFetchAt = new Map<string, number>();
+
 export const useEVConnector = () => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,14 +47,37 @@ export const useEVConnector = () => {
         }
     }
 
-    const postStop = async () => {
+    const postStop = async (sessionId?: string | null) => {
         setIsLoading(true);
         try {
-            if (!evConnect) {
+            const resolvedSessionId =
+                sessionId ??
+                sessionDetail?.session_id ??
+                evConnect?.session_id ??
+                null;
+
+            if (!evConnect || !resolvedSessionId) {
                 throw new Error("No active connection");
             }
+
+            let ocppTransactionId = sessionDetail?.ocpp_transaction_id;
+            if (!ocppTransactionId) {
+                const sessionResp = await chargingSessions(String(resolvedSessionId));
+                if (sessionResp?.data?.code === '000') {
+                    const latestDetail = sessionResp?.data?.data;
+                    if (latestDetail) {
+                        setSessionDetail(latestDetail);
+                        ocppTransactionId = latestDetail?.ocpp_transaction_id;
+                    }
+                }
+            }
+
+            if (!ocppTransactionId) {
+                throw new Error("Missing ocpp_transaction_id");
+            }
+
             const data = {
-                "ocpp_transaction_id": sessionDetail?.ocpp_transaction_id,
+                "ocpp_transaction_id": ocppTransactionId,
                 "charger_point_id": evConnect.charger_point_id,
                 "connector_id": evConnect.connector_id,
                 "connector_number": evConnect.connector_number
@@ -59,8 +86,9 @@ export const useEVConnector = () => {
             if(response?.data?.code === '000'){
                 clearEvConnect();
                 clearSessionDetail();
+                return response;
             }
-            return response;
+            throw new Error(response?.data?.message || 'Stop request failed');
         } catch (error) {
             console.error("Error fetching station:", error);
             throw error;
@@ -70,9 +98,35 @@ export const useEVConnector = () => {
     }
     
     const getSessionDetail = useCallback(async (session_id: string) => {
-        const response = await chargingSessions(session_id);
-        if(response?.data?.code === '000'){
-            setSessionDetail(response?.data?.data);
+        if (!session_id) {
+            return;
+        }
+
+        const now = Date.now();
+        const lastFetch = lastSessionFetchAt.get(session_id) ?? 0;
+        if (now - lastFetch < SESSION_DETAIL_DEBOUNCE_MS) {
+            return;
+        }
+
+        const existingRequest = inflightSessionRequests.get(session_id);
+        if (existingRequest) {
+            await existingRequest;
+            return;
+        }
+
+        lastSessionFetchAt.set(session_id, now);
+        const request = (async () => {
+            const response = await chargingSessions(session_id);
+            if(response?.data?.code === '000'){
+                setSessionDetail(response?.data?.data);
+            }
+        })();
+
+        inflightSessionRequests.set(session_id, request);
+        try {
+            await request;
+        } finally {
+            inflightSessionRequests.delete(session_id);
         }
     }, [setSessionDetail]);
 

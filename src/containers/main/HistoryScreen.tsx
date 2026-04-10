@@ -81,74 +81,93 @@ const HistoryScreen = () => {
             );
         };
 
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'COMPLETED': return 'Completed';
+            case 'CHARGING':  return 'Charging';
+            case 'FAILED':    return 'Failed';
+            default:          return status;
+        }
+    };
+
     const renderHistoryCard = ({ item }: { item: History }) => {
         const statusColors = getStatusColor(item.status);
         return (
-            <TouchableOpacity 
-                style={styles.historyCard} 
-                activeOpacity={0.7} 
+            <TouchableOpacity
+                style={styles.historyCard}
+                activeOpacity={0.75}
                 onPress={() => navigate('HistoryDetail', { sessionId: item.session_id })}
             >
-                <View style={styles.cardHeader}>
-                    <View style={styles.headerLeft}>
+                <View style={styles.cardInner}>
+                    {/* Header row */}
+                    <View style={styles.cardHeader}>
                         <View style={[styles.iconContainer, { backgroundColor: statusColors.bg }]}>
-                            <Image source={Images.no_data} style={{width:24,height:24}}/>
+                            <MaterialCommunityIcons name="ev-station" size={22} color={statusColors.color} />
                         </View>
                         <View style={styles.headerInfo}>
-                            <Text style={styles.sessionId}>#{item.session_id.slice(0, 8)}</Text>
+                            <Text style={styles.sessionId}>Session #{item.session_id.slice(0, 8).toUpperCase()}</Text>
                             <View style={styles.dateRow}>
-                                <Ionicons name="calendar-outline" size={12} color="#9CA3AF" />
-                                <Text style={styles.dateText}>{formatDate(item.started_at)}</Text>
-                                <Text style={styles.timeText}>{formatTime(item.started_at)}</Text>
+                                <Ionicons name="calendar-outline" size={11} color="#9CA3AF" />
+                                <Text style={styles.dateText}>
+                                    {formatDate(item.started_at)} · {formatTime(item.started_at)}
+                                </Text>
                             </View>
                         </View>
+                        <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
+                            <View style={[styles.statusDot, { backgroundColor: statusColors.color }]} />
+                            <Text style={[styles.statusText, { color: statusColors.color }]}>
+                                {getStatusLabel(item.status)}
+                            </Text>
+                        </View>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-                        <Text style={[styles.statusText, { color: statusColors.color }]}>
-                            {item.status}
-                        </Text>
-                    </View>
-                </View>
 
-                <View style={styles.detailsContainer}>
-                    <View style={styles.detailRow}>
-                        <View style={styles.detailItem}>
-                            <MaterialCommunityIcons name="lightning-bolt" size={20} color={Colors.mainColor} />
-                            <View>
-                                <TextTranslation textKey="charging.energy" fontSize={12} color={Colors.gray} />
-                                <Text style={styles.detailValue}>{item.energy_kwh.toFixed(2)} kWh</Text>
+                    {/* Stats grid */}
+                    <View style={styles.statsGrid}>
+                        <View style={styles.statItem}>
+                            <View style={styles.statIcon}>
+                                <MaterialCommunityIcons name="lightning-bolt" size={20} color={Colors.mainColor} />
                             </View>
+                            <Text style={styles.statValue}>{item.energy_kwh.toFixed(2)} kWh</Text>
+                            <TextTranslation textKey="charging.energy" fontSize={FontSize.small - 1} color="#9CA3AF" />
                         </View>
-                        <View style={styles.detailItem}>
-                            <MaterialCommunityIcons name="battery-charging" size={20} color={Colors.mainColor} />
-                            <View>
-                                <TextTranslation textKey="charging.batteryLevel" fontSize={12} color={Colors.gray} />
-                                <Text style={styles.detailValue}>{item.current_soc}%</Text>
-                            </View>
-                        </View>
-                    </View>
-                    <View style={styles.divider} />
-                    <View style={styles.detailRow}>
-                        <View style={styles.detailItem}>
-                            <MaterialCommunityIcons name="cash" size={20} color={Colors.mainColor} />
-                            <View>
-                                <TextTranslation textKey="charging.cost" fontSize={12} color={Colors.gray} />
-                                <Text style={styles.detailValue}>${item.price_so_far.toFixed(2)}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <MaterialCommunityIcons name="clock-outline" size={20} color={Colors.mainColor} />
-                            <View>
-                                <TextTranslation textKey="charging.lastUpdate" fontSize={12} color={Colors.gray} />
-                                <Text style={styles.detailValue}>{formatTime(item.last_update_at)}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
 
-                <View style={styles.receiptButton}>
-                    <Ionicons name="receipt-outline" size={16} color={Colors.mainColor} />
-                    <TextTranslation textKey="charging.viewDetails" fontSize={FontSize.medium} color={Colors.mainColor} isBold/>
+                        <View style={styles.statDivider} />
+
+                        <View style={styles.statItem}>
+                            <View style={styles.statIcon}>
+                                <MaterialCommunityIcons name="battery-charging" size={20} color={Colors.mainColor} />
+                            </View>
+                            <Text style={styles.statValue}>{item.current_soc}%</Text>
+                            <TextTranslation textKey="charging.batteryLevel" fontSize={FontSize.small - 1} color="#9CA3AF" />
+                        </View>
+
+                        <View style={styles.statDivider} />
+
+                        <View style={styles.statItem}>
+                            <View style={styles.statIcon}>
+                                <MaterialCommunityIcons name="cash" size={20} color={Colors.mainColor} />
+                            </View>
+                            <Text style={styles.statValue}>${item.price_so_far.toFixed(2)}</Text>
+                            <TextTranslation textKey="charging.cost" fontSize={FontSize.small - 1} color="#9CA3AF" />
+                        </View>
+
+                        <View style={styles.statDivider} />
+
+                        <View style={styles.statItem}>
+                            <View style={styles.statIcon}>
+                                <MaterialCommunityIcons name="clock-outline" size={20} color={Colors.mainColor} />
+                            </View>
+                            <Text style={styles.statValue}>{formatTime(item.last_update_at)}</Text>
+                            <TextTranslation textKey="charging.lastUpdate" fontSize={FontSize.small - 1} color="#9CA3AF" />
+                        </View>
+                    </View>
+
+                    {/* Footer */}
+                    <View style={styles.cardFooter}>
+                        <Ionicons name="receipt-outline" size={14} color={Colors.mainColor} />
+                        <TextTranslation textKey="charging.viewDetails" fontSize={FontSize.small} color={Colors.mainColor} isBold />
+                        <Ionicons name="chevron-forward" size={14} color={Colors.mainColor} />
+                    </View>
                 </View>
             </TouchableOpacity>
         );
@@ -257,15 +276,23 @@ const styles = StyleSheet.create({
     },
     historyCard: {
         backgroundColor: Colors.white,
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 16,
+        borderRadius: 14,
+        marginBottom: 14,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.07,
+        shadowRadius: 6,
+        elevation: 3,
+    },
+    cardInner: {
+        padding: 14,
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
+        alignItems: 'center',
+        marginBottom: 14,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -273,12 +300,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     iconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
+        width: 42,
+        height: 42,
+        borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
+        marginRight: 10,
     },
     headerInfo: {
         flex: 1,
@@ -321,14 +348,63 @@ const styles = StyleSheet.create({
         color: '#9CA3AF',
     },
     statusBadge: {
-        paddingHorizontal: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 12,
+        borderRadius: 20,
+        gap: 4,
+    },
+    statusDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
     },
     statusText: {
         fontSize: FontSize.small - 1,
         fontFamily: CustomFontConstant.EnBold,
-        textTransform: 'uppercase',
+    },
+    statsGrid: {
+        flexDirection: 'row',
+        backgroundColor: '#F9FAFB',
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 8,
+        marginBottom: 12,
+        alignItems: 'center',
+    },
+    statItem: {
+        flex: 1,
+        alignItems: 'center',
+        gap: 4,
+    },
+    statIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: `${Colors.mainColor}0D`,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    statValue: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+    },
+    statDivider: {
+        width: 1,
+        height: 36,
+        backgroundColor: '#E5E7EB',
+    },
+    cardFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#F3F4F6',
     },
     dateTimeContainer: {
         flexDirection: 'row',

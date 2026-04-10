@@ -11,17 +11,18 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
+import { postForgotPassword } from "@/services/useApi";
 
 interface PasswordFormData {
     newPassword: string;
     confirmPassword: string;
 }
 
-const ChangePasswordScreen = () => {
+const ChangePasswordScreen = ({ route }: { route?: { params?: { register_token?: string,isForget?: boolean } } }) => {
     const { t } = useTranslation();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const { onChangePassword,isRequesting } = useAuth();
+    const { onChangePassword,isRequesting ,handleForgotPassword } = useAuth();
     const passwordSchema = useMemo(() => yup.object().shape({
         newPassword: yup
             .string()
@@ -34,6 +35,8 @@ const ChangePasswordScreen = () => {
             .required(t('changePassword.validation.confirmRequired'))
             .oneOf([yup.ref('newPassword')], t('changePassword.validation.match')),
     }), [t]);
+    const registerToken = route?.params?.register_token || '';
+    const isForget = route?.params?.isForget || false;
 
     const {
         control,
@@ -49,16 +52,20 @@ const ChangePasswordScreen = () => {
     });
 
     const handleChangePassword = async (data: PasswordFormData) => {
-        const payload = {
-            password:data.confirmPassword
-        }
-        const ok = await onChangePassword(payload);
-        if (ok) {
-            Alert.alert(t('changePassword.title'), t('changePassword.successMessage'));
-            reset();
+        if (isForget) {
+            await handleForgotPassword(data.confirmPassword, registerToken);
+        }else{
+            const payload:any = {
+                password:data.confirmPassword
+            }
+            const ok = await onChangePassword(payload);
+            
+            if (ok) {
+                Alert.alert(t('changePassword.title'), t('changePassword.successMessage'));
+                reset();
+            }
         }
     };
-
     return (
         <BaseComponent isBack={true} title="profile.changePassword">
             <View style={styles.container}>

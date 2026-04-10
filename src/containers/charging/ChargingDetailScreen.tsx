@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo, ReactNode } from 'react';
+import React, { useEffect, useRef, useMemo, ReactNode } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -9,8 +9,8 @@ import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
 import { useEVConnector } from '@/hooks/useEVConnector';
 import { useNavigation } from '@react-navigation/native';
-import * as Keychain from 'react-native-keychain';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useWebSocket } from '@/context/WebSocketProvider';
 
 const CIRCLE_SIZE = 220;
 const STROKE_WIDTH = 14;
@@ -20,15 +20,11 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const ChargingDetailScreen = () => {
     const navigation = useNavigation<any>();
     const { sessionDetail, evConnect, postStop, getSessionDetail } = useEVConnector();
-    const ws = useRef<WebSocket | null>(null);
-    const reconnectTimeout = useRef<number | null>(null);
     const lastMinutesRef = useRef<number | null>(null);
     const lastChargingMinutesRef = useRef<number | null>(null);
     const sessionIdRef = useRef<string | null>(null);
     const { t } = useTranslation();
-
-    const [connected, setConnected] = useState(false);
-    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const { lastMessage } = useWebSocket();
 
     useEffect(() => {
         // Store session ID in ref to persist even if evConnect is cleared
@@ -38,88 +34,33 @@ const ChargingDetailScreen = () => {
             sessionIdRef.current = null;
             lastMinutesRef.current = null;
             lastChargingMinutesRef.current = null;
-            if (ws.current) {
-                ws.current.close();
-                ws.current = null;
-            }
-            setConnected(false);
         }
     }, [evConnect?.session_id]);
-    
-    useEffect(() => {
-        (async () => {
-            try {
-                const credentials = await Keychain.getGenericPassword();
-                if (credentials) setAccessToken(credentials.password);
-            } catch (error) {
-                console.error("Keychain error:", error);
-            }
-        })();
-    }, []);
-
-    const connectWebSocket = useCallback(() => {
-        const sessionId = sessionIdRef.current;
-        if (!accessToken || !sessionId) return;
-
-        if (ws.current) {
-            ws.current.onopen = null;
-            ws.current.onmessage = null;
-            ws.current.onerror = null;
-            ws.current.onclose = null;
-            ws.current.close();
-        }
-
-        const socket = new WebSocket(`wss://tgevstation.com/ws/mobile?token=${accessToken}`);
-        ws.current = socket;
-
-        socket.onopen = () => {
-            setConnected(true);
-            getSessionDetail(sessionId);
-        };
-
-        socket.onmessage = (event) => {
-            try {
-                const msg = JSON.parse(event.data);
-                if (msg.event_type === "METER_CHANGE") {
-                    getSessionDetail(sessionId);
-                }
-            } catch (error) {
-                console.log("WS Parse Error:", error);
-            }
-        };
-
-        socket.onerror = () => console.log("WS error");
-
-        socket.onclose = () => {
-            setConnected(false);
-
-            if (!reconnectTimeout.current && sessionIdRef.current) {
-                reconnectTimeout.current = setTimeout(() => {
-                    connectWebSocket();
-                    reconnectTimeout.current = null;
-                }, 3000);
-            }
-        };
-    }, [accessToken, getSessionDetail]);
 
     useEffect(() => {
         const sessionId = sessionIdRef.current;
-        if (accessToken && sessionId) {
-            connectWebSocket();
+        if (sessionId) {
             getSessionDetail(sessionId);
         }
+    }, [evConnect?.session_id, getSessionDetail]);
 
-        return () => {
-            if (reconnectTimeout.current) {
-                clearTimeout(reconnectTimeout.current);
-                reconnectTimeout.current = null;
-            }
-            if (ws.current) {
-                ws.current.close();
-                ws.current = null;
-            }
-        };
-    }, [accessToken, connectWebSocket, getSessionDetail]);
+    useEffect(() => {
+        const sessionId = sessionIdRef.current;
+        if (!sessionId || !lastMessage || lastMessage.event_type !== "METER_CHANGE") {
+            return;
+        }
+
+        const payload = lastMessage?.data;
+        const payloadSessionId =
+            payload?.session_id ??
+            payload?.charging_session_id ??
+            payload?.id ??
+            (typeof payload === 'string' ? payload : null);
+
+        if (!payloadSessionId || String(payloadSessionId) === String(sessionId)) {
+            getSessionDetail(sessionId);
+        }
+    }, [lastMessage, getSessionDetail]);
     
 
     useEffect(() => {
@@ -151,13 +92,12 @@ const ChargingDetailScreen = () => {
         const subscription = AppState.addEventListener('change', (state) => {
             if (state === "active") {
                 const sessionId = sessionIdRef.current;
-                if (!connected && sessionId) connectWebSocket();
                 if (sessionId) getSessionDetail(sessionId);
             }
         });
 
         return () => subscription.remove();
-    }, [connected, connectWebSocket, getSessionDetail]);
+    }, [getSessionDetail]);
 
     const batteryPercentage = sessionDetail?.current_soc ?? 0;
     const energyConsumed = sessionDetail?.energy_kwh ?? 0;
@@ -187,13 +127,17 @@ const ChargingDetailScreen = () => {
                                 sessionIdRef.current ??
                                 evConnect?.session_id ??
                                 null;
-                            await postStop();
+                            await postStop(sessionId);
                             navigation.replace('ChargingSuccess', {
                                 sessionData,
                                 sessionId
                             });
-                        } catch {
-                            Alert.alert(t('common.error'), t('charging.stopChargingError'));
+                        } catch (error: any) {
+                            const message =
+                                error?.message && typeof error.message === 'string'
+                                    ? error.message
+                                    : t('charging.stopChargingError');
+                            Alert.alert(t('common.error'), message);
                         }
                     }
                 }

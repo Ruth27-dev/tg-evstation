@@ -11,14 +11,16 @@ type CustomButtonProps = {
     buttonWidth?:number,
     textColor?:string,
     buttonHeight?:number,
-    isLoading?:boolean
+    isLoading?:boolean,
+    borderWidth?:number,
+    borderColor?:string
 }
 
 function CustomButton(props: CustomButtonProps) {
-    const { onPress,buttonTitle,buttonColor,disabled,buttonWidth = '100%',textColor = Colors.white ,buttonHeight=55,isLoading=false } = props;
+    const { onPress,buttonTitle,buttonColor,disabled,buttonWidth = '100%',textColor = Colors.white ,buttonHeight=55,isLoading=false,borderWidth = 0,borderColor = Colors.mainColor } = props;
 
     return(
-        <TouchableOpacity disabled={disabled} activeOpacity={0.7} onPress={onPress} style={[styles.buttonContainer,{backgroundColor:buttonColor,width:buttonWidth,height:buttonHeight}]}>
+        <TouchableOpacity disabled={disabled} activeOpacity={0.7} onPress={onPress} style={[styles.buttonContainer,{backgroundColor:buttonColor,width:buttonWidth,height:buttonHeight,borderWidth:borderWidth,borderColor:borderColor}]}>
             {
                 isLoading?<ActivityIndicator color={Colors.white} size={30}/>
                 :

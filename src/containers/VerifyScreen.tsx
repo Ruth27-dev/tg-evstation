@@ -12,7 +12,7 @@ import {
 import { navigate } from '@/navigation/NavigationService';
 import { useTranslation } from "@/hooks/useTranslation";
 import NetInfo from "@react-native-community/netinfo";
-import { resendOTP, verifyOTP } from "@/services/useApi";
+import { resendOTP, verifyOTP, verifyOTPForgotPassword, resendOTPForgotPassword  } from "@/services/useApi";
 
 const CELL_COUNT: number = 6;
 const OTP_EXPIRES_IN_SECONDS = 300;
@@ -96,11 +96,11 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                 session_token: sessionToken,
                 otp: Number(code),
             };
-            const response = await verifyOTP(data);
+            const response =  isForget ?  await verifyOTPForgotPassword(data) : await verifyOTP(data);
 
             if (response?.data?.code === SUCCESS_CODE) {
                 if (isForget) {
-                    navigate('ChangePasswordScreen');
+                    navigate('ChangePasswordScreen',{register_token: response?.data?.data?.register_token || '', isForget});
                 } else {
                     navigate('CreateAccount', { phoneNumber, register_token: response?.data?.data?.register_token || '' });
                 }
@@ -132,7 +132,7 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
             const data = {
                 session_token: sessionToken,
             };
-            const response = await resendOTP(data);
+            const response = isForget ? await resendOTPForgotPassword(data) : await resendOTP(data);
             const payload = response?.data?.data ?? response?.data ?? {};
             const nextSessionToken = payload?.session_token ?? sessionToken;
             const nextExpiresIn = Number(payload?.expires_in ?? 0);

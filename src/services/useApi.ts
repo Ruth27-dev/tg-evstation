@@ -223,4 +223,16 @@ export const verifyOTP = (data:any,onError?: (err: any) => void) =>
 export const postRegister = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/auth/complete`,data, onError);
 
+export const forgotPassword = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/forgot-password/v1.0.0`,data, onError);
+
+export const verifyOTPForgotPassword = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/forgot-password/verify-otp`,data, onError);
+
+export const resendOTPForgotPassword = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/forgot-password/resend-otp`,data, onError);
+
+export const postForgotPassword = (data:any,onError?: (err: any) => void) =>
+  api.post(`v1/auth/forgot-password/complete`,data, onError);
+
 export default api;

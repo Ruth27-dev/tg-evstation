@@ -272,7 +272,11 @@
     "home": "首页",
     "history": "历史",
     "wallet": "钱包",
-    "profile": "个人资料"
+    "profile": "个人资料",
+    "vehicleRental": "租车",
+    "hotelBooking": "酒店预订",
+    "restaurantBooking": "餐厅预订",
+    "martShop": "超市购物"
   },
   "history": {
     "historyDetails": "充电详情",

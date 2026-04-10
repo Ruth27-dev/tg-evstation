@@ -107,16 +107,6 @@ const WalletScreen = () => {
         }
     };
 
-    const itemStatus = (status:string) =>{
-            switch (status) {
-            case 'PENDING':
-                return '#FEF3C7';
-            case 'COMPLETED':
-                return Colors.secondaryColor;
-            default:
-                return '#EF4444';
-        }
-    }
     const textStatus = (status:string) =>{
         switch (status) {
         case 'PENDING':
@@ -147,41 +137,71 @@ const WalletScreen = () => {
         setTimeout(() => setSelectedTransaction(null), 300);
     }, []);
 
+    const renderEmpty = () => (
+        <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconWrapper}>
+                <Ionicons name="receipt-outline" size={48} color={`${Colors.mainColor}50`} />
+            </View>
+            <Text style={styles.emptyTitle}>{t('wallet.transactionHistory')}</Text>
+            <Text style={styles.emptySubtitle}>No transactions yet</Text>
+        </View>
+    );
+
+    const renderSeparator = () => <View style={styles.separator} />;
+
     const renderItem = useCallback(({ item }: { item: Transaction }) => {
+        const color = getTransactionColor(item.type);
         return (
-            <TouchableOpacity 
-                style={styles.transactionItem} 
-                activeOpacity={0.7}
+            <TouchableOpacity
+                style={styles.transactionItem}
+                activeOpacity={0.75}
                 onPress={() => handleTransactionPress(item)}
             >
-                <View style={[styles.transactionIcon, { backgroundColor: `${getTransactionColor(item.type)}15` }]}>
-                    <Ionicons name={getTransactionIcon(item.type)} size={24} color={getTransactionColor(item.type)} />
+                {/* Icon */}
+                <View style={[styles.transactionIcon, { backgroundColor: `${color}18` }]}>
+                    <Ionicons name={getTransactionIcon(item.type)} size={22} color={color} />
                 </View>
-                <View style={styles.transactionDetails}>
-                    <Text style={styles.transactionDescription}>{textType(item.type) || t('wallet.noDescription')}</Text>
-                    <Text style={styles.transactionDate}>
-                        {item.created_at 
-                        ? moment.utc(item.created_at).local().format('MMM DD, YYYY hh:mm A')
-                        : ''}
-                    </Text>
 
-                </View>
-                <View style={styles.transactionAmountContainer}>
-                    <Text style={[styles.transactionAmount, { color: getTransactionColor(item.type) }]}>
-                        {`${getSymbolForTransaction(item.type)} ${item.amount.toFixed(2)} $`}
+                {/* Details */}
+                <View style={styles.transactionDetails}>
+                    <Text style={styles.transactionDescription}>
+                        {textType(item.type) || t('wallet.noDescription')}
                     </Text>
-                    {item?.type === 'CHARGE'?
-                        <></>
-                        :
-                        <View style={[styles.statusBadge, { backgroundColor: itemStatus(item.status) }]}>
-                            <Text style={[styles.statusText, { color: item.status === 'PENDING' ? '#F59E0B' :Colors.white  }]}>
+                    <Text style={styles.transactionDate}>
+                        {item.created_at
+                            ? moment.utc(item.created_at).local().format('MMM DD, YYYY • hh:mm A')
+                            : ''}
+                    </Text>
+                </View>
+
+                {/* Amount + Status */}
+                <View style={styles.transactionAmountContainer}>
+                    <Text style={[styles.transactionAmount, { color }]}>
+                        {`${getSymbolForTransaction(item.type)}${item.amount.toFixed(2)} $`}
+                    </Text>
+                    {item.type !== 'CHARGE' && (
+                        <View style={[
+                            styles.statusBadge,
+                            { backgroundColor: item.status === 'PENDING' ? '#FEF3C7' : `${Colors.secondaryColor}20` }
+                        ]}>
+                            <View style={[
+                                styles.statusDot,
+                                { backgroundColor: item.status === 'PENDING' ? '#F59E0B' : Colors.secondaryColor }
+                            ]} />
+                            <Text style={[
+                                styles.statusText,
+                                { color: item.status === 'PENDING' ? '#F59E0B' : Colors.secondaryColor }
+                            ]}>
                                 {textStatus(item.status)}
                             </Text>
                         </View>
-                    }
+                    )}
                 </View>
+
+                {/* Right chevron */}
+                <Ionicons name="chevron-forward" size={16} color="#D1D5DB" style={{ marginLeft: 4 }} />
             </TouchableOpacity>
-        )
+        );
     }, [handleTransactionPress, t])
 
     if(isLoading) return <Loading />
@@ -201,6 +221,8 @@ const WalletScreen = () => {
                         keyExtractor={(item) => item.id.toString()}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.transactionsList}
+                        ItemSeparatorComponent={renderSeparator}
+                        ListEmptyComponent={renderEmpty}
                         refreshControl={
                             <RefreshControl
                                 refreshing={refreshing}
@@ -257,14 +279,44 @@ const styles = StyleSheet.create({
     },
     transactionsList: {
         paddingBottom: 100,
+        flexGrow: 1,
     },
     transactionItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FAFBFC',
-        padding: 16,
-        borderRadius: 16,
-        marginBottom: 10,
+        backgroundColor: Colors.white,
+        paddingVertical: 14,
+        paddingHorizontal: 4,
+    },
+    separator: {
+        height: 1,
+        backgroundColor: '#F3F4F6',
+    },
+    emptyContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60,
+    },
+    emptyIconWrapper: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        backgroundColor: `${Colors.mainColor}0D`,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    emptyTitle: {
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+        marginBottom: 6,
+    },
+    emptySubtitle: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#9CA3AF',
     },
     transactionIcon: {
         width: 48,
@@ -297,9 +349,17 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     statusBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 8,
-        paddingVertical: 2,
+        paddingVertical: 3,
         borderRadius: 8,
+        gap: 4,
+    },
+    statusDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
     },
     statusText: {
         fontSize: FontSize.small - 2,

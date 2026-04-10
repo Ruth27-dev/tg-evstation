@@ -1,5 +1,5 @@
 import { goBack, navigate, replace, reset } from "@/navigation/NavigationService";
-import { changePassword, checkPhone, fetchUserDetail, postDeleteUser, postLogout, postRegister, requestOTP, resendOTP, updateMe, userLogin, userRegister } from "@/services/useApi";
+import { changePassword, checkPhone, fetchUserDetail, forgotPassword, postDeleteUser, postForgotPassword, postLogout, postRegister, requestOTP, resendOTP, updateMe, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import { useCallback, useState } from "react";
@@ -49,6 +49,32 @@ export const useAuth = () => {
         }
     }, [setIsUserLogin]);
 
+    const handleForgotPassword = async (password: string, registerToken: string) => {
+        setIsRequesting(true); // Start loading
+        const data = {
+            password: password,
+            register_token: registerToken
+        };
+        try {
+            const response = await postForgotPassword(data);
+            console.log('Forgot Password Response:', response);
+            if(response?.data?.code === '000'){
+                await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
+                setIsUserLogin(true);
+                navigate("Main");
+                setIsRequesting(false);
+                return response;
+            } else {
+                setIsRequesting(false);
+                setShowError(true);
+                setError(response?.data?.message || 'Login failed. Please check your credentials and try again.');}
+        } catch (err: any) {
+            setIsRequesting(false);
+            setShowError(true);
+            setError(err?.message || 'Login failed. Please check your credentials and try again.');
+        }
+    }
+
     const checkPhoneNumber = async (phoneNumber: string, formattedPhone: string,_isForget: boolean = false) => {
         setIsLoading(true); // Start loading
         const data = {
@@ -76,21 +102,21 @@ export const useAuth = () => {
         }
     };
 
-    const checkPhoneNumberAlreadyExist = async (phoneNumber: string, formattedPhone: string,isForget: boolean) => {
+    const forgetPassword = async (phoneNumber: string, formattedPhone: string) => {
         setIsLoading(true); // Start loading
         const data = {
             phone_number: phoneNumber,
         };
 
         try {
-            const response = await checkPhone(data);
-            if (response?.data?.code !== '000') {
-                const otp = await requestOTP({phone_number: phoneNumber});
-                console.log('OTP Response:', otp);
-                // navigate('Verify', {
-                //     phoneNumber: normalizePhoneForOtp(formattedPhone),
-                //     isForget,
-                // });
+            const response = await forgotPassword(data);
+            if (response?.data?.code === '000') {
+               navigate('Verify', {
+                    phoneNumber: normalizePhoneForOtp(formattedPhone),
+                    isForget: true,
+                    sessionToken: response?.data?.data?.session_token || null,
+                    expires_in: response?.data?.data?.expires_in || null,
+                });
             } else {
                 setShowError(true);
                 setError(response?.data?.message || 'Unknown error');
@@ -160,7 +186,7 @@ export const useAuth = () => {
             refreshToken: await getToken(),
         }
         const res = await postLogout(data);
-        if(res?.data?.code === '000'){
+        // if(res?.data?.code === '000'){
             setUserData(null);
             setIsUserLogin(false);
             clearEvConnect();
@@ -168,7 +194,7 @@ export const useAuth = () => {
             await Keychain.resetGenericPassword();
             await AsyncStorage.clear();
             reset('Login');
-        }
+        // }
         setIsRequesting(false);
     }
 
@@ -234,8 +260,9 @@ export const useAuth = () => {
         register,
         isRequesting,
         updateProfile,
-        checkPhoneNumberAlreadyExist,
+        forgetPassword,
         deleteAccount,
-        onChangePassword
+        onChangePassword,
+        handleForgotPassword
     };
 }

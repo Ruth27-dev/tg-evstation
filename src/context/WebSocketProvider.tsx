@@ -118,6 +118,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   const connect = useCallback(() => {
     if (!accessToken) return;
+    if (
+      ws.current &&
+      (ws.current.readyState === WebSocket.OPEN ||
+        ws.current.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
 
     const url = `wss://tgevstation.com/ws/mobile?token=${accessToken}`; 
     ws.current = new WebSocket(url);

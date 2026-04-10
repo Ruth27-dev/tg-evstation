@@ -92,11 +92,12 @@ function CustomInputText(props: CustomInputTextProps) {
           )}
           name={name}
         />
-        {errors?.[name] && <Text style={{ color: Colors.red }}>{errors?.[name]?.message}</Text>}
         {isRightIcon && (
           <View style={styles.iconContainer}>{renderRightIcon}</View>
         )}
       </View>
+      {errors?.[name] && <Text style={{ color: Colors.red }}>{errors?.[name]?.message}</Text>}
+
     </>
   );
 }

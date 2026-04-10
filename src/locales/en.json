@@ -272,7 +272,11 @@
     "home": "Home",
     "history": "History",
     "wallet": "Wallet",
-    "profile": "Profile"
+    "profile": "Profile",
+    "vehicleRental": "Vehicle Rental",
+    "hotelBooking": "Hotel Booking",
+    "restaurantBooking": "Restaurant",
+    "martShop": "Mart Shop"
   },
   "history": {
     "historyDetails": "Charging Details",

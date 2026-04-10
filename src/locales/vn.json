@@ -271,7 +271,11 @@
         "home": "Trang chủ",
         "history": "Lịch sử",
         "wallet": "Ví",
-        "profile": "Hồ sơ"
+        "profile": "Hồ sơ",
+        "vehicleRental": "Thuê xe",
+        "hotelBooking": "Đặt khách sạn",
+        "restaurantBooking": "Nhà hàng",
+        "martShop": "Siêu thị"
     },
     "history": {
         "historyDetails": "Chi tiết sạc",

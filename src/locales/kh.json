@@ -272,7 +272,11 @@
     "home": "ទំព័រដើម",
     "history": "ប្រវត្តិ",
     "wallet": "កាបូប",
-    "profile": "ប្រវត្តិរូប"
+    "profile": "ប្រវត្តិរូប",
+    "vehicleRental": "ជួលយានយន្ត",
+    "hotelBooking": "កក់សណ្ឋាគារ",
+    "restaurantBooking": "ភោជនីយដ្ឋាន",
+    "martShop": "ផ្សារទំនើប"
   },
   "history": {
     "historyDetails": "ព័ត៌មានលម្អិតពីការបញ្ចូលថ្ម",

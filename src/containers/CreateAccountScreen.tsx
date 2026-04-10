@@ -70,7 +70,7 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <ScrollView
+                < ScrollView
                     contentContainerStyle={{ flexGrow: 1 }}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
@@ -140,9 +140,9 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                                     <Ionicons name="lock-closed" size={20} color={Colors.mainColor} />
                                   }
                                   renderRightIcon={
-                                    <Ionicons 
-                                      name={showPassword ? "eye-off" : "eye"} 
-                                      size={20} 
+                                    <Ionicons
+                                      name={showPassword ? "eye-off" : "eye"}
+                                      size={20}
                                       color="#9CA3AF"
                                       onPress={() => setShowPassword(!showPassword)}
                                     />
