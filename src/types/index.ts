@@ -96,6 +96,7 @@ export interface EVStartResponse {
   status: string
   message: string
   charger_point_id: string
+  charge_point_id?: string
   connector_number: number
   connector_id: string
   session_id: any
@@ -172,4 +173,3 @@ export interface CreatedBy {
     id:       string;
     username: string;
 }
-

@@ -11,7 +11,7 @@ interface LanguageStore {
 export const useLanguageStore = create<LanguageStore>()(
   persist(
     (set) => ({
-        appLanguage: null,
+        appLanguage: 'kh',
         setAppLanguage: (language: string | null) => set({ appLanguage: language }),
     }),
     {

@@ -4,7 +4,7 @@ import { translations, Language } from '@/locales';
 export const useTranslation = () => {
   const { appLanguage } = useLanguageStore();
   
-  const currentLanguage: Language = (appLanguage as Language) || 'en';
+  const currentLanguage: Language = (appLanguage as Language) || 'kh';
   
   const t = (key: string): string => {
     const keys = key.split('.');

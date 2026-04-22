@@ -1,5 +1,5 @@
 import { goBack, navigate, replace, reset } from "@/navigation/NavigationService";
-import { changePassword, checkPhone, fetchUserDetail, forgotPassword, postDeleteUser, postForgotPassword, postLogout, postRegister, requestOTP, resendOTP, updateMe, userLogin, userRegister } from "@/services/useApi";
+import { changePassword, checkPhone, completeLogin, fetchUserDetail, forgotPassword, postDeleteUser, postForgotPassword, postLogout, postRegister, requestOTP, resendOTP, updateMe, userLogin, userRegister } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import { useCallback, useState } from "react";
@@ -23,15 +23,44 @@ export const useAuth = () => {
         const trimmed = phone.replace(/\s/g, '');
         return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
     };
+    
+    const login = useCallback(async (phoneNumber: string) => {
+        setIsLoading(true);
+        const check = await checkPhone({ phone_number: phoneNumber });
+        if(check?.data?.code === '000' && !check?.data?.data){
+            setIsLoading(false);
+            setShowError(true);
+            setError('Phone number not found. Please check your number or register a new account.');
+            return;
+        }else{
+             const data = {
+                phone_number: phoneNumber,
+            }
+            const response = await userLogin(data);
+            if (response?.data?.code === '000') {
+            navigate('Verify', {
+                    phoneNumber: normalizePhoneForOtp(phoneNumber),
+                    isForget: true,
+                    sessionToken: response?.data?.data?.session_token || null,
+                    expires_in: response?.data?.data?.expires_in || null,
+                });
+            } else {
+                setShowError(true);
+                setIsLoading(false);
+                setError(response?.data?.message || 'Unknown error');
+            }
+        }
+       
+    }, [setIsUserLogin]);
 
-    const login = useCallback(async (phoneNumber: string, password: string) => {
+    const handleCompleteLogin = useCallback(async (registerToken: string,phoneNumber: string) => {
         setIsLoading(true);
         const data = {
-            phone_number: phoneNumber,
-            password: password,
+            register_token: registerToken,
+            // phone_number: phoneNumber,
         }
         try {
-            const response = await userLogin(data);
+            const response = await completeLogin(data);
             if(response?.data?.code === '000'){
                 await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
                 setIsUserLogin(true);
@@ -48,6 +77,7 @@ export const useAuth = () => {
             setError(err?.message || 'Login failed. Please check your credentials and try again.');
         }
     }, [setIsUserLogin]);
+
 
     const handleForgotPassword = async (password: string, registerToken: string) => {
         setIsRequesting(true); // Start loading
@@ -129,7 +159,7 @@ export const useAuth = () => {
         }
     };
 
-    const register = async (register_token: string, name:string ,password: string) => {
+    const register = async (register_token: string, name:string,password:string ) => {
         setIsLoading(true);
         const data = {
             user_name: name,
@@ -263,6 +293,7 @@ export const useAuth = () => {
         forgetPassword,
         deleteAccount,
         onChangePassword,
-        handleForgotPassword
+        handleForgotPassword,
+        handleCompleteLogin
     };
 }

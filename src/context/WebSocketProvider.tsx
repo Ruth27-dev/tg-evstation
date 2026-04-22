@@ -2,8 +2,10 @@ import { useEVConnector } from '@/hooks/useEVConnector';
 import { useWallet } from '@/hooks/useWallet';
 import { navigate } from '@/navigation/NavigationService';
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { AppState } from 'react-native';
 import * as Keychain from 'react-native-keychain';
 import { isEmpty } from 'lodash';
+import { useAuth } from './AuthContext';
 
 interface WSMessage {
   type: string;
@@ -35,14 +37,16 @@ interface WebSocketProviderProps {
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children,
 }) => {
+  const { isAuthenticated } = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
   const { getMeWallet, getMeTransactions } = useWallet();
-  const { getSessionDetail, evConnect, clearEvConnect, clearSessionDetail } = useEVConnector();
+  const { getSessionDetail, evConnect, setEvConnect, clearEvConnect, clearSessionDetail } = useEVConnector();
   const evConnectRef = useRef(evConnect);
+  const setEvConnectRef = useRef(setEvConnect);
   const getSessionDetailRef = useRef(getSessionDetail);
   const clearEvConnectRef = useRef(clearEvConnect);
   const clearSessionDetailRef = useRef(clearSessionDetail);
@@ -52,6 +56,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   useEffect(() => {
     evConnectRef.current = evConnect;
   }, [evConnect]);
+
+  useEffect(() => {
+    setEvConnectRef.current = setEvConnect;
+  }, [setEvConnect]);
 
   useEffect(() => {
     getSessionDetailRef.current = getSessionDetail;
@@ -74,27 +82,80 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, [getMeTransactions]);
   
   useEffect(() => {
-    const fetchToken = async () => {
+    const refreshToken = async () => {
       const token = await getToken();
       setAccessToken(token);
     };
 
-    fetchToken();
+    if (isAuthenticated) {
+      refreshToken();
+      return;
+    }
+
+    setAccessToken(null);
+    setConnected(false);
+    ws.current?.close();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && isAuthenticated) {
+        getToken().then(setAccessToken);
+      }
+    });
+
+    return () => subscription.remove();
+  }, [isAuthenticated]);
+
+  const extractPayload = useCallback((message: WSMessage) => {
+    const outerData = message?.data;
+    if (outerData && typeof outerData === 'object' && outerData.data && typeof outerData.data === 'object') {
+      return outerData.data;
+    }
+    return outerData;
   }, []);
 
-  const matchesActiveChargeEvent = (message: WSMessage) => {
+  const getPayloadSessionId = useCallback((message: WSMessage) => {
+    const payload = extractPayload(message);
+    return (
+      payload?.session_id ??
+      payload?.charging_session_id ??
+      message?.session_id ??
+      message?.charging_session_id ??
+      null
+    );
+  }, [extractPayload]);
+
+  const hasChargeEventTarget = useCallback((message: WSMessage) => {
+    const payload = extractPayload(message);
+    return Boolean(
+      getPayloadSessionId(message) ??
+        payload?.id ??
+        message?.id ??
+        payload?.connector_id ??
+        payload?.connector_number ??
+        payload?.charger_point_id ??
+        payload?.charge_point_id,
+    );
+  }, [extractPayload, getPayloadSessionId]);
+
+  const matchesActiveChargeEvent = useCallback((message: WSMessage) => {
     const activeSession = evConnectRef.current;
     if (!activeSession) return false;
 
-    const payload = message?.data;
+    const payload = extractPayload(message);
     const payloadSessionId =
       payload?.session_id ??
       payload?.charging_session_id ??
       payload?.id ??
+      message?.session_id ??
+      message?.charging_session_id ??
+      message?.id ??
       (typeof payload === 'string' ? payload : null);
     const payloadConnectorId = payload?.connector_id;
     const payloadConnectorNumber = payload?.connector_number;
-    const payloadChargerPointId = payload?.charger_point_id;
+    const payloadChargerPointId = payload?.charger_point_id ?? payload?.charge_point_id;
+    const activeChargerPointId = activeSession.charger_point_id ?? activeSession.charge_point_id;
 
     if (payloadSessionId && String(payloadSessionId) === String(activeSession.session_id)) {
       return true;
@@ -108,13 +169,35 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       payloadConnectorNumber !== undefined &&
       payloadChargerPointId &&
       Number(payloadConnectorNumber) === Number(activeSession.connector_number) &&
-      String(payloadChargerPointId) === String(activeSession.charger_point_id)
+      String(payloadChargerPointId) === String(activeChargerPointId)
     ) {
       return true;
     }
 
     return false;
-  };
+  }, [extractPayload]);
+
+  const syncStartedCharge = useCallback((message: WSMessage) => {
+    const activeSession = evConnectRef.current;
+    const payload = extractPayload(message);
+    const sessionId = getPayloadSessionId(message);
+
+    if (activeSession) {
+      const nextSession = sessionId
+        ? { ...activeSession, session_id: sessionId }
+        : activeSession;
+      evConnectRef.current = nextSession;
+      setEvConnectRef.current(nextSession);
+      return sessionId;
+    }
+
+    if (payload && typeof payload === 'object') {
+      setEvConnectRef.current(payload);
+      evConnectRef.current = payload;
+    }
+
+    return sessionId;
+  }, [extractPayload, getPayloadSessionId]);
 
   const connect = useCallback(() => {
     if (!accessToken) return;
@@ -156,18 +239,23 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           date: data.data?.created_at,
         });
       }else if (data.event_type === "START_CHARGING") {
-        if (!matchesActiveChargeEvent(data)) {
+        if (!isEmpty(evConnectRef.current) && hasChargeEventTarget(data) && !matchesActiveChargeEvent(data)) {
           return;
+        }
+        const sessionId = syncStartedCharge(data);
+        if (sessionId) {
+          getSessionDetailRef.current(String(sessionId));
         }
         navigate("ChargingDetail");
       }else if (data.event_type === "STOP_CHARGING") {
         if (!matchesActiveChargeEvent(data)) {
           return;
         }
+        const payload = extractPayload(data);
         const sessionId =
-          data.data?.session_id ??
-          data.data?.charging_session_id ??
-          data.data;
+          payload?.session_id ??
+          payload?.charging_session_id ??
+          payload;
         clearEvConnectRef.current();
         clearSessionDetailRef.current();
         navigate("ChargingSuccess", { sessionId: sessionId });
@@ -198,7 +286,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         }, 2000);
       }
     };
-  }, [accessToken]);
+  }, [accessToken, extractPayload, hasChargeEventTarget, matchesActiveChargeEvent, syncStartedCharge]);
 
   const send = (data: WSMessage) => {
     if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {

@@ -1,8 +1,8 @@
 import BaseComponent from "@/components/BaseComponent";
 import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import { Colors } from "@/theme";
-import React, { useState, useEffect, useCallback } from "react";
-import { Keyboard, StyleSheet, Text, View, Alert, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { ActivityIndicator, Keyboard, StyleSheet, Text, View, Alert, TouchableOpacity } from "react-native";
 import {
   CodeField,
   Cursor,
@@ -12,7 +12,9 @@ import {
 import { navigate } from '@/navigation/NavigationService';
 import { useTranslation } from "@/hooks/useTranslation";
 import NetInfo from "@react-native-community/netinfo";
-import { resendOTP, verifyOTP, verifyOTPForgotPassword, resendOTPForgotPassword  } from "@/services/useApi";
+import { resendOTP, verifyOTP, verifyLoginOTP, loginResendOtp } from "@/services/useApi";
+import { useAuth } from "@/hooks/useAuth";
+import { cleanPhoneNumber } from "@/utils";
 
 const CELL_COUNT: number = 6;
 const OTP_EXPIRES_IN_SECONDS = 300;
@@ -47,8 +49,10 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
     const [isVerifying, setIsVerifying] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [networkHint, setNetworkHint] = useState<string | null>(null);
+    const isVerifyRequestActiveRef = useRef(false);
     const { t } = useTranslation();
-    
+    const { handleCompleteLogin } = useAuth();
+
     const ref = useBlurOnFulfill({value: code, cellCount: CELL_COUNT});
     const [props, getCellOnLayoutHandler] = useClearByFocusCell({
         value: code,
@@ -82,8 +86,12 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
             isMounted = false;
         };
     }, []);
-
     const handleVerifyOTP = useCallback(async () => {
+        if (isVerifyRequestActiveRef.current || code.length !== CELL_COUNT) {
+            return;
+        }
+
+        isVerifyRequestActiveRef.current = true;
         try {
             setIsVerifying(true);
             if (!sessionToken) {
@@ -96,11 +104,12 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                 session_token: sessionToken,
                 otp: Number(code),
             };
-            const response =  isForget ?  await verifyOTPForgotPassword(data) : await verifyOTP(data);
+            const response =  isForget ?  await verifyLoginOTP(data) : await verifyOTP(data);
 
             if (response?.data?.code === SUCCESS_CODE) {
                 if (isForget) {
-                    navigate('ChangePasswordScreen',{register_token: response?.data?.data?.register_token || '', isForget});
+                    // navigate('ChangePasswordScreen',{register_token: response?.data?.data?.register_token || '', isForget});
+                    handleCompleteLogin(response?.data?.data?.register_token || '', cleanPhoneNumber(phoneNumber));
                 } else {
                     navigate('CreateAccount', { phoneNumber, register_token: response?.data?.data?.register_token || '' });
                 }
@@ -113,9 +122,10 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
             Alert.alert('Error', 'Verification failed. Please try again.');
             setCode('');
         } finally {
+            isVerifyRequestActiveRef.current = false;
             setIsVerifying(false);
         }
-    }, [code, isForget, phoneNumber, sessionToken]);
+    }, [code, handleCompleteLogin, isForget, phoneNumber, sessionToken]);
 
     // Auto verify when code is complete
     useEffect(() => {
@@ -131,8 +141,9 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
             setIsResending(true);
             const data = {
                 session_token: sessionToken,
+                expires_in: 300
             };
-            const response = isForget ? await resendOTPForgotPassword(data) : await resendOTP(data);
+            const response = isForget ? await loginResendOtp(data) : await resendOTP(data);
             const payload = response?.data?.data ?? response?.data ?? {};
             const nextSessionToken = payload?.session_token ?? sessionToken;
             const nextExpiresIn = Number(payload?.expires_in ?? 0);
@@ -167,7 +178,7 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                         cellCount={CELL_COUNT}
                         keyboardType="number-pad"
                         textContentType="oneTimeCode"
-                        autoComplete="one-time-code"
+                        autoComplete="sms-otp"
                         editable={!isVerifying}
                         rootStyle={style.codeFieldRoot}
                         onSubmitEditing={() => {
@@ -191,8 +202,14 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
                 </View>
 
                 <View style={style.footerSection}>
-                    {(isResending || isVerifying) && (
-                        <Text style={style.statusText}>Verifying your number...</Text>
+                    {isVerifying && (
+                        <View style={style.verifyLoadingContainer}>
+                            <ActivityIndicator color={Colors.mainColor} size="small" />
+                            <Text style={style.statusText}>Verifying your number...</Text>
+                        </View>
+                    )}
+                    {isResending && (
+                        <Text style={style.statusText}>{t('common.loading')}</Text>
                     )}
                     {canResend && (
                         <Text style={style.timeoutText}>
@@ -309,8 +326,13 @@ const style = StyleSheet.create({
         fontSize: FontSize.small + 1,
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
-        marginBottom: 8,
         textAlign: 'center',
+    },
+    verifyLoadingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 8,
     },
     timeoutText: {
         fontSize: FontSize.small + 1,

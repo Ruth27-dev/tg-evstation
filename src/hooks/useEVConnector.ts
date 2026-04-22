@@ -78,7 +78,7 @@ export const useEVConnector = () => {
 
             const data = {
                 "ocpp_transaction_id": ocppTransactionId,
-                "charger_point_id": evConnect.charger_point_id,
+                "charger_point_id": evConnect.charger_point_id ?? evConnect.charge_point_id,
                 "connector_id": evConnect.connector_id,
                 "connector_number": evConnect.connector_number
             }
@@ -136,6 +136,7 @@ export const useEVConnector = () => {
         postStop,
         getSessionDetail,
         evConnect,
+        setEvConnect,
         clearEvConnect,
         sessionDetail,
         clearSessionDetail

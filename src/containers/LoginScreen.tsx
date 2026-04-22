@@ -25,16 +25,15 @@ import BaseComponent from '@/components/BaseComponent';
 
 interface LoginFormData {
 	phone: string;
-	password: string;
+	// password: string;
 }
 
 const loginSchema = yup.object().shape({
 	phone: yup.string().required('ត្រូវការលេខទូរស័ព្ទ'),
-	password: yup.string().required('ពាក្យសម្ងាត់ត្រូវបានទាមទារ'),
+	// password: yup.string().required('ពាក្យសម្ងាត់ត្រូវបានទាមទារ'),
 });
   
 const LoginScreen = () => {
-	const [isShowPassword, setIsShowPassword] = useState(false);
 	const [countryCode, setCountryCode] = useState('+855');
 	const { currentLanguage, t } = useTranslation();
 	const languageModalRef = useRef<LanguageSelectionModalRef>(null);
@@ -49,11 +48,11 @@ const LoginScreen = () => {
 	});
 
 	const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
-		const { phone, password } = data;
+		const { phone } = data;
 		const formattedPhone = `${countryCode}${validatePhoneNumber(phone)}`;
 		const phone_number = cleanPhoneNumber(formattedPhone);
 		Keyboard.dismiss();
-		login(phone_number, password);
+		login(phone_number);
 	};
 
 	const onCountryChange = (country: any) => {
@@ -100,7 +99,7 @@ const LoginScreen = () => {
 					<View style={styles.container}>
 						<ErrorBanner
 							visible={showError}
-							message={error || 'Invalid phone number or password. Please try again.'}
+							message={error || 'Invalid phone number or OTP. Please try again.'}
 							title="Login Failed"
 							onDismiss={() => {
 								setShowError(false);
@@ -117,7 +116,7 @@ const LoginScreen = () => {
 									errors={errors}
 									onCountryChange={onCountryChange}
 								/>
-								<CustomInputText
+								{/* <CustomInputText
 									placeHolderText={t('auth.password')}
 									labelText={t('password')}
 									isRightIcon
@@ -132,22 +131,22 @@ const LoginScreen = () => {
 									renderRightIcon={
 										<Ionicons name={isShowPassword ? "eye-off" : "eye"} style={styles.inputIcon} size={22} onPress={()=> setIsShowPassword(!isShowPassword)}/>
 									}
-								/> 
+								/>  */}
 								
-								<TouchableOpacity style={styles.forgotPasswordContainer} onPress={()=>navigate('ForgetPassword')}>
+								{/* <TouchableOpacity style={styles.forgotPasswordContainer} onPress={()=>navigate('ForgetPassword')}>
 									<Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
-								</TouchableOpacity>
-
+								</TouchableOpacity> */}
+								<View style={{marginTop: 10}}/>
 								<CustomButton
 									buttonTitle={t('auth.login')}
 									onPress={handleSubmit(onSubmit)}
 									isLoading={isLoading}
 									buttonColor={
-										!watch('phone') || watch('phone').length < 8 || !watch('password')
+										!watch('phone') || watch('phone').length < 8
 										? Colors.disableColor
 										: Colors.mainColor
 									}
-									disabled={!watch('phone') || watch('phone').length < 8 || !watch('password')}
+									disabled={!watch('phone') || watch('phone').length < 8}
 								/>
 							</View>
 							

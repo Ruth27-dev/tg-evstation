@@ -94,14 +94,14 @@ const SettingScreen = () => {
             onPress: handleProfilePress,
             showArrow: true
         },
-        {
-            id: '2',
-            title: 'profile.changePassword',
-            icon: 'lock-closed-outline',
-            iconType: 'ionicons',
-            onPress: handleChangePassword,
-            showArrow: true
-        },
+        // {
+        //     id: '2',
+        //     title: 'profile.changePassword',
+        //     icon: 'lock-closed-outline',
+        //     iconType: 'ionicons',
+        //     onPress: handleChangePassword,
+        //     showArrow: true
+        // },
         {
             id: '3',
             title: 'profile.changeLanguage',

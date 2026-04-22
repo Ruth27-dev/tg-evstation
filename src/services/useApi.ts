@@ -131,8 +131,10 @@ const api = {
 
 
 
-export const userLogin = (data: any, onError?: (err: any) => void) =>
-  api.post('v1/auth/login', data, onError);
+export const userLogin = (data: any, onError?: (err: any) => void) => api.post('v1/auth/login/v1.0.0', data, onError);
+export const verifyLoginOTP = (data:any,onError?: (err: any) => void) => api.post(`v1/auth/verify-otp/v1.0.0`,data, onError);
+export const completeLogin = (data:any,onError?: (err: any) => void) => api.post(`v1/auth/complete/v1.0.0`,data, onError);
+export const loginResendOtp = (data:any,onError?: (err: any) => void) => api.post(`v1/auth/resend-otp/v1.0.0`,data, onError);
 
 export const checkPhone = (data: any, onError?: (err: any) => void) =>
   api.post('v1/auth/exist-phone-number', data, onError);
