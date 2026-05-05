@@ -32,7 +32,7 @@ const PrivacyScreen = () => {
                 {/* Introduction */}
                 <View style={styles.card}>
                     <Text style={styles.introText}>
-                        At TGEV Station, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our EV charging services and mobile application.
+                        At TAN EV Charning, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our EV charging services and mobile application.
                     </Text>
                 </View>
 

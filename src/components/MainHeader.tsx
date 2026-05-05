@@ -1,6 +1,6 @@
 import React, {memo, useCallback, useRef} from 'react';
-import { View, StyleSheet,Text, TouchableOpacity } from 'react-native';
-import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
+import { View, StyleSheet,Text, TouchableOpacity, Image } from 'react-native';
+import { CustomFontConstant, FontSize, Images, safePadding } from '@/constants/GeneralConstants';
 import { Colors } from '@/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -58,11 +58,8 @@ const MainHeader: React.FC = () => {
     return (
         <View style={[styles.headerContainer,{paddingTop: insets.top,height:55 + insets.top}]}>
             <View style={{flex:1,flexDirection:'row',alignItems:'center'}}>
-                <HeaderLogo width={55} height={55} />
-                <View>
-                    <Text style={[styles.headerText,{color:Colors.mainColor,fontSize:FontSize.medium}]}>TG EV</Text>
-                    <Text style={[styles.headerText,{color:Colors.secondaryColor,fontSize:FontSize.small}]}>STATION</Text>
-                </View>
+                {/* <HeaderLogo width={55} height={55} /> */}
+                <Image source={Images.logo} style={{width:80,height:80}} />
             </View>
             <View style={{flexDirection:'row',alignItems:'center',justifyContent:'center'}}>
                 {renderTranslateIcon()}

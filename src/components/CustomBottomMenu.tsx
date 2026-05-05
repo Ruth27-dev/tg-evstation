@@ -1,11 +1,12 @@
 import React, { useCallback,useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import ConnectorIcon from '@/assets/logo/logo_nobg.svg';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Colors } from '@/theme';
-import { CustomFontConstant, Images } from '@/constants/GeneralConstants';
+import { CustomFontConstant } from '@/constants/GeneralConstants';
 import { useEVStore } from '@/store/useEVStore';
 import { isEmpty } from 'lodash';
 import ChargingMiniPlayer from './ChargingMiniPlayer';
@@ -52,7 +53,11 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
                     onLongPress={onLongPress}
                     onPress={handlePress}
                 >
-                    <Image source={Images.logoNoBg} style={{ width: 55, height: 55 }} />
+                    <MaterialCommunityIcons
+                        name={hasActiveCharging ? 'lightning-bolt' : 'ev-station'}
+                        size={34}
+                        color={hasActiveCharging ? Colors.secondaryColor : Colors.mainColor}
+                    />
                 </TouchableOpacity>
                
             </View>

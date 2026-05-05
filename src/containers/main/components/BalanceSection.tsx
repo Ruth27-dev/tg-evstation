@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
@@ -17,90 +18,119 @@ const BalanceSection: React.FC<BalanceSectionProps> = ({ balance, currency, onRe
     const { userData } = useMeStore();
 
     return (
-        <View style={styles.balanceContainer}>
-            <View style={styles.balanceCard}>
-                <View style={styles.balanceHeader}>
-                    <Text style={styles.balanceLabel}>{userData?.user_name}</Text>
-                    <TouchableOpacity onPress={onRefresh}>
-                        <Ionicons name="refresh" size={20} color={Colors.secondaryColor} />
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.balanceHeader}>
-                    <Text style={styles.balanceAmount}>
-                        $ {balance.toFixed(2)}
-                    </Text>
-                    <TouchableOpacity style={styles.topUpButton} onPress={onTopUp}>
-                        <Ionicons name="add-circle-outline" size={18} color={Colors.secondaryColor} style={{paddingRight:5}}/>
-                        <TextTranslation fontSize={FontSize.medium} color={Colors.mainColor} textKey="wallet.topUp" />
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.goldBorder} />
+        <LinearGradient
+            colors={[Colors.darkColor, '#0d4f72']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.card}
+        >
+            <View style={styles.decCircle} />
+
+            <View style={styles.topRow}>
+                <Text style={styles.userName}>{userData?.user_name ?? 'User'}</Text>
+                <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn} activeOpacity={0.7}>
+                    <Ionicons name="refresh" size={15} color={Colors.white} />
+                </TouchableOpacity>
             </View>
-        </View>
+
+            <View style={styles.bottomRow}>
+                <View>
+                    <Text style={styles.balanceLabel}>WALLET BALANCE</Text>
+                    <Text style={styles.balanceAmount}>{currency} {balance.toFixed(2)}</Text>
+                </View>
+                <View style={styles.rightActions}>
+                    <View style={styles.flashCircle}>
+                        <Ionicons name="flash" size={22} color={Colors.primaryColor} />
+                    </View>
+                    <TouchableOpacity style={styles.topUpButton} onPress={onTopUp} activeOpacity={0.85}>
+                        <Ionicons name="add" size={13} color={Colors.darkColor} />
+                        <TextTranslation fontSize={11} color={Colors.darkColor} textKey="wallet.topUp" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </LinearGradient>
     );
 };
 
 export default BalanceSection;
 
 const styles = StyleSheet.create({
-    balanceContainer: {
+    card: {
+        borderRadius: 16,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
         marginBottom: 20,
-    },
-    balanceCard: {
-        backgroundColor: '#ffffff',
-        borderRadius: 10,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: Colors.secondaryColor,
-        position: 'relative',
         overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowColor: Colors.darkColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 8,
     },
-    balanceHeader: {
+    decCircle: {
+        position: 'absolute',
+        width: 160,
+        height: 160,
+        borderRadius: 80,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        top: -60,
+        right: -40,
+    },
+    topRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 7,
+        marginBottom: 10,
     },
-    balanceLabel: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
+    userName: {
+        fontSize: 13,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.white,
         textTransform: 'uppercase',
     },
+    refreshBtn: {
+        padding: 5,
+        backgroundColor: 'rgba(255,255,255,0.12)',
+        borderRadius: 16,
+    },
+    bottomRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+    },
+    balanceLabel: {
+        fontSize: 9,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: 'rgba(255,255,255,0.55)',
+        letterSpacing: 0.8,
+        marginBottom: 2,
+    },
     balanceAmount: {
-        fontSize: 25,
+        fontSize: 26,
         fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
+        color: Colors.white,
+    },
+    rightActions: {
+        alignItems: 'flex-end',
+        gap: 6,
+    },
+    flashCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(241,177,29,0.35)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     topUpButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.white,
-        borderColor: Colors.secondaryColor,
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingVertical: 8,
+        gap: 4,
+        backgroundColor: Colors.primaryColor,
+        borderRadius: 20,
+        paddingVertical: 6,
         paddingHorizontal: 12,
-        marginTop: 12,
-        alignSelf: 'flex-start',
-    },
-    topUpText: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.secondaryColor,
-        marginLeft: 6,
-    },
-    goldBorder: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 3,
-        backgroundColor: Colors.secondaryColor,
     },
 });

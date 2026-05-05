@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain';
 import DeviceInfo from 'react-native-device-info';
 
-export const BASE_URL = 'https://tgevstation.com/api/';
+export const BASE_URL = 'https://evcharger.it.com/api/';
 const TIMEOUT = 60000;
 
 const getToken = async (): Promise<string | null> => {

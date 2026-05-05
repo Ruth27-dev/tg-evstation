@@ -21,7 +21,7 @@
     "error": "Error",
     "success": "Success",
     "signInToContinue": "Sign in to continue",
-    "authChoiceTitle": "Welcome to TGEV Station",
+    "authChoiceTitle": "Welcome to TAN EV Charning",
     "authChoiceSubtitle": "Choose how you want to continue",
     "findStation": "Find Station",
     "viewDetails": "View Details",
@@ -32,7 +32,9 @@
     "rescan" : "Rescan",
     "notAvailable": "N/A",
     "listView": "List",
-    "mapView": "Map"
+    "mapView": "Map",
+    "searchStation": "Search stations...",
+    "stationsFound": "stations found"
   },
   "auth": {
     "login": "Login",
@@ -296,8 +298,8 @@
   },
   "about": {
     "poweringJourney": "Powering Your Electric Journey",
-    "aboutTitle": "About TGEV Station",
-    "description1": "TGEV Station is Cambodia's leading electric vehicle charging network, dedicated to accelerating the transition to sustainable transportation. We provide reliable, fast, and accessible charging solutions for EV owners across the country.",
+    "aboutTitle": "About TAN EV Charning",
+    "description1": "TAN EV Charning is Cambodia's leading electric vehicle charging network, dedicated to accelerating the transition to sustainable transportation. We provide reliable, fast, and accessible charging solutions for EV owners across the country.",
     "description2": "Our mission is to make electric vehicle charging as convenient as possible, supporting a cleaner and greener future for Cambodia and the region.",
     "keyFeatures": "Key Features",
     "featureFastCharging": "Fast Charging Network",

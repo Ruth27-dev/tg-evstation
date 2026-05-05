@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Dimensions, Platform, ScrollView, StyleSheet, View } from "react-native";
-import { safePadding } from "@/constants/GeneralConstants";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import BaseComponent from "@/components/BaseComponent";
 import { useWallet } from "@/hooks/useWallet";
 import { useStation } from "@/hooks/useStation";
@@ -12,64 +12,43 @@ import PromotionSlider from "./components/PromotionSlider";
 import MenuGrid from "./components/MenuGrid";
 import { useSlideShow } from "@/hooks/useSlideShow";
 import DeviceInfo from "react-native-device-info";
+import LinearGradient from "react-native-linear-gradient";
+import { Colors } from "@/theme";
+
 const HomeScreen = () => {
     const [activeSlide, setActiveSlide] = useState(0);
     const { getMeWallet, userWalletBalance } = useWallet();
     const { getStation, isLoading } = useStation();
     const { fetchUser } = useAuth();
-    const { getSlideShow,slideShowData } = useSlideShow();
+    const { getSlideShow, slideShowData } = useSlideShow();
     const isTablet = DeviceInfo.isTablet();
     const isIPad = Platform.OS === 'ios' && DeviceInfo.getModel().toLowerCase().includes('ipad');
 
     const menuItems = [
         {
             id: 1,
-            name: 'wallet.topUp',
-            icon: 'logo-usd',
-            iconLib: 'ionicons' as const,
-            onPress: () => navigate('TopUp')
+            name: 'station.findStation',
+            subtitle: 'station.nearbyStations',
+            icon: 'charging-station',
+            iconLib: 'fontawesome5' as const,
+            color: Colors.mainColor,
+            onPress: () => navigate('ListStation'),
         },
         {
             id: 2,
-            name: 'menu.history',
-            icon: 'battery-charging',
+            name: 'wallet.topUp',
+            icon: 'add-circle',
             iconLib: 'ionicons' as const,
-            onPress: () => navigate('History')
+            color: Colors.primaryColor,
+            onPress: () => navigate('TopUp'),
         },
         {
             id: 3,
-            name: 'station.findStation',
-            icon: 'charging-station',
-            iconLib: 'fontawesome5' as const,
-            onPress: () => navigate('ListStation')
-        },
-        {
-            id: 4,
-            name: 'menu.vehicleRental',
-            icon: 'car',
-            iconLib: 'fontawesome5' as const,
-            onPress: () => navigate('VehicleRental', { title: 'menu.vehicleRental', icon: 'car' })
-        },
-        {
-            id: 5,
-            name: 'menu.hotelBooking',
-            icon: 'hotel',
-            iconLib: 'fontawesome5' as const,
-            onPress: () => navigate('HotelBooking', { title: 'menu.hotelBooking', icon: 'hotel' })
-        },
-        {
-            id: 6,
-            name: 'menu.restaurantBooking',
-            icon: 'utensils',
-            iconLib: 'fontawesome5' as const,
-            onPress: () => navigate('RestaurantBooking', { title: 'menu.restaurantBooking', icon: 'utensils' })
-        },
-        {
-            id: 7,
-            name: 'menu.martShop',
-            icon: 'store',
-            iconLib: 'fontawesome5' as const,
-            onPress: () => navigate('MartShop', { title: 'menu.martShop', icon: 'store' })
+            name: 'menu.history',
+            icon: 'battery-charging',
+            iconLib: 'ionicons' as const,
+            color: Colors.secondaryColor,
+            onPress: () => navigate('History'),
         },
     ];
 
@@ -79,7 +58,7 @@ const HomeScreen = () => {
         fetchUser();
         getSlideShow();
     }, []);
-    
+
     const handleRefresh = useCallback(async () => {
         await Promise.all([
             getMeWallet(),
@@ -88,38 +67,63 @@ const HomeScreen = () => {
         ]);
     }, [getMeWallet, getStation, getSlideShow]);
 
-    if(isLoading) return <Loading/>
+    if (isLoading) return <Loading />;
 
     return (
-       <BaseComponent isBack={false}>
-            <ScrollView style={{flex:1}} contentContainerStyle={{paddingBottom:isIPad || isTablet ? 70 : 20,flexGrow:1}}>
-                <View style={styles.headerGradient}>
-                    <View style={{padding:safePadding,marginBottom: 50}}>
-                        <BalanceSection 
-                            balance={Number(userWalletBalance?.balance) || 0}
-                            currency={userWalletBalance?.currency ?? '$'}
-                            onRefresh={handleRefresh}
-                            onTopUp={() => navigate('TopUp')}
-                        />
+        <BaseComponent isBack={false}>
+            <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingBottom: isIPad || isTablet ? 70 : 24, flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
+            >
+                <LinearGradient
+                    colors={[Colors.darkColor, Colors.mainColor]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.headerBand}
+                />
 
-                        <PromotionSlider 
-                            promotions={slideShowData ?? []}
-                            activeSlide={activeSlide}
-                            onSlideChange={setActiveSlide}
-                        />
+                <View style={styles.content}>
+                    <BalanceSection
+                        balance={Number(userWalletBalance?.balance) || 0}
+                        currency={userWalletBalance?.currency ?? '$'}
+                        onRefresh={handleRefresh}
+                        onTopUp={() => navigate('TopUp')}
+                    />
 
-                        <MenuGrid menuItems={menuItems} />
-                    </View>
+                    <PromotionSlider
+                        promotions={slideShowData ?? []}
+                        activeSlide={activeSlide}
+                        onSlideChange={setActiveSlide}
+                    />
+
+                    <Text style={styles.sectionLabel}>Quick Actions</Text>
+                    <MenuGrid menuItems={menuItems} />
                 </View>
-            </ScrollView>   
-       </BaseComponent>
+            </ScrollView>
+        </BaseComponent>
     );
-}
+};
 
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-    headerGradient: {
-        flex: 1,
+    headerBand: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 190,
+    },
+    content: {
+        padding: safePadding as any,
+        paddingTop: 16,
+    },
+    sectionLabel: {
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.darkColor,
+        marginBottom: 12,
+        marginTop: 4,
     },
 });

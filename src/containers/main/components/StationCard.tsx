@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors } from '@/theme';
-import { CustomFontConstant, FontSize, screenSizes } from '@/constants/GeneralConstants';
+import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
 import { Content } from '@/types';
 import { calculateDistance } from '@/utils';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -15,94 +15,84 @@ interface StationCardProps {
     onPress: () => void;
 }
 
-const StationCard: React.FC<StationCardProps> = ({ 
-    station, 
-    isSelected, 
-    currentLocation, 
-    onPress 
+const StationCard: React.FC<StationCardProps> = ({
+    station,
+    isSelected,
+    currentLocation,
+    onPress,
 }) => {
     const { t } = useTranslation();
-    // Calculate total connectors
-    const totalConnectors = station?.chargers.reduce((total: number, charger: any) => 
-        total + (charger.connector?.length || 0), 0
+
+    const totalConnectors = station?.chargers.reduce(
+        (total: number, charger: any) => total + (charger.connector?.length || 0), 0
     );
-    
-    // Calculate available connectors
+
     const availableConnectors = station?.chargers.reduce((available: number, charger: any) => {
-        const availableInCharger = charger?.connector?.filter(
-            (conn: any) => conn.status === 'AVAILABLE' || conn.status === 'PREPARING'
+        const n = charger?.connector?.filter(
+            (c: any) => c.status === 'AVAILABLE' || c.status === 'PREPARING'
         ).length || 0;
-        return available + availableInCharger;
+        return available + n;
     }, 0);
 
-    // Calculate distance
     let distance = 'N/A';
     if (currentLocation) {
-        const distanceInKm = calculateDistance(
+        const km = calculateDistance(
             currentLocation.latitude,
             currentLocation.longitude,
             parseFloat(station.latitude),
             parseFloat(station.longitude)
         );
-        distance = distanceInKm < 1 
-            ? `${(distanceInKm * 1000).toFixed(0)} m` 
-            : `${distanceInKm.toFixed(1)} km`;
+        distance = km < 1 ? `${(km * 1000).toFixed(0)} m` : `${km.toFixed(1)} km`;
     }
 
+    const isAvailable = availableConnectors > 0;
+
     return (
-        <TouchableOpacity 
-            style={[
-                styles.stationCard,
-                isSelected && styles.stationCardSelected
-            ]} 
+        <TouchableOpacity
+            style={[styles.card, isSelected && styles.cardSelected]}
             onPress={onPress}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
         >
-            <View style={styles.cardContent}>
-                <Image 
-                    source={{ uri: station.image }} 
-                    style={styles.stationImage} 
-                    resizeMode="cover"
-                />
-                
-                <View style={styles.stationInfo}>
-                    <Text style={styles.stationName} numberOfLines={1}>
-                        {station.name}
-                    </Text>
-                    
-                    <View style={styles.locationRow}>
-                        <Ionicons name="location-outline" size={14} color="#6B7280" />
-                        <Text style={styles.locationText} numberOfLines={1}>
-                            {station.address}
+            {/* Left accent bar when selected */}
+            {isSelected && <View style={styles.selectedAccent} />}
+
+            <Image
+                source={{ uri: station.image }}
+                style={styles.image}
+                resizeMode="cover"
+            />
+
+            <View style={styles.info}>
+                {/* Name + availability badge */}
+                <View style={styles.nameRow}>
+                    <Text style={styles.name} numberOfLines={1}>{station.name}</Text>
+                    <View style={[styles.availBadge, { backgroundColor: isAvailable ? '#DCFCE7' : '#FEE2E2' }]}>
+                        <View style={[styles.availDot, { backgroundColor: isAvailable ? Colors.secondaryColor : '#EF4444' }]} />
+                        <Text style={[styles.availText, { color: isAvailable ? Colors.secondaryColor : '#EF4444' }]}>
+                            {isAvailable ? t('station.available') : t('station.occupied')}
                         </Text>
                     </View>
+                </View>
 
-                    <View style={styles.statsRow}>
-                        <View style={styles.statBadge}>
-                            <MaterialCommunityIcons 
-                                name="ev-plug-type2" 
-                                size={16} 
-                                color={Colors.mainColor} 
-                            />
-                            <Text style={styles.statText}>
-                                {availableConnectors}/{totalConnectors}
-                            </Text>
-                        </View>
-                        
-                        <View style={styles.statBadge}>
-                            <Ionicons 
-                                name="navigate-outline" 
-                                size={16} 
-                                color={Colors.secondaryColor} 
-                            />
-                            <Text style={styles.statText}>{distance}</Text>
-                        </View>
-                    </View>
+                {/* Address */}
+                <View style={styles.addressRow}>
+                    <Ionicons name="location-outline" size={13} color="#9CA3AF" />
+                    <Text style={styles.addressText} numberOfLines={1}>{station.address}</Text>
+                </View>
 
-                    <View style={styles.detailButton}>
-                        <Text style={styles.detailButtonText}>{t('common.viewDetails')}</Text>
-                        <Ionicons name="arrow-forward" size={18} color={Colors.white} />
+                {/* Stats */}
+                <View style={styles.statsRow}>
+                    <View style={styles.chip}>
+                        <MaterialCommunityIcons name="ev-plug-type2" size={14} color={Colors.mainColor} />
+                        <Text style={styles.chipText}>
+                            {availableConnectors}/{totalConnectors}
+                        </Text>
                     </View>
+                    <View style={styles.chip}>
+                        <Ionicons name="navigate-outline" size={14} color={Colors.secondaryColor} />
+                        <Text style={styles.chipText}>{distance}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#CBD5E1" style={styles.chevron} />
                 </View>
             </View>
         </TouchableOpacity>
@@ -112,92 +102,110 @@ const StationCard: React.FC<StationCardProps> = ({
 export default StationCard;
 
 const styles = StyleSheet.create({
-    stationCard: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: screenSizes.width * 0.9,
+    card: {
+        flexDirection: 'row',
         backgroundColor: Colors.white,
-        borderRadius: 10,
+        borderRadius: 16,
+        padding: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowOpacity: 0.07,
+        shadowRadius: 6,
+        elevation: 3,
+        overflow: 'hidden',
     },
-    stationCardSelected: {
-        borderWidth: 2,
+    cardSelected: {
+        borderWidth: 1.5,
         borderColor: Colors.secondaryColor,
+        shadowColor: Colors.secondaryColor,
         shadowOpacity: 0.2,
         shadowRadius: 8,
-        elevation: 4,
+        elevation: 5,
     },
-    cardContent: {
-        flexDirection: 'row',
-        padding: 10,
+    selectedAccent: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: 4,
+        backgroundColor: Colors.secondaryColor,
+        borderTopLeftRadius: 16,
+        borderBottomLeftRadius: 16,
     },
-    stationImage: {
-        width: screenSizes.width * 0.25,
-        height: screenSizes.width * 0.25,
-        borderRadius: 10,
+    image: {
+        width: 86,
+        height: 86,
+        borderRadius: 12,
+        backgroundColor: '#F1F5F9',
     },
-    stationInfo: {
+    info: {
         flex: 1,
-        marginLeft: 16,
+        marginLeft: 12,
         justifyContent: 'space-between',
     },
-    stationName: {
-        fontSize: FontSize.medium + 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 6,
         marginBottom: 4,
     },
-    locationRow: {
+    name: {
+        flex: 1,
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+    },
+    availBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 20,
+        gap: 4,
+        flexShrink: 0,
+    },
+    availDot: {
+        width: 5,
+        height: 5,
+        borderRadius: 3,
+    },
+    availText: {
+        fontSize: FontSize.small - 2,
+        fontFamily: CustomFontConstant.EnBold,
+    },
+    addressRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        marginBottom: 8,
+        marginBottom: 10,
     },
-    locationText: {
+    addressText: {
         flex: 1,
-        fontSize: FontSize.small,
+        fontSize: FontSize.small - 1,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#6B7280',
+        color: '#9CA3AF',
     },
     statsRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
+        gap: 8,
     },
-    statBadge: {
+    chip: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F3F4F6',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        backgroundColor: '#F1F5F9',
+        paddingHorizontal: 8,
+        paddingVertical: 5,
         borderRadius: 8,
         gap: 4,
     },
-    statText: {
-        fontSize: FontSize.small,
+    chipText: {
+        fontSize: FontSize.small - 1,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        fontWeight: '600',
     },
-    detailButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.mainColor,
-        paddingVertical: 6,
-        paddingHorizontal: 16,
-        borderRadius: 10,
-        marginTop: 10,
-        gap: 6,
-    },
-    detailButtonText: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
-        fontWeight: '700',
+    chevron: {
+        marginLeft: 'auto',
     },
 });

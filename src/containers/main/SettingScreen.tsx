@@ -1,5 +1,5 @@
 import BaseComponent from "@/components/BaseComponent";
-import React, { use, useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, RefreshControl } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
@@ -19,6 +19,8 @@ interface SettingItem {
     title: string;
     icon: string;
     iconType: 'ionicons' | 'material' | 'materialCommunity';
+    iconBg: string;
+    iconColor: string;
     onPress: () => void;
     showArrow?: boolean;
     isDanger?: boolean;
@@ -26,37 +28,32 @@ interface SettingItem {
 
 const SettingScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
-    const { fetchUser,logout, isRequesting } = useAuth();
+    const { fetchUser, logout, isRequesting } = useAuth();
     const { userData } = useMeStore();
     const { t } = useTranslation();
-    useEffect(() => { 
+
+    useEffect(() => {
         fetchUser();
     }, []);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
         try {
-            await Promise.all([
-                fetchUser(),
-            ]);
+            await fetchUser();
         } catch (error) {
             console.error('Refresh error:', error);
         } finally {
             setRefreshing(false);
         }
     }, [fetchUser]);
-        
-    const handleProfilePress = () => {
-        navigate('ProfileScreen');
-    };
 
-    const handleChangePassword = () => {
-        navigate('ChangePasswordScreen');
-    };
-
-    const handleChangeLanguage = () => {
-        navigate('ChangeLanguageScreen');
-    };
+    const handleProfilePress   = () => navigate('ProfileScreen');
+    const handleChangePassword = () => navigate('ChangePasswordScreen');
+    const handleChangeLanguage = () => navigate('ChangeLanguageScreen');
+    const handleDeleteAccount  = () => navigate('DeleteAccountScreen');
+    const handleCustomerSupport = () => navigate('CustomerSupportScreen');
+    const handlePrivacy        = () => navigate('PrivacyScreen');
+    const handleAboutUs        = () => navigate('AboutUsScreen');
 
     const handleLogout = () => {
         Alert.alert(
@@ -69,36 +66,24 @@ const SettingScreen = () => {
         );
     };
 
-    const handleDeleteAccount = () => {
-        navigate('DeleteAccountScreen');
-    };
-
-    const handleCustomerSupport = () => {
-        navigate('CustomerSupportScreen');
-    };
-
-    const handlePrivacy = () => {
-        navigate('PrivacyScreen');
-    };
-
-    const handleAboutUs = () => {
-        navigate('AboutUsScreen');
-    };
-
     const accountSettings: SettingItem[] = [
         {
             id: '1',
             title: 'profile.profile',
             icon: 'person-outline',
             iconType: 'ionicons',
+            iconBg: `${Colors.mainColor}15`,
+            iconColor: Colors.mainColor,
             onPress: handleProfilePress,
-            showArrow: true
+            showArrow: true,
         },
         // {
         //     id: '2',
         //     title: 'profile.changePassword',
         //     icon: 'lock-closed-outline',
         //     iconType: 'ionicons',
+        //     iconBg: '#8B5CF615',
+        //     iconColor: '#8B5CF6',
         //     onPress: handleChangePassword,
         //     showArrow: true
         // },
@@ -107,26 +92,32 @@ const SettingScreen = () => {
             title: 'profile.changeLanguage',
             icon: 'language',
             iconType: 'ionicons',
+            iconBg: '#3B82F615',
+            iconColor: '#3B82F6',
             onPress: handleChangeLanguage,
-            showArrow: true
+            showArrow: true,
         },
         {
             id: '4',
             title: 'auth.logout',
             icon: 'log-out-outline',
             iconType: 'ionicons',
+            iconBg: '#F59E0B15',
+            iconColor: '#F59E0B',
             onPress: handleLogout,
-            showArrow: false
+            showArrow: false,
         },
         {
             id: '5',
-            title:'profile.deleteAccount',
+            title: 'profile.deleteAccount',
             icon: 'trash-outline',
             iconType: 'ionicons',
+            iconBg: '#EF444415',
+            iconColor: '#EF4444',
             onPress: handleDeleteAccount,
             showArrow: false,
-            isDanger: true
-        }
+            isDanger: true,
+        },
     ];
 
     const supportSettings: SettingItem[] = [
@@ -135,70 +126,74 @@ const SettingScreen = () => {
             title: 'profile.helpSupport',
             icon: 'headset',
             iconType: 'material',
+            iconBg: `${Colors.secondaryColor}15`,
+            iconColor: Colors.secondaryColor,
             onPress: handleCustomerSupport,
-            showArrow: true
+            showArrow: true,
         },
         {
             id: '2',
             title: 'profile.privacyPolicy',
             icon: 'shield-outline',
             iconType: 'ionicons',
+            iconBg: '#6366F115',
+            iconColor: '#6366F1',
             onPress: handlePrivacy,
-            showArrow: true
+            showArrow: true,
         },
         {
             id: '3',
             title: 'profile.aboutUs',
             icon: 'information-circle-outline',
             iconType: 'ionicons',
+            iconBg: `${Colors.mainColor}15`,
+            iconColor: Colors.mainColor,
             onPress: handleAboutUs,
-            showArrow: true
-        }
+            showArrow: true,
+        },
     ];
 
     const renderIcon = (item: SettingItem) => {
-        const iconColor = item.isDanger ? '#EF4444' : Colors.mainColor;
-        const iconSize = 22;
-
+        const size = 20;
         switch (item.iconType) {
             case 'ionicons':
-                return <Ionicons name={item.icon as any} size={iconSize} color={iconColor} />;
+                return <Ionicons name={item.icon as any} size={size} color={item.iconColor} />;
             case 'material':
-                return <MaterialIcons name={item.icon as any} size={iconSize} color={iconColor} />;
+                return <MaterialIcons name={item.icon as any} size={size} color={item.iconColor} />;
             case 'materialCommunity':
-                return <MaterialCommunityIcons name={item.icon as any} size={iconSize} color={iconColor} />;
+                return <MaterialCommunityIcons name={item.icon as any} size={size} color={item.iconColor} />;
             default:
-                return <Ionicons name="help-outline" size={iconSize} color={iconColor} />;
+                return <Ionicons name="help-outline" size={size} color={item.iconColor} />;
         }
     };
 
-    const renderSettingItem = (item: SettingItem) => (
+    const renderSettingItem = (item: SettingItem, isLast: boolean) => (
         <TouchableOpacity
             key={item.id}
-            style={styles.settingItem}
+            style={[styles.settingItem, isLast && styles.settingItemLast]}
             onPress={item.onPress}
             activeOpacity={0.7}
         >
-            <View style={styles.settingItemLeft}>
-                <View style={[
-                    styles.settingIconContainer,
-                    { backgroundColor: item.isDanger ? '#EF444415' : `${Colors.mainColor}15` }
-                ]}>
-                    {renderIcon(item)}
-                </View>
-                <TextTranslation textKey={item.title} fontSize={FontSize.medium} color={item.isDanger ? '#EF4444' : Colors.mainColor} />
+            <View style={[styles.iconContainer, { backgroundColor: item.iconBg }]}>
+                {renderIcon(item)}
             </View>
+            <TextTranslation
+                textKey={item.title}
+                fontSize={FontSize.medium}
+                color={item.isDanger ? '#EF4444' : Colors.mainColor}
+            />
             {item.showArrow && (
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                <Ionicons name="chevron-forward" size={18} color="#CBD5E1" style={styles.chevron} />
             )}
         </TouchableOpacity>
     );
-    if(isRequesting) return <Loading/>
-    
+
+    if (isRequesting) return <Loading />;
+
     return (
         <BaseComponent isBack={false}>
-            <ScrollView 
-                style={styles.container} 
+            <ScrollView
+                style={styles.container}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
@@ -209,166 +204,183 @@ const SettingScreen = () => {
                     />
                 }
             >
-                <View style={styles.profileCard}>
-                    <View style={styles.profileHeader}>
-                        <View style={styles.avatarContainer}>
-                            <Image source={Images.user} style={styles.avatar} />
+                {/* Profile Card */}
+                <TouchableOpacity style={styles.profileCard} onPress={handleProfilePress} activeOpacity={0.9}>
+                    <View style={styles.circle1} />
+                    <View style={styles.circle2} />
+
+                    <View style={styles.avatarWrapper}>
+                        <Image source={Images.user} style={styles.avatar} />
+                        <View style={styles.editBadge}>
+                            <Ionicons name="pencil" size={10} color={Colors.white} />
                         </View>
-                        <View style={styles.profileInfo}>
-                            <Text style={styles.userName}>{userData?.user_name}</Text>
-                            <Text style={styles.userPhone}>{userData?.phone_number}</Text>
-                        </View>
+                    </View>
+
+                    <Text style={styles.userName}>{userData?.user_name}</Text>
+
+                    <View style={styles.phonePill}>
+                        <Ionicons name="call-outline" size={12} color="rgba(255,255,255,0.75)" />
+                        <Text style={styles.phoneText}>{userData?.phone_number}</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Account Settings */}
+                <View style={styles.section}>
+                    <TextTranslation
+                        textKey="profile.accountSettings"
+                        fontSize={FontSize.medium}
+                        isBold
+                        isPaddingBottom
+                    />
+                    <View style={styles.card}>
+                        {accountSettings.map((item, index) =>
+                            renderSettingItem(item, index === accountSettings.length - 1)
+                        )}
                     </View>
                 </View>
 
+                {/* Support */}
                 <View style={styles.section}>
-                    <TextTranslation textKey={'profile.accountSettings'} fontSize={FontSize.large} isBold isPaddingBottom/>
-                    <View style={styles.settingsCard}>
-                        {accountSettings.map(renderSettingItem)}
+                    <TextTranslation
+                        textKey="profile.support"
+                        fontSize={FontSize.medium}
+                        isBold
+                        isPaddingBottom
+                    />
+                    <View style={styles.card}>
+                        {supportSettings.map((item, index) =>
+                            renderSettingItem(item, index === supportSettings.length - 1)
+                        )}
                     </View>
                 </View>
 
-                <View style={styles.section}>
-                    <TextTranslation textKey={'profile.support'} fontSize={FontSize.large} isBold isPaddingBottom/>
-                    <View style={styles.settingsCard}>
-                        {supportSettings.map(renderSettingItem)}
-                    </View>
-                </View>
-                <View style={styles.versionContainer}/>
+                <View style={styles.bottomPadding} />
             </ScrollView>
         </BaseComponent>
     );
-}
+};
 
 export default SettingScreen;
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding:safePadding
+        padding: safePadding,
     },
+    // Profile card
     profileCard: {
         backgroundColor: Colors.mainColor,
-        marginBottom: 24,
-        padding: safePadding,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    profileHeader: {
-        flexDirection: 'row',
+        borderRadius: 24,
+        paddingVertical: 28,
+        paddingHorizontal: 24,
         alignItems: 'center',
+        marginBottom: 28,
+        overflow: 'hidden',
+        shadowColor: Colors.mainColor,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+        elevation: 6,
     },
-    avatarContainer: {
+    circle1: {
+        position: 'absolute',
+        width: 180,
+        height: 180,
+        borderRadius: 90,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        top: -50,
+        right: -40,
+    },
+    circle2: {
+        position: 'absolute',
+        width: 110,
+        height: 110,
+        borderRadius: 55,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        bottom: -20,
+        left: 20,
+    },
+    avatarWrapper: {
         position: 'relative',
-        marginRight: 16,
+        marginBottom: 12,
     },
     avatar: {
-        width: 50,
-        height: 50,
+        width: 80,
+        height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderWidth: 3,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
-    editAvatarButton: {
+    editBadge: {
         position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        bottom: 2,
+        right: 2,
+        width: 22,
+        height: 22,
+        borderRadius: 11,
         backgroundColor: Colors.secondaryColor,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
         borderColor: Colors.mainColor,
     },
-    profileInfo: {
-        flex: 1,
-    },
     userName: {
-        fontSize: FontSize.large,
-        fontFamily: CustomFontConstant.EnRegular,
+        fontSize: FontSize.large + 2,
+        fontFamily: CustomFontConstant.EnBold,
         color: Colors.white,
-        marginBottom: 4,
+        marginBottom: 8,
     },
-    userEmail: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: 'rgba(255,255,255,0.85)',
-        fontWeight: '500',
-        marginBottom: 2,
-    },
-    userPhone: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: 'rgba(255,255,255,0.85)',
-        fontWeight: '500',
-    },
-    memberBadge: {
+    phonePill: {
         flexDirection: 'row',
         alignItems: 'center',
-        alignSelf: 'flex-start',
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: 'rgba(255,255,255,0.15)',
         paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
+        paddingVertical: 5,
+        borderRadius: 20,
         gap: 6,
     },
-    memberText: {
-        fontSize: FontSize.small - 1,
+    phoneText: {
+        fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.white,
-        fontWeight: '600',
+        color: 'rgba(255,255,255,0.85)',
     },
+    // Sections
     section: {
         marginBottom: 24,
     },
-    sectionTitle: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-        marginBottom: 12,
-    },
-    settingsCard: {
+    card: {
         backgroundColor: Colors.white,
         borderRadius: 16,
+        overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.06,
         shadowRadius: 8,
-        elevation: 3,
-        overflow: 'hidden',
+        elevation: 2,
     },
     settingItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 16,
+        paddingVertical: 14,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: '#F1F5F9',
     },
-    settingItemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
+    settingItemLast: {
+        borderBottomWidth: 0,
     },
-    settingIconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+    iconContainer: {
+        width: 38,
+        height: 38,
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
+        marginRight: 14,
     },
-    settingItemText: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.mainColor,
+    chevron: {
+        marginLeft: 'auto',
     },
-    versionContainer: {
-        alignItems: 'center',
-        paddingBottom: 100,
+    bottomPadding: {
+        height: 100,
     },
-   
 });

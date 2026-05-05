@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   Dimensions,
+  Image,
   Platform,
   StyleSheet,
   Text,
@@ -17,9 +18,8 @@ import Animated, {
 import LinearGradient from 'react-native-linear-gradient';
 import { navigate } from '@/navigation/NavigationService';
 import { Colors } from '@/theme';
-import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
+import { CustomFontConstant, FontSize, Images, safePadding } from '@/constants/GeneralConstants';
 import CustomButton from '@/components/CustomButton';
-import AppLogo from '@/assets/logo/logo.svg';
 import { useTranslation } from '@/hooks/useTranslation';
 import LanguageSelectionModal, { LanguageSelectionModalRef } from '@/components/LanguageSelectionModal';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -39,6 +39,7 @@ const AuthChoiceScreen = () => {
   const cardTranslateY = useSharedValue(80);
   const cardOpacity = useSharedValue(0);
   const langOpacity = useSharedValue(0);
+  const accentOpacity = useSharedValue(0);
 
   useEffect(() => {
     logoOpacity.value = withTiming(1, { duration: 600 });
@@ -46,6 +47,7 @@ const AuthChoiceScreen = () => {
     cardTranslateY.value = withDelay(200, withSpring(0, { damping: 18, stiffness: 90 }));
     cardOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
     langOpacity.value = withDelay(400, withTiming(1, { duration: 400 }));
+    accentOpacity.value = withDelay(500, withTiming(1, { duration: 500 }));
   }, []);
 
   const logoStyle = useAnimatedStyle(() => ({
@@ -60,6 +62,10 @@ const AuthChoiceScreen = () => {
 
   const langStyle = useAnimatedStyle(() => ({
     opacity: langOpacity.value,
+  }));
+
+  const accentStyle = useAnimatedStyle(() => ({
+    opacity: accentOpacity.value,
   }));
 
   const getLanguageIcon = () => {
@@ -77,14 +83,14 @@ const AuthChoiceScreen = () => {
 
   const renderTranslateIcon = useCallback(() => {
     return (
-      <Animated.View style={[langStyle]}>
+      <Animated.View style={langStyle}>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => languageModalRef?.current?.showModal()}
           style={styles.languageButton}
         >
           {getLanguageIcon()}
-          <Ionicons name="chevron-down" size={16} color={Colors.white} />
+          <Ionicons name="chevron-down" size={14} color={Colors.white} />
         </TouchableOpacity>
       </Animated.View>
     );
@@ -92,18 +98,20 @@ const AuthChoiceScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient background */}
       <LinearGradient
         colors={[Colors.darkColor, Colors.mainColor]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradientFill}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 0.9, y: 1 }}
+        style={StyleSheet.absoluteFill}
       />
 
-      {/* Decorative circles */}
-      <View style={styles.circleTopRight} />
-      <View style={styles.circleBottomLeft} />
-      <View style={styles.circleCenter} />
+      {/* Decorative background rings */}
+      <View style={styles.ringTopRight} />
+      <View style={styles.ringTopRightInner} />
+      <View style={styles.ringBottomLeft} />
+
+      {/* Golden glow ring behind logo */}
+      <Animated.View style={[styles.glowRing, accentStyle]} />
 
       {/* Language selector */}
       <View style={[styles.languageContainer, { top: Platform.OS === 'ios' ? safePadding : 15 }]}>
@@ -112,14 +120,27 @@ const AuthChoiceScreen = () => {
 
       {/* Logo area */}
       <View style={styles.logoArea}>
-        <Animated.View style={[logoStyle]}>
-          <AppLogo width={160} height={160} />
+        <Animated.View style={[logoStyle, styles.logoWrapper]}>
+          <View style={styles.logoCircle}>
+            <Image source={Images.logo} style={styles.logoImage} resizeMode="contain" />
+          </View>
+          <Animated.View style={[styles.brandRow, accentStyle]}>
+            <View style={styles.accentLine} />
+            <Text style={styles.brandName}>TAN EV Station</Text>
+            <View style={styles.accentLine} />
+          </Animated.View>
+          <Text style={styles.brandTagline}>Smart Charging Solutions</Text>
         </Animated.View>
       </View>
 
       {/* Bottom card */}
       <Animated.View style={[styles.card, cardStyle]}>
-        <View style={styles.cardHandle} />
+        {/* Handle */}
+        <View style={styles.cardHandleRow}>
+          <View style={[styles.cardHandleDot, { opacity: 0.3 }]} />
+          <View style={styles.cardHandle} />
+          <View style={[styles.cardHandleDot, { opacity: 0.3 }]} />
+        </View>
 
         <Text style={styles.title}>{t('common.authChoiceTitle')}</Text>
         <Text style={styles.subtitle}>{t('common.authChoiceSubtitle')}</Text>
@@ -133,12 +154,14 @@ const AuthChoiceScreen = () => {
           <CustomButton
             buttonTitle={t('auth.signUp')}
             onPress={() => navigate('Register')}
-            buttonColor={'transparent'}
+            buttonColor="transparent"
             textColor={Colors.mainColor}
-            borderWidth={1}
+            borderWidth={1.5}
+            borderColor={Colors.mainColor}
           />
         </View>
       </Animated.View>
+
       <LanguageSelectionModal ref={languageModalRef} />
     </View>
   );
@@ -157,80 +180,147 @@ const styles = StyleSheet.create({
   languageButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 7,
+    paddingHorizontal: 13,
+    backgroundColor: 'rgba(255,255,255,0.13)',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.22)',
     gap: 6,
   },
-  circleTopRight: {
-    position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    top: -80,
-    right: -80,
-  },
-  circleBottomLeft: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    bottom: SCREEN_HEIGHT * 0.35,
-    left: -60,
-  },
-  circleCenter: {
+  ringTopRight: {
     position: 'absolute',
     width: 320,
     height: 320,
     borderRadius: 160,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: 'transparent',
+    top: -120,
+    right: -100,
+  },
+  ringTopRightInner: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
     backgroundColor: 'rgba(255,255,255,0.03)',
-    top: SCREEN_HEIGHT * 0.05,
+    top: -50,
+    right: -40,
+  },
+  ringBottomLeft: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    bottom: SCREEN_HEIGHT * 0.32,
+    left: -80,
+  },
+  glowRing: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    borderWidth: 1.5,
+    borderColor: 'rgba(241,177,29,0.18)',
+    backgroundColor: 'rgba(241,177,29,0.03)',
     alignSelf: 'center',
+    top: SCREEN_HEIGHT * 0.1,
   },
   logoArea: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
-  logoGlow: {
+  logoWrapper: {
+    alignItems: 'center',
+  },
+  logoCircle: {
+    width: 176,
+    height: 176,
+    borderRadius: 88,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.16)',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
-    backgroundColor: 'rgba(255,255,255,0.08)',
     shadowColor: Colors.primaryColor,
-    shadowOpacity: 0.4,
-    shadowRadius: 30,
+    shadowOpacity: 0.35,
+    shadowRadius: 28,
     shadowOffset: { width: 0, height: 0 },
-    elevation: 10,
+    elevation: 14,
+  },
+  logoImage: {
+    width: 136,
+    height: 136,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 22,
+    marginBottom: 6,
+  },
+  accentLine: {
+    width: 28,
+    height: 1.5,
+    borderRadius: 1,
+    backgroundColor: Colors.primaryColor,
+    opacity: 0.7,
+  },
+  brandName: {
+    fontSize: FontSize.medium,
+    fontFamily: CustomFontConstant.EnBold,
+    color: Colors.white,
+    letterSpacing: 1.2,
+  },
+  brandTagline: {
+    fontSize: 12,
+    fontFamily: CustomFontConstant.EnRegular,
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 0.6,
   },
   card: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     paddingHorizontal: 28,
-    paddingTop: 16,
-    paddingBottom: 100,
+    paddingTop: 14,
+    paddingBottom: Platform.OS === 'ios' ? 48 : 36,
+    shadowColor: Colors.darkColor,
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 20,
+  },
+  cardHandleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    marginBottom: 26,
   },
   cardHandle: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E5E7EB',
-    alignSelf: 'center',
-    marginBottom: 28,
+    backgroundColor: Colors.primaryColor,
+    opacity: 0.7,
+  },
+  cardHandleDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.primaryColor,
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontFamily: CustomFontConstant.EnBold,
     color: Colors.darkColor,
     marginBottom: 8,
@@ -242,45 +332,10 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 32,
+    marginBottom: 28,
   },
   buttonsContainer: {
     gap: 12,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-    gap: 10,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
-  },
-  dividerText: {
-    fontSize: 12,
-    fontFamily: CustomFontConstant.EnRegular,
-    color: '#9CA3AF',
-  },
-  guestButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-  },
-  guestText: {
-    fontSize: FontSize.small,
-    fontFamily: CustomFontConstant.EnRegular,
-    color: Colors.mainColor,
-  },
-  gradientFill: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 });
 

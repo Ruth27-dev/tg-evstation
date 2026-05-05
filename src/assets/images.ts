@@ -5,7 +5,6 @@ export const Images = {
   
   // Logos
   logo: require('./logo/logo.png'),
-  confirm: require('./logo/confirm.png'),
   headerLogo: require('./logo/header_logo.png'),
   logoNoBg: require('./logo/logo_nobg.png'),
 

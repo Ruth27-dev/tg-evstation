@@ -21,7 +21,7 @@
         "error": "Lỗi",
         "success": "Thành công",
         "signInToContinue": "Đăng nhập để tiếp tục",
-        "authChoiceTitle": "Chào mừng đến với TGEV Station",
+        "authChoiceTitle": "Chào mừng đến với TAN EV Charning",
         "authChoiceSubtitle": "Hãy chọn cách bạn muốn tiếp tục",
         "findStation": "Tìm trạm",
         "viewDetails": "Xem chi tiết",
@@ -32,7 +32,9 @@
         "rescan": "Quét lại",
         "notAvailable": "Không có sẵn",
         "listView": "Danh sách",
-        "mapView": "Bản đồ"
+        "mapView": "Bản đồ",
+        "searchStation": "Tìm kiếm trạm...",
+        "stationsFound": "trạm được tìm thấy"
     },
     "auth": {
         "login": "Đăng nhập",
@@ -295,8 +297,8 @@
     },
     "about": {
         "poweringJourney": "Cung cấp năng lượng cho hành trình điện của bạn",
-        "aboutTitle": "Về TGEV Station",
-        "description1": "TGEV Station là mạng lưới sạc xe điện hàng đầu của Campuchia, được dành riêng để tăng tốc độ chuyển đổi sang giao thông bền vững. Chúng tôi cung cấp các giải pháp sạc đáng tin cậy, nhanh chóng và có thể truy cập được cho những người sở hữu xe điện trên khắp đất nước.",
+        "aboutTitle": "Về TAN EV Charning",
+        "description1": "TAN EV Charning là mạng lưới sạc xe điện hàng đầu của Campuchia, được dành riêng để tăng tốc độ chuyển đổi sang giao thông bền vững. Chúng tôi cung cấp các giải pháp sạc đáng tin cậy, nhanh chóng và có thể truy cập được cho những người sở hữu xe điện trên khắp đất nước.",
         "description2": "Sứ mệnh của chúng tôi là làm cho việc sạc xe điện trở nên thuận tiện nhất có thể, hỗ trợ một tương lai sạch hơn và xanh hơn cho Campuchia và khu vực.",
         "keyFeatures": "Các tính năng chính",
         "featureFastCharging": "Mạng sạc nhanh",

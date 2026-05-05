@@ -17,7 +17,7 @@ const AboutUsScreen = () => {
                 {/* Header with Logo */}
                 <View style={styles.header}>
                     <Image source={Images.logo} style={styles.logo} />
-                    <Text style={styles.appName}>TGEV Station</Text>
+                    <Text style={styles.appName}>TAN EV Charning</Text>
                     <Text style={styles.tagline}>{t('about.poweringJourney')}</Text>
                 </View>
 

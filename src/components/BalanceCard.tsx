@@ -12,20 +12,32 @@ interface BalanceCardProps{
 const BalanceCard = ({amount, currency = '$'}: BalanceCardProps) => {
     return (
         <View style={styles.balanceCard}>
-            <View style={styles.balanceContent}>
-                <View>
-                    <TextTranslation textKey="wallet.totalBalance" fontSize={FontSize.medium} color={Colors.white}/>
-                    <Text style={styles.balanceAmount}>$ {amount?.toFixed(2)}</Text>
+            {/* Decorative circles */}
+            <View style={styles.circle1} />
+            <View style={styles.circle2} />
+
+            {/* Header */}
+            <View style={styles.cardHeader}>
+                <View style={styles.walletIconWrapper}>
+                    <Ionicons name="wallet-outline" size={18} color={Colors.white} />
                 </View>
-                <TouchableOpacity 
-                    style={styles.topUpButton} 
-                    activeOpacity={0.8}
-                    onPress={() => navigate('TopUp')}
-                >
-                    <Ionicons name="add-circle" size={24} color={Colors.white} />
-                    <TextTranslation textKey="wallet.topUp" fontSize={FontSize.medium} color={Colors.white}/>
-                </TouchableOpacity>
+                <TextTranslation textKey="wallet.totalBalance" fontSize={FontSize.small} color="rgba(255,255,255,0.75)" />
             </View>
+
+            {/* Balance amount */}
+            <Text style={styles.balanceAmount}>
+                {currency} {amount?.toFixed(2)}
+            </Text>
+
+            {/* Top Up button */}
+            <TouchableOpacity
+                style={styles.topUpButton}
+                activeOpacity={0.85}
+                onPress={() => navigate('TopUp')}
+            >
+                <Ionicons name="add-circle-outline" size={20} color={Colors.mainColor} />
+                <TextTranslation textKey="wallet.topUp" fontSize={FontSize.medium} color={Colors.mainColor} isBold />
+            </TouchableOpacity>
         </View>
     )
 }
@@ -36,41 +48,62 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.mainColor,
         marginHorizontal: 20,
         marginTop: 10,
-        marginBottom: 15,
-        padding: 20,
-        borderRadius: 10,
-        elevation: 2,
+        marginBottom: 20,
+        padding: 24,
+        borderRadius: 20,
+        overflow: 'hidden',
+        elevation: 6,
+        shadowColor: Colors.mainColor,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
     },
-    balanceContent: {
+    circle1: {
+        position: 'absolute',
+        width: 160,
+        height: 160,
+        borderRadius: 80,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        top: -40,
+        right: -30,
+    },
+    circle2: {
+        position: 'absolute',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        bottom: -20,
+        right: 60,
+    },
+    cardHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 16,
+    },
+    walletIconWrapper: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        justifyContent: 'center',
         alignItems: 'center',
     },
-    balanceLabel: {
-        fontSize: FontSize.small + 1,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: 'rgba(255,255,255,0.85)',
-        fontWeight: '500',
-        marginBottom: 8,
-    },
     balanceAmount: {
-        fontSize: 22,
+        fontSize: 32,
         fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white
+        color: Colors.white,
+        marginBottom: 24,
+        letterSpacing: 0.5,
     },
     topUpButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        backgroundColor: Colors.white,
         paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 10,
+        borderRadius: 12,
         gap: 8,
     },
-    topUpText: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: Colors.white,
-        fontWeight: '700',
-    },
-})
+});

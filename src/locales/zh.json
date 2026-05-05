@@ -21,7 +21,7 @@
     "error": "错误",
     "success": "成功",
     "signInToContinue": "登录以继续",
-    "authChoiceTitle": "欢迎使用 TGEV Station",
+    "authChoiceTitle": "欢迎使用 TAN EV Charning",
     "authChoiceSubtitle": "请选择继续方式",
     "findStation": "查找充电站",
     "viewDetails": "查看详情",
@@ -32,7 +32,9 @@
     "rescan" : "重新扫描",
     "notAvailable": "无",
     "listView": "列表",
-    "mapView": "地图"
+    "mapView": "地图",
+    "searchStation": "搜索充电站...",
+    "stationsFound": "个充电站"
   },
   "auth": {
     "login": "登录",
@@ -296,8 +298,8 @@
   },
   "about": {
     "poweringJourney": "助力您的电动旅程",
-    "aboutTitle": "关于 TGEV Station",
-    "description1": "TGEV Station 是柬埔寨领先的电动汽车充电网络，致力于加速向可持续交通的转型。我们为全国的电动车车主提供可靠、快速、易于使用的充电解决方案。",
+    "aboutTitle": "关于 TAN EV Charning",
+    "description1": "TAN EV Charning 是柬埔寨领先的电动汽车充电网络，致力于加速向可持续交通的转型。我们为全国的电动车车主提供可靠、快速、易于使用的充电解决方案。",
     "description2": "我们的使命是让电动车充电尽可能方便，支持柬埔寨及本地区更清洁、更绿色的未来。",
     "keyFeatures": "核心特色",
     "featureFastCharging": "高速充电网络",
