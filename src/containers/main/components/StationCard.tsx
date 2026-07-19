@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Linking } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors } from '@/theme';
-import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
+import { CustomFontConstant, FontSize, screenSizes } from '@/constants/GeneralConstants';
 import { Content } from '@/types';
 import { calculateDistance } from '@/utils';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -47,55 +47,72 @@ const StationCard: React.FC<StationCardProps> = ({
 
     const isAvailable = availableConnectors > 0;
 
+    const handleDirection = () => {
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}`;
+        Linking.openURL(url);
+    };
+
     return (
-        <TouchableOpacity
-            style={[styles.card, isSelected && styles.cardSelected]}
-            onPress={onPress}
-            activeOpacity={0.75}
-        >
+        <View style={[styles.card, isSelected && styles.cardSelected]}>
             {/* Left accent bar when selected */}
             {isSelected && <View style={styles.selectedAccent} />}
 
-            <Image
-                source={{ uri: station.image }}
-                style={styles.image}
-                resizeMode="cover"
-            />
+            <TouchableOpacity
+                style={styles.topRow}
+                onPress={onPress}
+                activeOpacity={0.75}
+            >
+                <Image
+                    source={{ uri: station?.image }}
+                    style={styles.image}
+                    resizeMode="cover"
+                />
 
-            <View style={styles.info}>
-                {/* Name + availability badge */}
-                <View style={styles.nameRow}>
-                    <Text style={styles.name} numberOfLines={1}>{station.name}</Text>
-                    <View style={[styles.availBadge, { backgroundColor: isAvailable ? '#DCFCE7' : '#FEE2E2' }]}>
-                        <View style={[styles.availDot, { backgroundColor: isAvailable ? Colors.secondaryColor : '#EF4444' }]} />
-                        <Text style={[styles.availText, { color: isAvailable ? Colors.secondaryColor : '#EF4444' }]}>
-                            {isAvailable ? t('station.available') : t('station.occupied')}
-                        </Text>
+                <View style={styles.info}>
+                    {/* Name + availability badge */}
+                    <View style={styles.nameRow}>
+                        <Text style={styles.name} numberOfLines={1}>{station.name}</Text>
+                        <View style={[styles.availBadge, { backgroundColor: isAvailable ? '#DCFCE7' : '#FEE2E2' }]}>
+                            <View style={[styles.availDot, { backgroundColor: isAvailable ? Colors.secondaryColor : '#EF4444' }]} />
+                            <Text style={[styles.availText, { color: isAvailable ? Colors.secondaryColor : '#EF4444' }]}>
+                                {isAvailable ? t('station.available') : t('station.occupied')}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Address */}
+                    <View style={styles.addressRow}>
+                        <Ionicons name="location-outline" size={13} color="#9CA3AF" />
+                        <Text style={styles.addressText} numberOfLines={1}>{station.address}</Text>
+                    </View>
+
+                    {/* Stats */}
+                    <View style={styles.statsRow}>
+                        <View style={styles.chip}>
+                            <MaterialCommunityIcons name="ev-plug-type2" size={14} color={Colors.mainColor} />
+                            <Text style={styles.chipText}>
+                                {availableConnectors}/{totalConnectors}
+                            </Text>
+                        </View>
+                        <View style={styles.chip}>
+                            <Ionicons name="navigate-outline" size={14} color={Colors.secondaryColor} />
+                            <Text style={styles.chipText}>{distance}</Text>
+                        </View>
                     </View>
                 </View>
+            </TouchableOpacity>
 
-                {/* Address */}
-                <View style={styles.addressRow}>
-                    <Ionicons name="location-outline" size={13} color="#9CA3AF" />
-                    <Text style={styles.addressText} numberOfLines={1}>{station.address}</Text>
-                </View>
-
-                {/* Stats */}
-                <View style={styles.statsRow}>
-                    <View style={styles.chip}>
-                        <MaterialCommunityIcons name="ev-plug-type2" size={14} color={Colors.mainColor} />
-                        <Text style={styles.chipText}>
-                            {availableConnectors}/{totalConnectors}
-                        </Text>
-                    </View>
-                    <View style={styles.chip}>
-                        <Ionicons name="navigate-outline" size={14} color={Colors.secondaryColor} />
-                        <Text style={styles.chipText}>{distance}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color="#CBD5E1" style={styles.chevron} />
-                </View>
-            </View>
-        </TouchableOpacity>
+            {/* Book / Direction actions */}
+            {/* <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.bookButton} onPress={onPress} activeOpacity={0.8}>
+                    <Text style={styles.bookButtonText}>{t('station.book')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.directionButton} onPress={handleDirection} activeOpacity={0.8}>
+                    <Ionicons name="navigate" size={15} color={Colors.white} />
+                    <Text style={styles.directionButtonText}>{t('station.getDirections')}</Text>
+                </TouchableOpacity>
+            </View> */}
+        </View>
     );
 };
 
@@ -103,7 +120,7 @@ export default StationCard;
 
 const styles = StyleSheet.create({
     card: {
-        flexDirection: 'row',
+        width: screenSizes.width * 0.9,
         backgroundColor: Colors.white,
         borderRadius: 16,
         padding: 12,
@@ -131,6 +148,9 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.secondaryColor,
         borderTopLeftRadius: 16,
         borderBottomLeftRadius: 16,
+    },
+    topRow: {
+        flexDirection: 'row',
     },
     image: {
         width: 86,
@@ -205,7 +225,38 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
     },
-    chevron: {
-        marginLeft: 'auto',
+    actionRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 10,
+    },
+    bookButton: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 9,
+        borderRadius: 10,
+        borderWidth: 1.5,
+        borderColor: Colors.mainColor,
+    },
+    bookButtonText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.mainColor,
+    },
+    directionButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 9,
+        borderRadius: 10,
+        backgroundColor: Colors.secondaryColor,
+    },
+    directionButtonText: {
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnBold,
+        color: Colors.white,
     },
 });

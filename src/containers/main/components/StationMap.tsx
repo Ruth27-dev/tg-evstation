@@ -5,6 +5,16 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { Colors } from '@/theme';
 import { Content } from '@/types';
 
+const isStationAvailable = (station: Content): boolean => {
+    const availableConnectors = station?.chargers?.reduce((available: number, charger: any) => {
+        const n = charger?.connector?.filter(
+            (c: any) => c.status === 'AVAILABLE' || c.status === 'PREPARING'
+        ).length || 0;
+        return available + n;
+    }, 0) || 0;
+    return availableConnectors > 0;
+};
+
 interface StationMapProps {
     mapRef: React.RefObject<MapView | null>;
     currentLocation: { latitude: number; longitude: number } | null;
@@ -43,7 +53,8 @@ const StationMap: React.FC<StationMapProps> = ({
         >
             {stations?.map((station) => {
                 const isSelected = selectedStation?.id === station.id;
-                
+                const isAvailable = isStationAvailable(station);
+
                 return (
                     <Marker
                         key={station.id}
@@ -55,12 +66,13 @@ const StationMap: React.FC<StationMapProps> = ({
                     >
                         <View style={[
                             styles.stationMarker,
+                            { backgroundColor: isAvailable ? Colors.secondaryColor : Colors.dangerColor },
                             isSelected && styles.stationMarkerSelected
                         ]}>
-                            <MaterialCommunityIcons 
-                                name="ev-station" 
-                                size={isSelected ? 24 : 18} 
-                                color={Colors.white} 
+                            <MaterialCommunityIcons
+                                name="ev-station"
+                                size={isSelected ? 24 : 18}
+                                color={Colors.white}
                             />
                         </View>
                     </Marker>
@@ -86,16 +98,15 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: Colors.mainColor,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
+        borderColor: Colors.white,
     },
     stationMarkerSelected: {
-        backgroundColor: Colors.secondaryColor,
         width: 48,
         height: 48,
         borderRadius: 24,
-        borderWidth: 1,
+        borderWidth: 2,
     },
 });

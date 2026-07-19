@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, FlatList, Text, TextInput } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, StyleSheet, TouchableOpacity, FlatList, Text, TextInput, ActivityIndicator } from "react-native";
 import MapView from 'react-native-maps';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from "@/theme";
@@ -7,200 +7,30 @@ import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralCo
 import BaseComponent from "@/components/BaseComponent";
 import { Content } from "@/types";
 import useStoreLocation from "@/store/useStoreLocation";
-import { useStationStore } from "@/store/useStationStore";
+import { useStation } from "@/hooks/useStation";
 import { useStationSorting } from "../main/hooks/useStationSorting";
 import StationMap from "../main/components/StationMap";
 import StationList from "../main/components/StationList";
 import StationCard from "../main/components/StationCard";
 import { navigate } from "@/navigation/NavigationService";
 import { useTranslation } from "@/hooks/useTranslation";
-
-const makeConnector = (id: string, chargerId: string, status: string, num: number) => ({
-    id,
-    connector_number: num,
-    created_at: new Date('2024-01-01'),
-    updated_at: new Date('2024-01-01'),
-    status,
-    charger_id: chargerId,
-    max_kw: null,
-    type: null,
-});
-
-const makeCharger = (id: string, locationId: string, connectors: { id: string; status: string }[]) => ({
-    id,
-    charge_point_id: `CP-${id}`,
-    created_at: new Date('2024-01-01'),
-    firmware_version: '2.1.0',
-    ip_address: null,
-    last_heartbeat: new Date(),
-    model: 'DC Fast Charger',
-    serial_number: null,
-    status: 'AVAILABLE',
-    vendor: 'TGEVStation',
-    location: '',
-    location_id: locationId,
-    connector: connectors.map((c, i) => makeConnector(c.id, id, c.status, i + 1)),
-});
-
-const STATIC_STATIONS: Content[] = [
-    {
-        id: '1',
-        name: 'EV Fast Charge — City Center',
-        address: '123 Norodom Blvd, Phnom Penh',
-        country_code: 'KH',
-        latitude: '11.5564',
-        longitude: '104.9282',
-        status: 'AVAILABLE',
-        image: 'https://picsum.photos/seed/station1/400/300',
-        restrooms: true, wifi: true, playground: false,
-        parking_fee: true, cafe: true, shopping: false,
-        phone_number: '+855 23 123 456',
-        created_at: new Date('2024-01-01'),
-        updated_at: new Date('2024-01-01'),
-        chargers: [
-            makeCharger('c1-1', '1', [
-                { id: 'con1', status: 'AVAILABLE' },
-                { id: 'con2', status: 'AVAILABLE' },
-            ]),
-            makeCharger('c1-2', '1', [
-                { id: 'con3', status: 'CHARGING' },
-                { id: 'con4', status: 'AVAILABLE' },
-            ]),
-        ],
-    },
-    {
-        id: '2',
-        name: 'Green Power Station — BKK1',
-        address: '45 Street 278, Boeung Keng Kang',
-        country_code: 'KH',
-        latitude: '11.5480',
-        longitude: '104.9220',
-        status: 'AVAILABLE',
-        image: 'https://picsum.photos/seed/station2/400/300',
-        restrooms: true, wifi: true, playground: true,
-        parking_fee: false, cafe: false, shopping: false,
-        phone_number: '+855 23 234 567',
-        created_at: new Date('2024-01-01'),
-        updated_at: new Date('2024-01-01'),
-        chargers: [
-            makeCharger('c2-1', '2', [
-                { id: 'con5', status: 'CHARGING' },
-                { id: 'con6', status: 'CHARGING' },
-            ]),
-            makeCharger('c2-2', '2', [
-                { id: 'con7', status: 'FAULTED' },
-                { id: 'con8', status: 'CHARGING' },
-            ]),
-        ],
-    },
-    {
-        id: '3',
-        name: 'Mall EV Hub — Aeon 1',
-        address: 'AEON Mall, Sihanouk Blvd, Phnom Penh',
-        country_code: 'KH',
-        latitude: '11.5530',
-        longitude: '104.9140',
-        status: 'AVAILABLE',
-        image: 'https://picsum.photos/seed/station3/400/300',
-        restrooms: true, wifi: true, playground: true,
-        parking_fee: true, cafe: true, shopping: true,
-        phone_number: '+855 23 345 678',
-        created_at: new Date('2024-01-01'),
-        updated_at: new Date('2024-01-01'),
-        chargers: [
-            makeCharger('c3-1', '3', [
-                { id: 'con9', status: 'AVAILABLE' },
-                { id: 'con10', status: 'PREPARING' },
-            ]),
-            makeCharger('c3-2', '3', [
-                { id: 'con11', status: 'AVAILABLE' },
-                { id: 'con12', status: 'AVAILABLE' },
-            ]),
-        ],
-    },
-    {
-        id: '4',
-        name: 'Riverside Quick Charge',
-        address: 'Sisowath Quay, Riverside, Phnom Penh',
-        country_code: 'KH',
-        latitude: '11.5680',
-        longitude: '104.9310',
-        status: 'AVAILABLE',
-        image: 'https://picsum.photos/seed/station4/400/300',
-        restrooms: false, wifi: true, playground: false,
-        parking_fee: false, cafe: true, shopping: false,
-        phone_number: '+855 23 456 789',
-        created_at: new Date('2024-01-01'),
-        updated_at: new Date('2024-01-01'),
-        chargers: [
-            makeCharger('c4-1', '4', [
-                { id: 'con13', status: 'AVAILABLE' },
-                { id: 'con14', status: 'AVAILABLE' },
-            ]),
-        ],
-    },
-    {
-        id: '5',
-        name: 'Airport EV Station',
-        address: 'Phnom Penh International Airport',
-        country_code: 'KH',
-        latitude: '11.5466',
-        longitude: '104.8441',
-        status: 'AVAILABLE',
-        image: 'https://picsum.photos/seed/station5/400/300',
-        restrooms: true, wifi: true, playground: false,
-        parking_fee: true, cafe: true, shopping: true,
-        phone_number: '+855 23 567 890',
-        created_at: new Date('2024-01-01'),
-        updated_at: new Date('2024-01-01'),
-        chargers: [
-            makeCharger('c5-1', '5', [
-                { id: 'con15', status: 'CHARGING' },
-                { id: 'con16', status: 'CHARGING' },
-            ]),
-            makeCharger('c5-2', '5', [
-                { id: 'con17', status: 'AVAILABLE' },
-                { id: 'con18', status: 'FAULTED' },
-            ]),
-        ],
-    },
-    {
-        id: '6',
-        name: 'Sen Sok Supercharge',
-        address: 'AEON Mall 2, Sen Sok, Phnom Penh',
-        country_code: 'KH',
-        latitude: '11.5900',
-        longitude: '104.8960',
-        status: 'AVAILABLE',
-        image: 'https://picsum.photos/seed/station6/400/300',
-        restrooms: true, wifi: true, playground: true,
-        parking_fee: true, cafe: true, shopping: true,
-        phone_number: '+855 23 678 901',
-        created_at: new Date('2024-01-01'),
-        updated_at: new Date('2024-01-01'),
-        chargers: [
-            makeCharger('c6-1', '6', [
-                { id: 'con19', status: 'AVAILABLE' },
-                { id: 'con20', status: 'AVAILABLE' },
-            ]),
-            makeCharger('c6-2', '6', [
-                { id: 'con21', status: 'PREPARING' },
-                { id: 'con22', status: 'AVAILABLE' },
-            ]),
-        ],
-    },
-];
+import { useStationStore } from "@/store/useStationStore";
 
 const ListStationScreen = () => {
     const mapRef = useRef<MapView>(null!);
     const { currentLocation } = useStoreLocation();
+    const { getStation, stationData, isLoading } = useStation();
     const { setSelectedStation, selectedStation } = useStationStore();
     const { t } = useTranslation();
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [searchQuery, setSearchQuery] = useState('');
 
+    useEffect(() => {
+        getStation();
+    }, []);
+
     const sortedStations = useStationSorting({
-        stations: STATIC_STATIONS,
+        stations: stationData || [],
         currentLocation,
     });
 
@@ -250,6 +80,16 @@ const ListStationScreen = () => {
             }}
         />
     ), [currentLocation, handleStationPress, selectedStation]);
+
+    if (isLoading) {
+        return (
+            <BaseComponent isBack={true} title={t('common.findStation')}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={Colors.mainColor} />
+                </View>
+            </BaseComponent>
+        );
+    }
 
     return (
         <BaseComponent isBack={true} title={t('common.findStation')}>
@@ -345,6 +185,12 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F8FAFC',
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F8FAFC',
+    },
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -368,6 +214,7 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
         padding: 0,
+        height: 30,
     },
     countRow: {
         flexDirection: 'row',

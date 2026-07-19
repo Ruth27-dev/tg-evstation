@@ -31,10 +31,13 @@
     "flash" : "ភ្លើង",
     "rescan" : "ស្កេនម្តងទៀត",
     "notAvailable": "មិនមាន",
+    "help": "ជំនួយ",
     "listView": "បញ្ជី",
     "mapView": "ផែនទី",
     "searchStation": "ស្វែងរកស្ថានីយ...",
-    "stationsFound": "ស្ថានីយរកឃើញ"
+    "stationsFound": "ស្ថានីយរកឃើញ",
+    "searchLocation": "ស្វែងរកទីតាំង...",
+    "approx": "ប្រហែល"
     },
   "auth": {
     "login": "ចូលប្រើ",
@@ -130,6 +133,14 @@
     "started": "ចាប់ផ្តើម",
     "completed": "បញ្ចប់",
     "sessionId": "លេខសម្គាល់វគ្គ",
+    "billed": "បានគិតប្រាក់",
+    "forYourSession": "សម្រាប់វគ្គបញ្ចូលថ្មរបស់អ្នក",
+    "sessionStarted": "វគ្គចាប់ផ្តើម",
+    "sessionEnded": "វគ្គបញ្ចប់",
+    "durationOfCharging": "រយៈពេលបញ្ចូលថ្ម",
+    "billingDetails": "ព័ត៌មានលម្អិតវិក្កយបត្រ",
+    "unitConsumed": "ឯកតាប្រើប្រាស់",
+    "youPaid": "អ្នកបានបង់ប្រាក់",
     "preparingTitle": "កំពុងរៀបចំវគ្គបញ្ចូលថ្ម",
     "preparingSubtitle": "សូមរង់ចាំ ខណៈពេលយើងកំពុងរៀបចំស្ថានីយ៍បញ្ចូលថ្មរបស់អ្នក...",
     "scanQRCode": "ស្កេនកូដ QR",
@@ -151,6 +162,7 @@
     "connectors": "ឧបករណ៍ភ្ជាប់",
     "available": "ទំនេរ",
     "occupied": "កំពុងប្រើ",
+    "public": "សាធារណៈ",
     "unavailable": "មិនអាចប្រើបាន",
     "availableCount": "{{available}}/{{total}} មាន",
     "navigate": "នាំផ្លូវ",
@@ -170,7 +182,11 @@
     "getDirections": "ទទួលបានទិសដៅ",
     "distance": "ចម្ងាយ",
     "openNow": "បើកឥឡូវនេះ",
-    "closed": "បិទ"
+    "closed": "បិទ",
+    "book": "កក់",
+    "nearYou": "នៅជិតអ្នក",
+    "seeAll": "មើលទាំងអស់",
+    "viewDetails": "មើលព័ត៌មានលម្អិត"
   },
   "profile": {
     "profile": "ប្រវត្តិរូប",
@@ -267,6 +283,11 @@
     "permissionDenied": "ការអនុញ្ញាតត្រូវបានបដិសេធ",
     "cameraPermission": "ត្រូវការការអនុញ្ញាតកាមេរ៉ាដើម្បីស្កេនកូដ QR"
   },
+  "location": {
+    "enableLocationTitle": "បើកទីតាំង",
+    "enableLocationMessage": "យើងត្រូវការចូលប្រើទីតាំងរបស់អ្នក ដើម្បីស្វែងរកស្ថានីយ៍សាកថ្មនៅជុំវិញអ្នក។",
+    "enable": "បើកទីតាំង"
+  },
   "header": {
     "changeLanguage": "ផ្លាស់ប្តូរភាសា"
   },
@@ -321,6 +342,8 @@
   },
   "connector": {
     "qrScanner": "ម៉ាស៊ីនស្កេន QR",
-    "initializingCamera": "កំពុងចាប់ផ្តើមកាមេរ៉ា..."
+    "initializingCamera": "កំពុងចាប់ផ្តើមកាមេរ៉ា...",
+    "scanning": "កំពុងស្កេន",
+    "scanInstruction": "ស្កេនកូដ QR នៅលើម៉ាស៊ីនសាក ឬបញ្ចូលលេខសម្គាល់ដោយផ្ទាល់"
   }
 }

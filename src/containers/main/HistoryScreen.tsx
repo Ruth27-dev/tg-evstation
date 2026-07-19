@@ -127,7 +127,7 @@ const HistoryScreen = () => {
                             <View style={styles.statIcon}>
                                 <MaterialCommunityIcons name="lightning-bolt" size={20} color={Colors.mainColor} />
                             </View>
-                            <Text style={styles.statValue}>{item.energy_kwh.toFixed(2)} kWh</Text>
+                            <Text style={styles.statValue}>{item.energy_kwh?.toFixed(2)} kWh</Text>
                             <TextTranslation textKey="charging.energy" fontSize={FontSize.small - 1} color="#9CA3AF" />
                         </View>
 
@@ -147,7 +147,7 @@ const HistoryScreen = () => {
                             <View style={styles.statIcon}>
                                 <MaterialCommunityIcons name="cash" size={20} color={Colors.mainColor} />
                             </View>
-                            <Text style={styles.statValue}>${item.price_so_far.toFixed(2)}</Text>
+                            <Text style={styles.statValue}>${item.price_so_far?.toFixed(2)}</Text>
                             <TextTranslation textKey="charging.cost" fontSize={FontSize.small - 1} color="#9CA3AF" />
                         </View>
 

@@ -31,10 +31,13 @@
     "flash" : "Flash",
     "rescan" : "Rescan",
     "notAvailable": "N/A",
+    "help": "Help",
     "listView": "List",
     "mapView": "Map",
     "searchStation": "Search stations...",
-    "stationsFound": "stations found"
+    "stationsFound": "stations found",
+    "searchLocation": "Search location...",
+    "approx": "Approx."
   },
   "auth": {
     "login": "Login",
@@ -130,6 +133,14 @@
     "started": "Started",
     "completed": "Completed",
     "sessionId": "Session ID",
+    "billed": "Billed",
+    "forYourSession": "For your charging session",
+    "sessionStarted": "Session started",
+    "sessionEnded": "Session ended",
+    "durationOfCharging": "Duration of charging",
+    "billingDetails": "Billing details",
+    "unitConsumed": "Unit consumed",
+    "youPaid": "You paid",
     "preparingTitle": "Preparing Charging Session",
     "preparingSubtitle": "Please wait while we initialize your charging station...",
     "scanQRCode": "Scan QR Code",
@@ -151,6 +162,7 @@
     "connectors": "Connectors",
     "available": "Available",
     "occupied": "Occupied",
+    "public": "Public",
     "unavailable": "Unavailable",
     "availableCount": "{{available}}/{{total}} Available",
     "navigate": "Navigate",
@@ -170,7 +182,11 @@
     "getDirections": "Get Directions",
     "distance": "Distance",
     "openNow": "Open Now",
-    "closed": "Closed"
+    "closed": "Closed",
+    "book": "Book",
+    "nearYou": "Near You",
+    "seeAll": "See All",
+    "viewDetails": "View Details"
   },
   "profile": {
     "profile": "Profile",
@@ -267,6 +283,11 @@
     "permissionDenied": "Permission denied",
     "cameraPermission": "Camera permission is required to scan QR codes"
   },
+  "location": {
+    "enableLocationTitle": "Enable Location",
+    "enableLocationMessage": "We need access to your location to find EV charging stations around you.",
+    "enable": "Enable Location"
+  },
   "header": {
     "changeLanguage": "Change Language"
   },
@@ -321,6 +342,8 @@
   },
   "connector": {
     "qrScanner": "QR Code Scanner",
-    "initializingCamera": "Initializing camera..."
+    "initializingCamera": "Initializing camera...",
+    "scanning": "Scanning",
+    "scanInstruction": "Scan the QR code on the charger or enter its serial number manually"
   }
 }

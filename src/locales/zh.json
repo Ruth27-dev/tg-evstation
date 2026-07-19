@@ -31,10 +31,13 @@
     "flash" : "闪光灯",
     "rescan" : "重新扫描",
     "notAvailable": "无",
+    "help": "帮助",
     "listView": "列表",
     "mapView": "地图",
     "searchStation": "搜索充电站...",
-    "stationsFound": "个充电站"
+    "stationsFound": "个充电站",
+    "searchLocation": "搜索位置...",
+    "approx": "大约"
   },
   "auth": {
     "login": "登录",
@@ -130,6 +133,14 @@
     "started": "开始",
     "completed": "完成",
     "sessionId": "会话ID",
+    "billed": "已计费",
+    "forYourSession": "您的充电会话费用",
+    "sessionStarted": "会话开始",
+    "sessionEnded": "会话结束",
+    "durationOfCharging": "充电时长",
+    "billingDetails": "账单详情",
+    "unitConsumed": "消耗电量",
+    "youPaid": "已支付",
     "preparingTitle": "正在准备充电会话",
     "preparingSubtitle": "我们正在初始化您的充电站，请稍候...",
     "scanQRCode": "扫描二维码",
@@ -151,6 +162,7 @@
     "connectors": "连接器",
     "available": "可用",
     "occupied": "占用",
+    "public": "公共",
     "unavailable": "不可用",
     "availableCount": "{{available}}/{{total}} 可用",
     "navigate": "导航",
@@ -170,7 +182,11 @@
     "getDirections": "获取路线",
     "distance": "距离",
     "openNow": "营业中",
-    "closed": "已关闭"
+    "closed": "已关闭",
+    "book": "预订",
+    "nearYou": "附近",
+    "seeAll": "查看全部",
+    "viewDetails": "查看详情"
   },
   "profile": {
     "profile": "个人资料",
@@ -267,6 +283,11 @@
     "permissionDenied": "权限被拒绝",
     "cameraPermission": "需要相机权限才能扫描二维码"
   },
+  "location": {
+    "enableLocationTitle": "启用定位",
+    "enableLocationMessage": "我们需要访问您的位置信息，以查找您附近的电动汽车充电站。",
+    "enable": "启用定位"
+  },
   "header": {
     "changeLanguage": "更改语言"
   },
@@ -321,6 +342,8 @@
   },
   "connector": {
     "qrScanner": "二维码扫描器",
-    "initializingCamera": "正在初始化相机..."
+    "initializingCamera": "正在初始化相机...",
+    "scanning": "扫描中",
+    "scanInstruction": "扫描充电桩上的二维码，或手动输入序列号"
   }
 }

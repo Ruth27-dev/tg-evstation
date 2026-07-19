@@ -38,7 +38,7 @@ function App() {
 
   useEffect(() => {
     const initializeApp = async () => {
-      DeviceRegistrationService.setApiBaseUrl('https://tgevstation.com');
+      DeviceRegistrationService.setApiBaseUrl('https://evcharger.it.com');
       await FirebaseMessagingService.initialize();
       // Subscribe all installed users to announcement topic
       await FirebaseMessagingService.subscribeToTopic('announcement');
@@ -64,7 +64,7 @@ function App() {
   const linking = {
     prefixes: [
       "myapp://",
-      "https://tgevstation.com",
+      "https://evcharger.it.com",
     ],
     config: {
       screens: {

@@ -123,16 +123,25 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: 0,
-        width: '100%',
+        bottom: 10,
         backgroundColor: '#fff',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        margin: 20,
+        borderRadius: 40,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     iconViews: {
         flex: 1,
-        height: Platform.OS === 'ios' ? 80 : 70,
+        height: Platform.OS === 'ios' ? 70 : 60,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -144,33 +153,8 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnBold,
     },
     iconButton: {
-        paddingBottom: 10,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    badge: {
-        position: 'absolute',
-        top: -10,
-        right: 5,
-        backgroundColor: '#10b981',
-        borderRadius: 12,
-        width: 24,
-        height: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    badgeDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: '#fff',
     },
 });
 

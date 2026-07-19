@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { Colors } from '@/theme';
+import { Colors, Radius, Shadows, Spacing } from '@/theme';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -69,7 +69,7 @@ const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ route }) =>
                         <Text style={styles.detailsTitle}>{t('wallet.transactionDetails')}</Text>
                         <View style={styles.detailRow}>
                             <View style={styles.detailLeft}>
-                                <MaterialCommunityIcons name="receipt" size={20} color="#6B7280" />
+                                <MaterialCommunityIcons name="receipt" size={20} color={Colors.textMuted} />
                                 <Text style={styles.detailLabel}>{t('wallet.transactionId')}</Text>
                             </View>
                             <Text style={styles.detailValue}>{transactionId}</Text>
@@ -79,7 +79,7 @@ const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ route }) =>
 
                         <View style={styles.detailRow}>
                             <View style={styles.detailLeft}>
-                                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+                                <Ionicons name="calendar-outline" size={20} color={Colors.textMuted} />
                                 <Text style={styles.detailLabel}>{t('wallet.transactionDate')}</Text>
                             </View>
                             <Text style={styles.detailValue}>{moment(date).format('MMMM DD, YYYY')}</Text>
@@ -107,18 +107,6 @@ const styles = StyleSheet.create({
         width: 250,
         height: 250,
     },
-    successIconContainer: {
-        alignItems: 'center',
-        marginBottom: 32,
-    },
-    successCircle: {
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-        backgroundColor: Colors.mainColor,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     contentContainer: {
         flex: 1,
     },
@@ -132,24 +120,24 @@ const styles = StyleSheet.create({
     successSubtitle: {
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#6B7280',
+        color: Colors.textMuted,
         textAlign: 'center',
         marginBottom: 40,
         lineHeight: 24,
     },
     amountContainer: {
-        backgroundColor: '#F0F9FF',
-        padding: 5,
-        borderRadius: 10,
+        backgroundColor: Colors.surfaceTint,
+        padding: Spacing.xl,
+        borderRadius: Radius.md,
         alignItems: 'center',
         marginBottom: safePadding,
         borderWidth: 1,
-        borderColor: '#DBEAFE',
+        borderColor: Colors.borderTint,
     },
     amountLabel: {
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#6B7280',
+        color: Colors.textMuted,
         marginBottom: 8,
     },
     amount: {
@@ -159,12 +147,12 @@ const styles = StyleSheet.create({
     },
     detailsCard: {
         backgroundColor: Colors.white,
-        borderRadius: 10,
+        borderRadius: Radius.md,
         padding: 20,
         marginBottom: 32,
-        shadowColor: '#000',
         borderWidth: 1,
-        borderColor: '#F3F4F6',
+        borderColor: Colors.borderMuted,
+        ...Shadows.card,
     },
     detailsTitle: {
         fontSize: FontSize.large,
@@ -186,7 +174,7 @@ const styles = StyleSheet.create({
     detailLabel: {
         fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#6B7280',
+        color: Colors.textMuted,
         marginLeft: 12,
     },
     detailValue: {
@@ -198,43 +186,7 @@ const styles = StyleSheet.create({
     },
     divider: {
         height: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: Colors.borderMuted,
         marginVertical: 4,
-    },
-    buttonContainer: {
-        gap: 12,
-        paddingBottom: 20,
-    },
-    primaryButton: {
-        backgroundColor: Colors.mainColor,
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        shadowColor: Colors.mainColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    primaryButtonText: {
-        fontSize: FontSize.large,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
-    },
-    secondaryButton: {
-        backgroundColor: Colors.white,
-        paddingVertical: 16,
-        borderRadius: 10,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 8,
-        borderWidth: 2,
-        borderColor: Colors.mainColor,
-    },
-    secondaryButtonText: {
-        fontSize: FontSize.large,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
     },
 });

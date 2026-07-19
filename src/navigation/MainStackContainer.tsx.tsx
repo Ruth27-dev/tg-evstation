@@ -94,7 +94,7 @@ const BottomTabContainer = () => {
       initialRouteName={'Home'}
       tabBar={(props: any) => <CustomBottomMenu {...props} />}
       screenOptions={{headerShown: false}}>
-      <Tab.Screen name={'Home'} component={HomeScreen}/>
+      <Tab.Screen name={'Home'} component={MapScreen}/>
       <Tab.Screen name={'History'} component={HistoryScreen} />
       <Tab.Screen name={'Connector'} component={ConnectorScreen} />
       <Tab.Screen name={'Wallet'} component={WalletScreen} />

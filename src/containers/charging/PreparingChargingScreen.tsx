@@ -1,15 +1,33 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import Lottie from 'lottie-react-native';
 import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '@/hooks/useTranslation';
 
+const DOT_STAGGER_MS = 200;
+
 const PreparingChargingScreen = () => {
     const insets = useSafeAreaInsets();
     const { t } = useTranslation();
-    
+    const dotAnims = useRef([0, 1, 2].map(() => new Animated.Value(0))).current;
+
+    useEffect(() => {
+        const loops = dotAnims.map((anim, index) =>
+            Animated.loop(
+                Animated.sequence([
+                    Animated.delay(index * DOT_STAGGER_MS),
+                    Animated.timing(anim, { toValue: 1, duration: 400, useNativeDriver: false }),
+                    Animated.timing(anim, { toValue: 0, duration: 400, useNativeDriver: false }),
+                    Animated.delay((dotAnims.length - 1 - index) * DOT_STAGGER_MS),
+                ])
+            )
+        );
+        loops.forEach(loop => loop.start());
+        return () => loops.forEach(loop => loop.stop());
+    }, [dotAnims]);
+
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             <View style={styles.content}>
@@ -21,11 +39,22 @@ const PreparingChargingScreen = () => {
                 />
                 <Text style={styles.title}>{t('charging.preparingTitle')}</Text>
                 <Text style={styles.subtitle}>{t('charging.preparingSubtitle')}</Text>
-                
+
                 <View style={styles.dotsContainer}>
-                    <View style={[styles.dot, styles.dotActive]} />
-                    <View style={[styles.dot, styles.dotActive]} />
-                    <View style={[styles.dot, styles.dotActive]} />
+                    {dotAnims.map((anim, index) => (
+                        <Animated.View
+                            key={index}
+                            style={[
+                                styles.dot,
+                                {
+                                    backgroundColor: anim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [Colors.trackColor, Colors.secondaryColor],
+                                    }),
+                                },
+                            ]}
+                        />
+                    ))}
                 </View>
             </View>
         </View>
@@ -74,9 +103,6 @@ const styles = StyleSheet.create({
         width: 10,
         height: 10,
         borderRadius: 5,
-        backgroundColor: '#e0e0e0',
-    },
-    dotActive: {
-        backgroundColor: Colors.secondaryColor,
+        backgroundColor: Colors.trackColor,
     },
 });

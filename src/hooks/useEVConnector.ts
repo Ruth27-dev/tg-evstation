@@ -72,9 +72,9 @@ export const useEVConnector = () => {
                 }
             }
 
-            if (!ocppTransactionId) {
-                throw new Error("Missing ocpp_transaction_id");
-            }
+            // if (!ocppTransactionId) {
+            //     throw new Error("Missing ocpp_transaction_id");
+            // }
 
             const data = {
                 "ocpp_transaction_id": ocppTransactionId,
@@ -87,6 +87,9 @@ export const useEVConnector = () => {
                 clearEvConnect();
                 clearSessionDetail();
                 return response;
+            }else{
+                clearEvConnect();
+                clearSessionDetail(); 
             }
             throw new Error(response?.data?.message || 'Stop request failed');
         } catch (error) {

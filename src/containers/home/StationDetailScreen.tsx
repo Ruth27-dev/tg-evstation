@@ -11,9 +11,12 @@ import { navigate } from "@/navigation/NavigationService";
 import { useTranslation } from "@/hooks/useTranslation";
 
 
-const StationDetailScreen = ({ route: _route }: any) => {
-    const { selectedStation, clearStation } = useStationStore();
+const StationDetailScreen = ({ route }: any) => {
+    const stationId = route?.params?.stationId;
+    const { stationData, selectedStation: storeSelectedStation, clearStation } = useStationStore();
     const { t, tVar } = useTranslation();
+
+    const selectedStation = stationData?.find((s) => s.id === stationId) || storeSelectedStation;
 
     useEffect(() => {
         return () => {
@@ -60,10 +63,25 @@ const StationDetailScreen = ({ route: _route }: any) => {
         }
     };
 
+    const getConnectorStatusColor = (status: string) => {
+        switch (status) {
+            case 'AVAILABLE':
+                return Colors.secondaryColor;
+            case 'CHARGING':
+                return '#3B82F6';
+            case 'PREPARING':
+                return '#F59E0B';
+            case 'FAULTED':
+                return '#EF4444';
+            default:
+                return '#9CA3AF';
+        }
+    };
+
     const renderChargerType = (charger: any) => {
         const maxKw = charger.connectors.find((c:any) => c.max_kw)?.max_kw || 0;
         const chargerType = charger.connectors.find((c:any) => c.type)?.type || 'Unknown';
-        
+
         return (
             <View key={charger.id} style={styles.chargerCard}>
                 <View style={styles.chargerHeader}>
@@ -100,6 +118,22 @@ const StationDetailScreen = ({ route: _route }: any) => {
                             </Text>
                         </View>
                     </View>
+                </View>
+
+                <View style={styles.connectorList}>
+                    {charger.connectors.map((conn: Connector) => (
+                        <View key={conn.id} style={styles.connectorRow}>
+                            <View style={[styles.connectorDot, { backgroundColor: getConnectorStatusColor(conn.status) }]} />
+                            <Text style={styles.connectorLabel}>
+                                {t('station.connectors')} {conn.connector_number}
+                                {conn.type ? ` • ${conn.type}` : ''}
+                                {conn.max_kw ? ` • ${conn.max_kw} kW` : ''}
+                            </Text>
+                            <Text style={[styles.connectorStatusText, { color: getConnectorStatusColor(conn.status) }]}>
+                                {conn.status}
+                            </Text>
+                        </View>
+                    ))}
                 </View>
             </View>
         );
@@ -177,7 +211,7 @@ const StationDetailScreen = ({ route: _route }: any) => {
 
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('station.availableChargers')}</Text>
-                        {processedChargers.map(renderChargerType)}
+                        {processedChargers?.map(renderChargerType)}
                     </View>
 
                     <TouchableOpacity style={styles.startButton} activeOpacity={0.8} onPress={()=>navigate('Connector')}>
@@ -371,6 +405,34 @@ const styles = StyleSheet.create({
         fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
+    },
+    connectorList: {
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        gap: 8,
+    },
+    connectorRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    connectorDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+    connectorLabel: {
+        flex: 1,
+        fontSize: FontSize.small,
+        fontFamily: CustomFontConstant.EnRegular,
+        color: '#6B7280',
+    },
+    connectorStatusText: {
+        fontSize: FontSize.small - 1,
+        fontFamily: CustomFontConstant.EnBold,
+        textTransform: 'uppercase',
     },
     amenitiesContainer: {
         flexDirection: 'row',

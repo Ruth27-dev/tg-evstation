@@ -1,7 +1,7 @@
 import BaseComponent from "@/components/BaseComponent";
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Image } from "react-native";
-import { Colors } from "@/theme";
+import { Colors, Shadows } from "@/theme";
 import { CustomFontConstant, FontSize, Images, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTopUp } from "@/hooks/useTopUp";
@@ -42,13 +42,13 @@ const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = ({ route }) => {
             description: 'Scan to pay with any banking app',
             type: 'abapay_khqr_deeplink',
         },
-        { 
-            id: '2', 
-            name: 'Credit/Debit Card', 
-            icon: 'card-outline', 
-            description: 'Scan to pay with any banking app',
-            type: 'cards',
-        }
+        // { 
+        //     id: '2', 
+        //     name: 'Credit/Debit Card', 
+        //     icon: 'card-outline', 
+        //     description: 'Scan to pay with any banking app',
+        //     type: 'cards',
+        // }
     ];
 
     const handleContinue = async () => {
@@ -143,11 +143,6 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 20,
     },
-    amountValue: {
-        fontSize: FontSize.large + 16,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
-    },
     section: {
         marginTop: 24,
         paddingHorizontal: safePadding,
@@ -161,11 +156,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         backgroundColor: Colors.white,
         borderRadius: 10,
-        padding: 10
+        padding: 10,
+        borderWidth: 2,
+        borderColor: 'transparent',
     },
     methodCardSelected: {
         borderColor: Colors.mainColor,
-        shadowColor: Colors.mainColor,
+        ...Shadows.card,
     },
     methodLeft: {
         flexDirection: 'row',
@@ -179,7 +176,7 @@ const styles = StyleSheet.create({
     methodName: {
         fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnBold,
-        color: '#081B37',
+        color: Colors.darkColor,
         marginBottom: 4,
     },
     methodNameSelected: {
@@ -188,38 +185,13 @@ const styles = StyleSheet.create({
     methodDescription: {
         fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnRegular,
-        color: '#697386',
+        color: Colors.textMuted,
     },
     methodDescriptionDisabled: {
         color: Colors.gray,
     },
     checkIcon: {
         marginLeft: 8,
-    },
-    // Terms Section
-    termsSection: {
-        marginTop: 24,
-        paddingHorizontal: safePadding,
-        alignItems: 'center',
-    },
-    termsContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 4,
-    },
-    termsText: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnRegular,
-        color: '#6B7280',
-        textAlign: 'center',
-    },
-    termsLink: {
-        fontSize: FontSize.small,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.mainColor,
-        textDecorationLine: 'underline',
-        textAlign: 'center',
     },
     // Bottom Action
     bottomContainer: {
@@ -232,31 +204,7 @@ const styles = StyleSheet.create({
         paddingTop: 16,
         paddingBottom: 32,
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-    continueButton: {
-        flexDirection: 'row',
-        backgroundColor: Colors.mainColor,
-        borderRadius: 12,
-        paddingVertical: 18,
-        paddingHorizontal: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 12,
-        shadowColor: Colors.mainColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    continueButtonText: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
+        borderTopColor: Colors.borderMuted,
+        ...Shadows.barTop,
     },
 });

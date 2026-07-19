@@ -1,7 +1,8 @@
 import BaseComponent from "@/components/BaseComponent";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, AppState, AppStateStatus } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, useWindowDimensions, AppState, AppStateStatus } from "react-native";
 import { Colors } from "@/theme";
+import Images from "@/assets/images";
 import { CustomFontConstant, FontSize } from "@/constants/GeneralConstants";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,8 +19,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useIsFocused } from "@react-navigation/native";
 
 const ConnectorScreen = () => {
-    const { width } = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
     const scanFrameSize = useMemo(() => width * 0.8, [width]);
+    const frameLeft = useMemo(() => (width - scanFrameSize) / 2, [width, scanFrameSize]);
+    const frameTop = useMemo(() => (height - scanFrameSize) / 2, [height, scanFrameSize]);
     const { hasPermission, requestPermission } = useCameraPermission();
     const device = useCameraDevice('back', {
         physicalDevices: ['ultra-wide-angle-camera', 'wide-angle-camera', 'telephoto-camera']
@@ -106,8 +109,8 @@ const ConnectorScreen = () => {
         codeTypes: ["code-128", "code-39", "code-93", "ean-13", "ean-8", "itf", "upc-e", "qr", "pdf-417", "aztec", "data-matrix"],
         onCodeScanned: async (codes) => {
             if (codes[0].value && !scannedCode) {
-                setScannedCode(codes[0].value);
-                checkBalanceAndStartCharging(codes[0].value);
+                setScannedCode(codes[0]?.value);
+                checkBalanceAndStartCharging(codes[0]?.value);
             }
         }
     })
@@ -122,46 +125,55 @@ const ConnectorScreen = () => {
     return (
         <BaseComponent isBack={false} hideHeader>
             <View style={styles.container}>
-                {canUseCamera ? (
-                    <Camera
-                        ref={camera}
-                        style={styles.camera}
-                        device={device}
-                        isActive={isCameraActive}
-                        torch={flash ? 'on' : 'off'}
-                        codeScanner={codeScanner}
+                <ImageBackground
+                    source={Images.connectorScanBackground}
+                    style={styles.backgroundImage}
+                    resizeMode="cover"
+                />
+
+                <View style={[styles.cameraFrameWrapper, { top: frameTop, left: frameLeft, width: scanFrameSize, height: scanFrameSize }]}>
+                    {canUseCamera ? (
+                        <Camera
+                            ref={camera}
+                            style={styles.cameraFill}
+                            device={device}
+                            isActive={isCameraActive}
+                            torch={flash ? 'on' : 'off'}
+                            codeScanner={codeScanner}
+                        />
+                    ) : (
+                        <View style={[styles.cameraFill, styles.placeholderBackground]}>
+                            <Ionicons name="camera-outline" size={32} color={Colors.white} style={styles.placeholderIcon} />
+                            <Text style={styles.placeholderText}>{placeholderMessage}</Text>
+                        </View>
+                    )}
+                </View>
+
+                <View style={[styles.scanGuide, { top: frameTop, left: frameLeft, width: scanFrameSize, height: scanFrameSize }]}>
+                    <View style={[styles.corner, styles.topLeftCorner]} />
+                    <View style={[styles.corner, styles.topRightCorner]} />
+                    <View style={[styles.corner, styles.bottomLeftCorner]} />
+                    <View style={[styles.corner, styles.bottomRightCorner]} />
+                </View>
+
+                <View style={[styles.instructionWrapper, { top: frameTop + scanFrameSize + 24 }]}>
+                    <TextTranslation
+                        textKey="common.positionQRCodeInCenter"
+                        fontSize={FontSize.medium}
+                        color={Colors.white}
                     />
-                ) : (
-                    <View style={[styles.camera, styles.placeholderBackground]}>
-                        <Text style={styles.placeholderText}>{placeholderMessage}</Text>
-                    </View>
-                )}
+                </View>
+
                 <View style={[styles.overlay, { paddingTop: insets.top, paddingBottom: insets.bottom + 32 }]}>
                     <View style={styles.topSection}>
                         <Text style={styles.screenTitle}>{t('connector.qrScanner')}</Text>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.closeButton}
                             onPress={goBack}
                             activeOpacity={0.8}
                         >
                             <Ionicons name="close" size={22} color={Colors.white} />
                         </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.centerSection}>
-                        <View style={[styles.scanGuide, { width: scanFrameSize, height: scanFrameSize }]}>
-                            <View style={[styles.corner, styles.topLeftCorner]} />
-                            <View style={[styles.corner, styles.topRightCorner]} />
-                            <View style={[styles.corner, styles.bottomLeftCorner]} />
-                            <View style={[styles.corner, styles.bottomRightCorner]} />
-                        </View>
-                        <View style={styles.instructionWrapper}>
-                            <TextTranslation 
-                                textKey="common.positionQRCodeInCenter" 
-                                fontSize={FontSize.medium} 
-                                color={Colors.white}
-                            />
-                        </View>
                     </View>
 
                     <View style={styles.bottomSection}>
@@ -216,7 +228,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.black,
     },
-    camera: {
+    backgroundImage: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    cameraFrameWrapper: {
+        position: 'absolute',
+        overflow: 'hidden',
+        borderRadius: 24,
+        backgroundColor: Colors.black,
+    },
+    cameraFill: {
         ...StyleSheet.absoluteFillObject,
     },
     placeholderBackground: {
@@ -224,12 +245,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: Colors.black,
     },
+    placeholderIcon: {
+        marginBottom: 10,
+        opacity: 0.8,
+    },
     placeholderText: {
-        fontSize: FontSize.medium,
+        fontSize: FontSize.small,
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.white,
         textAlign: 'center',
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
@@ -256,12 +281,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.2)',
     },
-    centerSection: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     scanGuide: {
+        position: 'absolute',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -269,8 +290,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 58,
         height: 58,
-        borderColor: '#3B82F6',
-        borderRadius: 12,
+        borderColor: Colors.scanAccent,
+        borderRadius: 14,
     },
     topLeftCorner: {
         top: 0,
@@ -301,7 +322,9 @@ const styles = StyleSheet.create({
         marginBottom:80
     },
     instructionWrapper: {
-        marginTop: 24,
+        position: 'absolute',
+        left: 0,
+        right: 0,
         alignItems: 'center',
     },
     bottomActions: {
@@ -325,7 +348,7 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,255,255,0.3)',
     },
     actionButtonActive: {
-        backgroundColor: 'rgba(59,130,246,0.85)',
+        backgroundColor: `${Colors.scanAccent}D9`,
         borderColor: 'transparent',
     },
 });

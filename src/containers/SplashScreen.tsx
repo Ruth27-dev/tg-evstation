@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import { Colors } from '@/theme';
 import { reset } from '@/navigation/NavigationService';
 import { useAuth } from '@/context/AuthContext';
 import AppLogo from '@/assets/logo/logo.svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StorageKey } from '@/constants/GeneralConstants';
+import { Images, StorageKey } from '@/constants/GeneralConstants';
 
 const hasActiveSessionInStorage = async (): Promise<boolean> => {
     try {
@@ -55,7 +55,7 @@ const SplashScreen = () => {
     }, [isAuthenticated]);
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center',backgroundColor:Colors.white }}>
-            <AppLogo width={300} height={300} />
+            <Image source={Images.logo} style={{width:200,height:200}} />
         </View>
     )
 }

@@ -209,7 +209,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       return;
     }
 
-    const url = `wss://tgevstation.com/ws/mobile?token=${accessToken}`; 
+    const url = `wss://evcharger.it.com/ws/mobile?token=${accessToken}`; 
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
@@ -226,10 +226,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
 		try {
 			const data: WSMessage = JSON.parse(event.data);
-			// console.log("PARSED:", data);
+			console.log("PARSED:", data);
 
 			setLastMessage(data);
-
+      console.log("Received WebSocket message:", data);
 			if (data.event_type === "WALLET_TOPUP_SUCCESS") {
         getMeWalletRef.current();
         getMeTransactionsRef.current(1);
@@ -255,10 +255,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         const sessionId =
           payload?.session_id ??
           payload?.charging_session_id ??
-          payload;
+          evConnectRef.current?.session_id ??
+          null;
         clearEvConnectRef.current();
         clearSessionDetailRef.current();
-        navigate("ChargingSuccess", { sessionId: sessionId });
+        navigate("ChargingSuccess", { sessionId, sessionData: payload });
       }
       // else if( data.event_type === "METER_CHANGE") {
       //   if(!isEmpty(evConnect?.session_id)){

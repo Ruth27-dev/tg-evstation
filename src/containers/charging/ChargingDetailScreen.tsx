@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useMemo, ReactNode } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, AppState } from 'react-native';
 import BaseComponent from '@/components/BaseComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Svg, { Circle } from 'react-native-svg';
-import Lottie from 'lottie-react-native';
-import { Colors } from '@/theme';
+import { Colors, Radius, Shadows } from '@/theme';
 import { CustomFontConstant, FontSize, safePadding } from '@/constants/GeneralConstants';
 import { useEVConnector } from '@/hooks/useEVConnector';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useWebSocket } from '@/context/WebSocketProvider';
+import CustomButton from '@/components/CustomButton';
 
 const CIRCLE_SIZE = 220;
 const STROKE_WIDTH = 14;
@@ -102,8 +102,13 @@ const ChargingDetailScreen = () => {
     const batteryPercentage = sessionDetail?.current_soc ?? 0;
     const energyConsumed = sessionDetail?.energy_kwh ?? 0;
     const currentCost = sessionDetail?.price_so_far ?? 0;
+    const averagePowerKw = sessionDetail?.average_power_kw ?? 0;
+    const currentPowerKw = sessionDetail?.current_power_kw ?? 0;
+
+
     const chargingMinutesValue = typeof displayChargingMinutes === 'number' ? displayChargingMinutes : '--';
     const minutesRemainingValue = typeof displayMinutesRemaining === 'number' ? displayMinutesRemaining : '--';
+
 
     const strokeDashoffset = useMemo(() =>
         CIRCUMFERENCE - (CIRCUMFERENCE * batteryPercentage) / 100,
@@ -153,7 +158,7 @@ const ChargingDetailScreen = () => {
                     cx={CIRCLE_SIZE / 2}
                     cy={CIRCLE_SIZE / 2}
                     r={RADIUS}
-                    stroke="#e0e0e0"
+                    stroke={Colors.trackColor}
                     strokeWidth={STROKE_WIDTH}
                     fill="none"
                 />
@@ -173,43 +178,50 @@ const ChargingDetailScreen = () => {
             </Svg>
 
             <View style={styles.percentageContainer}>
-                <Lottie
-                    source={require('@/assets/lotties/bettery.json')}
-                    autoPlay
-                    loop
-                    style={styles.chargingLottie}
-                />
+                <MaterialCommunityIcons name="lightning-bolt" size={36} color={Colors.mainColor} />
                 <Text style={styles.percentageText}>{batteryPercentage}%</Text>
                 <Text style={styles.percentageLabel}>{t('charging.batteryLevel')}</Text>
             </View>
         </View>
     ), [batteryPercentage, strokeDashoffset, t]);
 
- 
+
     const statsData = useMemo(() => ([
         {
             title: t('charging.energy'),
             value: energyConsumed.toFixed(2),
             unit: "kWh",
-            icon: <Lottie source={require('@/assets/lotties/electricity.json')} autoPlay loop style={{ width: 35, height: 35 }} />
+            icon: <MaterialCommunityIcons name="flash" size={22} color={Colors.secondaryColor} />
         },
         {
             title: t('charging.chargingTime'),
             value: chargingMinutesValue,
             unit: t('charging.minutes'),
-            icon: <Lottie source={require('@/assets/lotties/charging.json')} autoPlay loop style={{ width: 90, height: 50 }} />
+            icon: <MaterialCommunityIcons name="timer-outline" size={22} color={Colors.secondaryColor} />
         },
         {
             title: t('charging.cost'),
             value: `$${currentCost.toFixed(2)}`,
             unit: t('charging.current'),
-            icon: <MaterialCommunityIcons name="cash" size={28} color={Colors.secondaryColor} />
+            icon: <MaterialCommunityIcons name="cash" size={22} color={Colors.secondaryColor} />
+        },
+        // {
+        //     title: t('charging.estFinishTime'),
+        //     value: minutesRemainingValue,
+        //     unit: t('charging.minutes'),
+        //     icon: <MaterialCommunityIcons name="clock-outline" size={22} color={Colors.secondaryColor} />
+        // },
+        {
+            title: t('charging.averagePower'),
+            value: averagePowerKw.toFixed(2),
+            unit: t('charging.kw'),
+            icon: <MaterialCommunityIcons name="speedometer" size={22} color={Colors.secondaryColor} />
         },
         {
-            title: t('charging.estFinishTime'),
-            value: minutesRemainingValue,
-            unit: t('charging.minutes'),
-            icon: <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.secondaryColor} />
+            title: t('charging.currentPower'),
+            value: currentPowerKw.toFixed(2),
+            unit: t('charging.kw'),
+            icon: <MaterialCommunityIcons name="lightning-bolt" size={22} color={Colors.secondaryColor} />
         }
     ]), [chargingMinutesValue, currentCost, energyConsumed, minutesRemainingValue, t]);
 
@@ -218,48 +230,57 @@ const ChargingDetailScreen = () => {
             <ScrollView style={styles.scrollView}>
                 <View style={styles.progressSection}>{CircularProgress}</View>
 
-                <View style={styles.statsGrid}>
-                    {statsData.map((stat) => (
-                        <StatCard
+                <View style={styles.detailsCard}>
+                    <Text style={styles.detailsTitle}>{t('charging.chargingDetail')}</Text>
+                    {statsData.map((stat, index) => (
+                        <DetailRow
                             key={stat.title}
                             title={stat.title}
                             value={stat.value}
                             unit={stat.unit}
                             icon={stat.icon}
+                            isLast={index === statsData.length - 1}
                         />
                     ))}
                 </View>
 
-                <View style={styles.infoBanner}>
+                {/* <View style={styles.infoBanner}>
                     <Ionicons name="information-circle" size={18} color={Colors.secondaryColor} />
                     <Text style={styles.infoText}>
                         {t('charging.autoStop')}
                     </Text>
-                </View>
+                </View> */}
 
                 {/* Stop Charging */}
-                <TouchableOpacity style={styles.stopButton} onPress={handleStopCharging}>
-                    <MaterialCommunityIcons name="stop" size={24} color={Colors.white} />
-                    <Text style={styles.stopButtonText}>{t('charging.stopCharging')}</Text>
-                </TouchableOpacity>
+                <View style={styles.stopButtonWrapper}>
+                    <CustomButton
+                        buttonTitle={t('charging.stopCharging')}
+                        icon={<MaterialCommunityIcons name="stop" size={22} color={Colors.white} />}
+                        buttonColor={Colors.dangerColor}
+                        buttonHeight={56}
+                        onPress={handleStopCharging}
+                    />
+                </View>
             </ScrollView>
         </BaseComponent>
     );
 };
 
-type StatCardProps = {
+type DetailRowProps = {
     title: string;
     value: string | number;
     unit: string;
     icon: ReactNode;
+    isLast: boolean;
 };
 
-const StatCard = React.memo(({ title, value, unit, icon }: StatCardProps) => (
-    <View style={styles.statCard}>
-        {icon}
-        <Text style={styles.statLabel}>{title}</Text>
-        <Text style={styles.statValue}>{value}</Text>
-        <Text style={styles.statUnit}>{unit}</Text>
+const DetailRow = React.memo(({ title, value, unit, icon, isLast }: DetailRowProps) => (
+    <View style={[styles.detailRow, isLast && styles.detailRowLast]}>
+        <View style={styles.detailLeft}>
+            <View style={styles.detailIconWrap}>{icon}</View>
+            <Text style={styles.detailLabel}>{title}</Text>
+        </View>
+        <Text style={styles.detailValue}>{value} {unit}</Text>
     </View>
 ));
 
@@ -282,7 +303,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    chargingLottie: { width: 70, height: 70 },
     percentageText: {
         fontSize: 40,
         fontFamily: CustomFontConstant.EnBold,
@@ -294,35 +314,52 @@ const styles = StyleSheet.create({
         fontFamily: CustomFontConstant.EnRegular,
         color: Colors.mainColor,
     },
-    statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
+    detailsCard: {
+        backgroundColor: Colors.white,
+        borderRadius: Radius.lg,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         marginTop: 20,
-        gap: 12,
+        ...Shadows.card,
     },
-    statCard: {
-        backgroundColor: Colors.backGroundColor,
-        borderRadius: 16,
-        padding: 10,
-        width: '48%',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: Colors.secondaryColor,
-    },
-    statLabel: {
-        fontSize: FontSize.small,
-        color: Colors.mainColor,
-        marginTop: 8,
-    },
-    statValue: {
-        fontSize: FontSize.large + 4,
+    detailsTitle: {
+        fontSize: FontSize.medium,
         fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
-        marginTop: 4,
+        marginTop: 8,
+        marginBottom: 4,
     },
-    statUnit: {
-        fontSize: FontSize.small - 1,
+    detailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderMuted,
+    },
+    detailRowLast: {
+        borderBottomWidth: 0,
+    },
+    detailLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    detailIconWrap: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: Colors.surfaceTint,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    detailLabel: {
+        fontSize: FontSize.small,
+        color: Colors.textMuted,
+    },
+    detailValue: {
+        fontSize: FontSize.medium,
+        fontFamily: CustomFontConstant.EnBold,
         color: Colors.mainColor,
     },
     infoBanner: {
@@ -341,20 +378,9 @@ const styles = StyleSheet.create({
         color: Colors.mainColor,
         flex: 1,
     },
-    stopButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#EF4444',
-        paddingVertical: 16,
-        borderRadius: 12,
+    stopButtonWrapper: {
         marginTop: 20,
-        gap: 10,
-    },
-    stopButtonText: {
-        fontSize: FontSize.medium,
-        fontFamily: CustomFontConstant.EnBold,
-        color: Colors.white,
+        marginBottom: 20,
     },
 });
 

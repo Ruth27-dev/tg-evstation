@@ -114,7 +114,9 @@ export interface SessionDetail {
   price_so_far: number
   max_amount_cents: any
   ocpp_transaction_id: number,
-  charging_minutes: number
+  charging_minutes: number,
+  average_power_kw:number,
+  current_power_kw: number
 }
 
 export interface ContactResponse {
