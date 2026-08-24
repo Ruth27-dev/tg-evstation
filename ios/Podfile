@@ -25,7 +25,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'tgevstation' do
+target 'TANEVCharger' do
   config = use_native_modules!
   use_frameworks! :linkage => :static 
   pod 'Firebase', :modular_headers => true
@@ -49,7 +49,7 @@ target 'tgevstation' do
   pod 'react-native-maps/Google', :path => rn_maps_path
 
    setup_permissions([
-    "Permission-Camera",
+    "Camera",
     "LocationAccuracy",
     "LocationAlways",
     "LocationWhenInUse",
@@ -62,5 +62,86 @@ target 'tgevstation' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    nitro_header_search_paths = [
+      "$(inherited)",
+      "\"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspector/jsinspector_modern.framework/Headers\"",
+      "\"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspectorcdp/jsinspector_moderncdp.framework/Headers\"",
+      "\"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspectornetwork/jsinspector_modernnetwork.framework/Headers\"",
+      "\"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspectortracing/jsinspector_moderntracing.framework/Headers\"",
+      "\"${PODS_CONFIGURATION_BUILD_DIR}/glog/glog.framework/Headers\"",
+    ]
+
+    installer.pods_project.targets.each do |target|
+      next unless ["NitroModules", "NitroImage"].include?(target.name)
+
+      target.build_configurations.each do |build_config|
+        current_paths = Array(build_config.build_settings["HEADER_SEARCH_PATHS"])
+        build_config.build_settings["HEADER_SEARCH_PATHS"] = (current_paths + nitro_header_search_paths).uniq
+
+        current_swift_flags = Array(build_config.build_settings["OTHER_SWIFT_FLAGS"])
+        build_config.build_settings["OTHER_SWIFT_FLAGS"] = (current_swift_flags + ["$(inherited)"]).uniq
+      end
+    end
+
+    installer.pods_project.targets.each do |target|
+      next unless target.name == "react-native-maps"
+
+      target.build_configurations.each do |build_config|
+        current_paths = Array(build_config.build_settings["HEADER_SEARCH_PATHS"])
+        build_config.build_settings["HEADER_SEARCH_PATHS"] = (
+          current_paths + ["\"${PODS_ROOT}/../../node_modules/react-native/ReactCommon\""]
+        ).uniq
+      end
+    end
+
+    nitro_umbrella = File.join(installer.sandbox.root, "Target Support Files", "NitroModules", "NitroModules-umbrella.h")
+    if File.exist?(nitro_umbrella)
+      umbrella = File.read(nitro_umbrella)
+      [
+        '#import "CachedProp.hpp"',
+        '#import "RawPropsCompat.hpp"',
+        '#import "ReactProp.hpp"',
+        '#import "ViewComponentDescriptor.hpp"',
+        '#import "ViewPropsHolderState.hpp"',
+      ].each do |view_header|
+        umbrella.gsub!("#{view_header}\n", "")
+      end
+      File.write(nitro_umbrella, umbrella)
+    end
+
+    glog_modulemap = File.join(installer.sandbox.root, "Target Support Files", "glog", "glog.modulemap")
+    if File.exist?(glog_modulemap)
+      File.write(glog_modulemap, <<~MODULEMAP)
+        framework module glog {
+          umbrella header "glog-umbrella.h"
+
+          textual header "logging.h"
+          textual header "log_severity.h"
+          textual header "raw_logging.h"
+          textual header "stl_logging.h"
+          textual header "vlog_is_on.h"
+
+          export *
+        }
+      MODULEMAP
+    end
+  end
+
+  post_integrate do |installer|
+    installer.aggregate_targets
+      .map(&:user_project)
+      .compact
+      .uniq
+      .each do |project|
+        project.targets.each do |target|
+          target.shell_script_build_phases.each do |phase|
+            next unless phase.name == "[CP-User] [RNFB] Core Configuration"
+
+            phase.input_paths = []
+          end
+        end
+        project.save
+      end
   end
 end

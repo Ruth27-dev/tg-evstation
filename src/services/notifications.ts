@@ -1,8 +1,39 @@
-import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState, Linking, Platform } from 'react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 
 const ANDROID_CHANNEL_ID = 'tg-evstation';
+const CHARGING_DETAIL_ROUTE = 'ChargingDetail';
+const PENDING_NOTIFICATION_DEEP_LINK_KEY = '@pending_notification_deep_link';
+
+const openNotificationTarget = (data?: Record<string, unknown>) => {
+  const deepLink = typeof data?.deepLink === 'string' ? data.deepLink : undefined;
+  const screen = typeof data?.screen === 'string' ? data.screen : undefined;
+
+  if (deepLink) {
+    Linking.openURL(deepLink).catch((error) => {
+      console.warn('Failed to open notification deep link:', error);
+    });
+    return;
+  }
+
+  if (screen === CHARGING_DETAIL_ROUTE) {
+    Linking.openURL('tanevcharger://charging-detail').catch((error) => {
+      console.warn('Failed to open charging detail deep link:', error);
+    });
+  }
+};
+
+const consumePendingNotificationTarget = async () => {
+  const deepLink = await AsyncStorage.getItem(PENDING_NOTIFICATION_DEEP_LINK_KEY);
+  if (!deepLink) {
+    return;
+  }
+
+  await AsyncStorage.removeItem(PENDING_NOTIFICATION_DEEP_LINK_KEY);
+  openNotificationTarget({ deepLink });
+};
 
 export async function setupNotifications() {
   // Request runtime permissions: iOS alert/badge/sound + Android 13+
@@ -34,11 +65,26 @@ export async function setupNotifications() {
   });
 
   // Optional: handle taps while app is open
-  notifee.onForegroundEvent(({ type, detail: _detail }) => {
+  notifee.onForegroundEvent(({ type, detail }) => {
     if (type === EventType.PRESS) {
-      // e.g. navigate with detail.notification?.data
+      openNotificationTarget(detail.notification?.data);
     }
   });
+
+  const initialNotification = await notifee.getInitialNotification();
+  if (initialNotification?.pressAction && initialNotification.notification) {
+    openNotificationTarget(initialNotification.notification.data);
+  }
+
+  await consumePendingNotificationTarget();
+
+  const appStateSubscription = AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      consumePendingNotificationTarget();
+    }
+  });
+
+  return () => appStateSubscription.remove();
 }
 
 export async function displayFromRemoteMessage(rm: FirebaseMessagingTypes.RemoteMessage) {

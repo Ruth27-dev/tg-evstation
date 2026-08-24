@@ -10,11 +10,12 @@ import LottieView from 'lottie-react-native';
 import SuccessAnimation from '@/assets/lotties/success.json';
 import moment from 'moment';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useWalletStore } from '@/store/useWalletStore';
 
 interface PaymentSuccessScreenProps {
     route?: {
         params?: {
-            amount?: number;
+            amount?: number | string;
             transactionId?: string;
             date?: string;
         };
@@ -25,10 +26,16 @@ const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ route }) =>
     const lottieRef = useRef<LottieView>(null);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const { t } = useTranslation();
-    
-    const amount = route?.params?.amount || 0;
-    const transactionId = route?.params?.transactionId || t('common.notAvailable');
-    const date = route?.params?.date || new Date().toLocaleDateString();
+    const { meTransaction } = useWalletStore();
+
+    // Deep links (e.g. tanevcharger://payment-success) carry no reliable
+    // payment data, so fall back to the latest transaction already fetched
+    // into the wallet store by the WebSocket/polling handlers.
+    const latestTransaction = meTransaction && meTransaction.length > 0 ? meTransaction[0] : null;
+
+    const amount = Number(route?.params?.amount ?? latestTransaction?.amount ?? 0);
+    const transactionId = route?.params?.transactionId ?? latestTransaction?.id ?? t('common.notAvailable');
+    const date = route?.params?.date ?? latestTransaction?.created_at ?? new Date().toLocaleDateString();
 
     useEffect(() => {
         lottieRef.current?.play();

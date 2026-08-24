@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     listContent: {
-        paddingBottom: 100,
+        paddingBottom: 120,
         flexGrow: 1,
     },
     // Transaction card

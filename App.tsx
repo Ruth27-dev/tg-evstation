@@ -16,6 +16,7 @@ import Toast from 'react-native-toast-message';
 import { setupNotifications } from '@/services/notifications';
 import AppUpdateModal from '@/components/AppUpdateModal';
 import { checkForAppUpdate, AppUpdateInfo } from '@/services/appUpdate';
+import { ChargingPresenceManager } from '@/services/chargingPresence/ChargingPresenceManager';
 
 if ((Text as any).defaultProps?.allowFontScaling !== false) {
   (Text as any).defaultProps = (Text as any).defaultProps || {};
@@ -38,7 +39,7 @@ function App() {
 
   useEffect(() => {
     const initializeApp = async () => {
-      DeviceRegistrationService.setApiBaseUrl('https://evcharger.it.com');
+      DeviceRegistrationService.setApiBaseUrl('http://evcharger.it.com');
       await FirebaseMessagingService.initialize();
       // Subscribe all installed users to announcement topic
       await FirebaseMessagingService.subscribeToTopic('announcement');
@@ -50,7 +51,17 @@ function App() {
       FirebaseMessagingService.cleanup();
     };
   }, []);
-  useEffect(() => { setupNotifications(); }, []);
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+
+    setupNotifications().then((unsubscribe) => {
+      cleanup = unsubscribe;
+    });
+
+    return () => {
+      cleanup?.();
+    };
+  }, []);
   useEffect(() => {
     const runUpdateCheck = async () => {
       const info = await checkForAppUpdate();
@@ -63,12 +74,12 @@ function App() {
   }, []);
   const linking = {
     prefixes: [
-      "myapp://",
-      "https://evcharger.it.com",
+      "tanevcharger://",
     ],
     config: {
       screens: {
         Main: "main",
+        ChargingDetail: "charging-detail",
         PaymentSuccess: "payment-success",
       },
     },
@@ -84,9 +95,10 @@ function App() {
                 <StatusBar barStyle="dark-content" />
                 <RouteContainer />
               </NavigationContainer>
+              <ChargingPresenceManager />
             </TransactionPollingProvider>
           </WebSocketProvider>
-          {updateInfo && (
+          {/* {updateInfo && (
             <AppUpdateModal
               visible={showUpdateModal}
               latestVersion={updateInfo.latestVersion}
@@ -99,7 +111,7 @@ function App() {
                 }
               }}
             />
-          )}
+          )} */}
           {!isConnected && (<NoInternet/>)}
           <Toast />
         </ToastProvider>

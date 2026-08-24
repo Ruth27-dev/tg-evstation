@@ -1,5 +1,5 @@
-import { goBack, navigate, replace, reset } from "@/navigation/NavigationService";
-import { changePassword, checkPhone, completeLogin, fetchUserDetail, forgotPassword, postDeleteUser, postForgotPassword, postLogout, postRegister, requestOTP, resendOTP, updateMe, userLogin, userRegister } from "@/services/useApi";
+import { goBack, navigate, reset } from "@/navigation/NavigationService";
+import { completeLogin, fetchUserDetail, postDeleteUser, postLogout, postRegister, requestOTP, updateMe, uploadProfileImage as uploadProfileImageApi, userLogin } from "@/services/useApi";
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMeStore } from "@/store/useMeStore";
 import { useCallback, useState } from "react";
@@ -8,6 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DeviceInfo from "react-native-device-info";
 import { useEVStore } from "@/store/useEVStore";
 import { useEVConnector } from "./useEVConnector";
+import { StorageKey } from "@/constants/GeneralConstants";
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -23,41 +24,64 @@ export const useAuth = () => {
         const trimmed = phone.replace(/\s/g, '');
         return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
     };
-    
-    const login = useCallback(async (phoneNumber: string) => {
+
+    // A login attempt on a phone with no account should fail without sending
+    // any OTP — only THEN do we try signup, so at most one OTP ever goes out
+    // per submission (calling both endpoints back-to-back would text the
+    // user twice for the same attempt).
+    const isPhoneNotRegisteredError = (response: any): boolean => {
+        const message = String(response?.data?.message || '').toLowerCase();
+        return message.includes('not') && (message.includes('found') || message.includes('exist') || message.includes('regist'));
+    };
+
+    // Single entry point for the phone number screen: try login first (the
+    // common, returning-user case resolves in one call); only a "no account
+    // for this number" response falls through to signup — the user never has
+    // to pick "log in" vs "sign up" themselves.
+    const continueWithPhone = useCallback(async (phoneNumber: string, formattedPhone: string) => {
         setIsLoading(true);
-        const check = await checkPhone({ phone_number: phoneNumber });
-        if(check?.data?.code === '000' && !check?.data?.data){
-            setIsLoading(false);
-            setShowError(true);
-            setError('Phone number not found. Please check your number or register a new account.');
-            return;
-        }else{
-             const data = {
-                phone_number: phoneNumber,
-            }
-            const response = await userLogin(data);
-            if (response?.data?.code === '000') {
-            navigate('Verify', {
-                    phoneNumber: normalizePhoneForOtp(phoneNumber),
+        try {
+            const loginResponse = await userLogin({ phone_number: phoneNumber });
+            if (loginResponse?.data?.code === '000') {
+                navigate('Verify', {
+                    phoneNumber: normalizePhoneForOtp(formattedPhone),
                     isForget: true,
-                    sessionToken: response?.data?.data?.session_token || null,
-                    expires_in: response?.data?.data?.expires_in || null,
+                    sessionToken: loginResponse?.data?.data?.session_token || null,
+                    expires_in: loginResponse?.data?.data?.expires_in || null,
+                });
+                return;
+            }
+
+            if (!isPhoneNotRegisteredError(loginResponse)) {
+                setShowError(true);
+                setError(loginResponse?.data?.message || 'Unknown error');
+                return;
+            }
+
+            const registerResponse = await requestOTP({ phone_number: phoneNumber });
+            if (registerResponse?.data?.code === '000') {
+                navigate('Verify', {
+                    phoneNumber: normalizePhoneForOtp(formattedPhone),
+                    isForget: false,
+                    sessionToken: registerResponse?.data?.data?.session_token || null,
+                    expires_in: registerResponse?.data?.data?.expires_in || null,
                 });
             } else {
                 setShowError(true);
-                setIsLoading(false);
-                setError(response?.data?.message || 'Unknown error');
+                setError(registerResponse?.data?.message || 'Unknown error');
             }
+        } catch (err: any) {
+            setShowError(true);
+            setError(err?.message || 'An unexpected error occurred.');
+        } finally {
+            setIsLoading(false);
         }
-       
-    }, [setIsUserLogin]);
+    }, []);
 
-    const handleCompleteLogin = useCallback(async (registerToken: string,phoneNumber: string) => {
+    const handleCompleteLogin = useCallback(async (registerToken: string, phoneNumber: string) => {
         setIsLoading(true);
         const data = {
             register_token: registerToken,
-            // phone_number: phoneNumber,
         }
         try {
             const response = await completeLogin(data);
@@ -78,87 +102,6 @@ export const useAuth = () => {
         }
     }, [setIsUserLogin]);
 
-
-    const handleForgotPassword = async (password: string, registerToken: string) => {
-        setIsRequesting(true); // Start loading
-        const data = {
-            password: password,
-            register_token: registerToken
-        };
-        try {
-            const response = await postForgotPassword(data);
-            console.log('Forgot Password Response:', response);
-            if(response?.data?.code === '000'){
-                await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
-                setIsUserLogin(true);
-                navigate("Main");
-                setIsRequesting(false);
-                return response;
-            } else {
-                setIsRequesting(false);
-                setShowError(true);
-                setError(response?.data?.message || 'Login failed. Please check your credentials and try again.');}
-        } catch (err: any) {
-            setIsRequesting(false);
-            setShowError(true);
-            setError(err?.message || 'Login failed. Please check your credentials and try again.');
-        }
-    }
-
-    const checkPhoneNumber = async (phoneNumber: string, formattedPhone: string,_isForget: boolean = false) => {
-        setIsLoading(true); // Start loading
-        const data = {
-            phone_number: phoneNumber,
-        };
-
-        try {
-            const response = await requestOTP(data);
-            if (response?.data?.code === '000') {
-                navigate('Verify', {
-                    phoneNumber: normalizePhoneForOtp(formattedPhone),
-                    isForget: false,
-                    sessionToken: response?.data?.data?.session_token || null,
-                    expires_in: response?.data?.data?.expires_in || null,
-                });
-            } else {
-                setShowError(true);
-                setError(response?.data?.message || 'Unknown error');
-            }
-        } catch (err: any) {
-            setShowError(true);
-            setError(err?.message || 'An unexpected error occurred.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const forgetPassword = async (phoneNumber: string, formattedPhone: string) => {
-        setIsLoading(true); // Start loading
-        const data = {
-            phone_number: phoneNumber,
-        };
-
-        try {
-            const response = await forgotPassword(data);
-            if (response?.data?.code === '000') {
-               navigate('Verify', {
-                    phoneNumber: normalizePhoneForOtp(formattedPhone),
-                    isForget: true,
-                    sessionToken: response?.data?.data?.session_token || null,
-                    expires_in: response?.data?.data?.expires_in || null,
-                });
-            } else {
-                setShowError(true);
-                setError(response?.data?.message || 'Unknown error');
-            }
-        } catch (err: any) {
-            setShowError(true);
-            setError(err?.message || 'An unexpected error occurred.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const register = async (register_token: string, name:string,password:string ) => {
         setIsLoading(true);
         const data = {
@@ -178,8 +121,8 @@ export const useAuth = () => {
                 setIsLoading(false);
                 setShowError(true);
                 const errorData = response?.data?.data;
-                const errorMessage = errorData 
-                    ? Object.values(errorData).flat().join(', ') 
+                const errorMessage = errorData
+                    ? Object.values(errorData).flat().join(', ')
                     : 'Registration failed. Please try again.';
                 setError(errorMessage);}
         } catch (err: any) {
@@ -191,11 +134,16 @@ export const useAuth = () => {
 
     const fetchUser = async () =>{
         setIsLoading(true);
-        const res = await fetchUserDetail();
-        if(res.status === 200){
-            setUserData(res?.data?.data);
+        try {
+            const res = await fetchUserDetail();
+            if(res?.status === 200){
+                setUserData(res?.data?.data);
+            }
+        } catch (err: any) {
+            console.error('fetchUser error:', err);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }
 
 
@@ -208,7 +156,17 @@ export const useAuth = () => {
         return null;
       }
     };
-    
+
+
+    // Clears local session state but keeps the last-used phone number around,
+    // so the Auth screen can still pre-fill it on the next login.
+    const clearSessionStorage = async () => {
+        const lastPhoneNumber = await AsyncStorage.getItem(StorageKey.lastPhoneNumber);
+        await AsyncStorage.clear();
+        if (lastPhoneNumber) {
+            await AsyncStorage.setItem(StorageKey.lastPhoneNumber, lastPhoneNumber);
+        }
+    };
 
     const logout = async () => {
         setIsRequesting(true);
@@ -222,8 +180,8 @@ export const useAuth = () => {
             clearEvConnect();
             clearSessionDetail();
             await Keychain.resetGenericPassword();
-            await AsyncStorage.clear();
-            reset('Login');
+            await clearSessionStorage();
+            reset('Auth');
         // }
         setIsRequesting(false);
     }
@@ -237,63 +195,70 @@ export const useAuth = () => {
             clearEvConnect();
             clearSessionDetail();
             await Keychain.resetGenericPassword();
-            await AsyncStorage.clear();
-            reset('Login');
+            await clearSessionStorage();
+            reset('Auth');
         }
         setIsRequesting(false);
     }
 
-    const updateProfile = async (data:any) =>{
+    const updateProfile = async (data: any): Promise<{ success: boolean; message?: string }> => {
         setIsRequesting(true);
-        const fcmToken = await AsyncStorage.getItem('@fcm_token');
-        const deviceId = await DeviceInfo.getUniqueId();
-        if (deviceId) {
-            data.device_id = deviceId;
-        }
-        if (fcmToken) {
-            data.fcm_token = fcmToken;
-        }
+        try {
+            const fcmToken = await AsyncStorage.getItem('@fcm_token');
+            const deviceId = await DeviceInfo.getUniqueId();
+            if (deviceId) {
+                data.device_id = deviceId;
+            }
+            if (fcmToken) {
+                data.fcm_token = fcmToken;
+            }
 
-        const response = await updateMe(data)
-        if(response.data?.code === '000'){
-            setIsRequesting(false);
-            fetchUser();
-            goBack()
-        }else{
+            const response = await updateMe(data);
+            if (response?.data?.code === '000') {
+                await fetchUser();
+                goBack();
+                return { success: true };
+            }
+            return { success: false, message: response?.data?.message || 'Failed to update profile' };
+        } catch (err: any) {
+            return { success: false, message: err?.message || 'Failed to update profile' };
+        } finally {
             setIsRequesting(false);
         }
     }
 
-    const onChangePassword = async (data:any): Promise<boolean> => {
-        setIsRequesting(true);
-        const response = await changePassword(data);
-        if(response.data?.code === '000'){
-            await Keychain.setGenericPassword('access_token', response?.data?.data?.access_token || '');
-            setIsRequesting(false);
-            return true;
-        }else{
-            setIsRequesting(false);
-            setShowError(true);
-            setError(response?.data?.message || 'Change password failed. Please try again.');
-            return false;
+    // Deliberately doesn't touch isLoading/isRequesting: a screen swapping its
+    // full body for <Loading /> during a quick avatar change is jarring, so the
+    // caller (ProfileScreen) tracks its own localized "uploading" state instead.
+    const uploadProfileImage = async (file: { uri: string; type?: string; fileName?: string }): Promise<{ success: boolean; message?: string }> => {
+        const formData = new FormData();
+        formData.append('file', {
+            uri: file.uri,
+            type: file.type || 'image/jpeg',
+            name: file.fileName || `profile-${Date.now()}.jpg`,
+        } as any);
+
+        const response = await uploadProfileImageApi(formData);
+        if (response?.data?.code === '000') {
+            await fetchUser();
+            return { success: true };
         }
+        return { success: false, message: response?.data?.message || 'Failed to update profile photo. Please try again.' };
     }
+
     return {
         isLoading,
-        login,
+        continueWithPhone,
         fetchUser,
         logout,
         error,
         showError,
         setShowError,
-        checkPhoneNumber,
         register,
         isRequesting,
         updateProfile,
-        forgetPassword,
+        uploadProfileImage,
         deleteAccount,
-        onChangePassword,
-        handleForgotPassword,
         handleCompleteLogin
     };
 }

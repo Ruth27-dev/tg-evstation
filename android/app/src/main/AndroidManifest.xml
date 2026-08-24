@@ -2,12 +2,16 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <queries>
         <intent>
@@ -35,6 +39,10 @@
         android:name="com.google.android.geo.API_KEY"
         android:value="AIzaSyDR5Qcyuzkp5H713WZh_zCRKUms3W7LbJc"/>
 
+      <service
+        android:name="app.notifee.core.ForegroundService"
+        android:foregroundServiceType="dataSync" />
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -54,6 +62,15 @@
             <category android:name="android.intent.category.BROWSABLE" />
 
             <data android:scheme="https" android:host="tgevstation.com" />
+        </intent-filter>
+
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+
+            <data android:scheme="tanevcharger" />
         </intent-filter>
 
       </activity>

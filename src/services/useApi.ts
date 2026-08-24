@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain';
 import DeviceInfo from 'react-native-device-info';
 
-export const BASE_URL = 'https://evcharger.it.com/api/';
+export const BASE_URL = 'https://api.tanevcharging.com/api/';
 const TIMEOUT = 60000;
 
 const getToken = async (): Promise<string | null> => {
@@ -139,9 +139,6 @@ export const loginResendOtp = (data:any,onError?: (err: any) => void) => api.pos
 export const checkPhone = (data: any, onError?: (err: any) => void) =>
   api.post('v1/auth/exist-phone-number', data, onError);
 
-export const userRegister = (data: any, onError?: (err: any) => void) =>
-  api.post('v1/auth/register', data, onError);
-
 export const postLogout = (data: any, onError?: (err: any) => void) =>
   api.post('v1/auth/logout', data, onError);
 
@@ -210,9 +207,6 @@ export const postDeleteUser = (onError?: (err: any) => void) =>
 export const fetchNitification = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/notifications/announcement`,data, onError);
 
-export const changePassword = (data:any,onError?: (err: any) => void) =>
-  api.post(`v1/auth/change-password`,data, onError);
-
 export const requestOTP = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/auth/register/v1.0.0`,data, onError);
 
@@ -225,16 +219,7 @@ export const verifyOTP = (data:any,onError?: (err: any) => void) =>
 export const postRegister = (data:any,onError?: (err: any) => void) =>
   api.post(`v1/auth/complete`,data, onError);
 
-export const forgotPassword = (data:any,onError?: (err: any) => void) =>
-  api.post(`v1/auth/forgot-password/v1.0.0`,data, onError);
-
-export const verifyOTPForgotPassword = (data:any,onError?: (err: any) => void) =>
-  api.post(`v1/auth/forgot-password/verify-otp`,data, onError);
-
-export const resendOTPForgotPassword = (data:any,onError?: (err: any) => void) =>
-  api.post(`v1/auth/forgot-password/resend-otp`,data, onError);
-
-export const postForgotPassword = (data:any,onError?: (err: any) => void) =>
-  api.post(`v1/auth/forgot-password/complete`,data, onError);
+export const uploadProfileImage = (data: FormData, onError?: (err: any) => void) =>
+  api.post(`v1/users/me/profile-image`, data, onError);
 
 export default api;

@@ -1,12 +1,13 @@
 
 export interface UserAuth {
     id:           string;
-    email:        null;
+    email:        string | null;
+    image?: string | null;
     user_name:    string;
     phone_number: string;
     role:         null;
-    created_at:   Date;
-    updated_at:   Date;
+    created_at:   string;
+    updated_at:   string;
     password:     null;
     login_at?:    string | null;
     loginAt?:     string | null;

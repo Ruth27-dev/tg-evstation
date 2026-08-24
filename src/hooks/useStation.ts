@@ -8,7 +8,7 @@ export const useStation = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const { setStationData,stationData } = useStationStore();
     
-    const getStation = async (page: number = 1, size: number = 10) => {
+    const getStation = async (page: number = 1, size: number = 1000) => {
         setIsLoading(true);
         try {
             const response = await fetchStation({ page, size });

@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
         color: Colors.white,
     },
     listContainer: {
-        paddingBottom: 90,
+        paddingBottom: 120,
         paddingHorizontal: safePadding,
         paddingTop: safePadding,
     },
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.07,
         shadowRadius: 6,
-        elevation: 3,
+        elevation: 1,
     },
     cardInner: {
         padding: 14,

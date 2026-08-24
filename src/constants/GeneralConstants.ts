@@ -9,6 +9,7 @@ export const StorageKey = {
     printer: "printer-storage",
     ev: "ev-storage",
     transactionId: "transaction-id-storage",
+    lastPhoneNumber: "last-phone-number",
 }
 
 export const screenSizes = {

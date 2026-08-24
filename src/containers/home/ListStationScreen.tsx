@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, FlatList, Text, TextInput, ActivityIndicator } from "react-native";
+import { View, StyleSheet, TouchableOpacity, FlatList, Text, TextInput, ActivityIndicator, Linking } from "react-native";
 import MapView from 'react-native-maps';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from "@/theme";
@@ -7,27 +7,43 @@ import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralCo
 import BaseComponent from "@/components/BaseComponent";
 import { Content } from "@/types";
 import useStoreLocation from "@/store/useStoreLocation";
+import useLocationPermission, { FRESH_LOCATION_TTL_MS } from "@/hooks/useLocationPermission";
 import { useStation } from "@/hooks/useStation";
 import { useStationSorting } from "../main/hooks/useStationSorting";
+import { useMapCamera } from "../main/hooks/useMapCamera";
 import StationMap from "../main/components/StationMap";
 import StationList from "../main/components/StationList";
 import StationCard from "../main/components/StationCard";
 import { navigate } from "@/navigation/NavigationService";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useGlobalToast } from "@/components/ToastProvider";
+import EnableLocationModal from "@/components/EnableLocationModal";
 import { useStationStore } from "@/store/useStationStore";
 
 const ListStationScreen = () => {
     const mapRef = useRef<MapView>(null!);
     const { currentLocation } = useStoreLocation();
+    const { permissionStatus, isFetchingLocation, refreshLocation } = useLocationPermission();
+    const { centerOnUserOnce, animateToCoordinate, zoomIn, zoomOut } = useMapCamera(mapRef);
     const { getStation, stationData, isLoading } = useStation();
     const { setSelectedStation, selectedStation } = useStationStore();
     const { t } = useTranslation();
+    const { showToast } = useGlobalToast();
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isLocating, setIsLocating] = useState(false);
+    const [showEnableLocationModal, setShowEnableLocationModal] = useState(false);
 
     useEffect(() => {
         getStation();
     }, []);
+
+    // Center on the user once when the map view first has a location — never fight the user's own panning/zooming afterwards.
+    useEffect(() => {
+        if (viewMode === 'map' && currentLocation) {
+            centerOnUserOnce(currentLocation.latitude, currentLocation.longitude);
+        }
+    }, [viewMode, currentLocation, centerOnUserOnce]);
 
     const sortedStations = useStationSorting({
         stations: stationData || [],
@@ -54,16 +70,41 @@ const ListStationScreen = () => {
         }
     }, [setSelectedStation]);
 
-    const handleMyLocation = useCallback(() => {
-        if (currentLocation && mapRef.current) {
-            mapRef.current.animateToRegion({
-                latitude: currentLocation.latitude,
-                longitude: currentLocation.longitude,
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
-            }, 500);
+    const handleMyLocation = useCallback(async () => {
+        if (isLocating) return; // guard rapid repeated taps
+
+        if (permissionStatus === 'blocked') {
+            setShowEnableLocationModal(true);
+            return;
         }
-    }, [currentLocation]);
+
+        const isReliable = !!currentLocation?.timestamp &&
+            Date.now() - currentLocation.timestamp < FRESH_LOCATION_TTL_MS;
+
+        if (isReliable && currentLocation) {
+            animateToCoordinate(currentLocation.latitude, currentLocation.longitude);
+            return;
+        }
+
+        setIsLocating(true);
+        try {
+            await refreshLocation();
+            const { currentLocation: updated, locationError: freshError } = useStoreLocation.getState();
+            if (updated) {
+                animateToCoordinate(updated.latitude, updated.longitude);
+            }
+            if (freshError) {
+                showToast(t('location.unableToRetrieve'), 'error');
+            }
+        } finally {
+            setIsLocating(false);
+        }
+    }, [currentLocation, isLocating, permissionStatus, refreshLocation, animateToCoordinate, showToast, t]);
+
+    const handleOpenLocationSettings = useCallback(() => {
+        setShowEnableLocationModal(false);
+        Linking.openSettings();
+    }, []);
 
     const handleStationPress = useCallback((station: Content) => {
         setSelectedStation(station);
@@ -103,8 +144,30 @@ const ListStationScreen = () => {
                             selectedStation={selectedStation}
                             onMarkerPress={handleMarkerPress}
                         />
-                        <TouchableOpacity style={styles.myLocationButton} onPress={handleMyLocation}>
-                            <Ionicons name="locate" size={22} color={Colors.white} />
+                        <EnableLocationModal
+                            visible={showEnableLocationModal}
+                            onCancel={() => setShowEnableLocationModal(false)}
+                            onEnable={handleOpenLocationSettings}
+                        />
+                        <View style={styles.zoomControls}>
+                            <TouchableOpacity style={styles.zoomButton} onPress={zoomIn} activeOpacity={0.8}>
+                                <Ionicons name="add" size={22} color={Colors.mainColor} />
+                            </TouchableOpacity>
+                            <View style={styles.zoomDivider} />
+                            <TouchableOpacity style={styles.zoomButton} onPress={zoomOut} activeOpacity={0.8}>
+                                <Ionicons name="remove" size={22} color={Colors.mainColor} />
+                            </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.myLocationButton}
+                            onPress={handleMyLocation}
+                            disabled={isLocating}
+                        >
+                            {isLocating || isFetchingLocation ? (
+                                <ActivityIndicator size="small" color={Colors.white} />
+                            ) : (
+                                <Ionicons name="locate" size={22} color={Colors.white} />
+                            )}
                         </TouchableOpacity>
                         <StationList
                             stations={sortedStations}
@@ -289,5 +352,28 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 4,
+    },
+    zoomControls: {
+        position: 'absolute',
+        bottom: 370,
+        right: safePadding,
+        borderRadius: 12,
+        backgroundColor: Colors.white,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
+        overflow: 'hidden',
+    },
+    zoomButton: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    zoomDivider: {
+        height: StyleSheet.hairlineWidth,
+        backgroundColor: '#E5E7EB',
     },
 });

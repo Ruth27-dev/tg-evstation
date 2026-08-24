@@ -1,6 +1,6 @@
 import BaseComponent from "@/components/BaseComponent";
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, RefreshControl, Platform } from "react-native";
 import { Colors } from "@/theme";
 import { CustomFontConstant, FontSize, safePadding } from "@/constants/GeneralConstants";
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -48,7 +48,6 @@ const SettingScreen = () => {
     }, [fetchUser]);
 
     const handleProfilePress   = () => navigate('ProfileScreen');
-    const handleChangePassword = () => navigate('ChangePasswordScreen');
     const handleChangeLanguage = () => navigate('ChangeLanguageScreen');
     const handleDeleteAccount  = () => navigate('DeleteAccountScreen');
     const handleCustomerSupport = () => navigate('CustomerSupportScreen');
@@ -77,16 +76,6 @@ const SettingScreen = () => {
             onPress: handleProfilePress,
             showArrow: true,
         },
-        // {
-        //     id: '2',
-        //     title: 'profile.changePassword',
-        //     icon: 'lock-closed-outline',
-        //     iconType: 'ionicons',
-        //     iconBg: '#8B5CF615',
-        //     iconColor: '#8B5CF6',
-        //     onPress: handleChangePassword,
-        //     showArrow: true
-        // },
         {
             id: '3',
             title: 'profile.changeLanguage',
@@ -106,18 +95,7 @@ const SettingScreen = () => {
             iconColor: '#F59E0B',
             onPress: handleLogout,
             showArrow: false,
-        },
-        {
-            id: '5',
-            title: 'profile.deleteAccount',
-            icon: 'trash-outline',
-            iconType: 'ionicons',
-            iconBg: '#EF444415',
-            iconColor: '#EF4444',
-            onPress: handleDeleteAccount,
-            showArrow: false,
-            isDanger: true,
-        },
+        }
     ];
 
     const supportSettings: SettingItem[] = [
@@ -150,6 +128,17 @@ const SettingScreen = () => {
             iconColor: Colors.mainColor,
             onPress: handleAboutUs,
             showArrow: true,
+        },
+        {
+            id: '4',
+            title: 'profile.deleteAccount',
+            icon: 'trash-outline',
+            iconType: 'ionicons',
+            iconBg: '#EF444415',
+            iconColor: '#EF4444',
+            onPress: handleDeleteAccount,
+            showArrow: false,
+            isDanger: true,
         },
     ];
 
@@ -210,7 +199,10 @@ const SettingScreen = () => {
                     <View style={styles.circle2} />
 
                     <View style={styles.avatarWrapper}>
-                        <Image source={Images.user} style={styles.avatar} />
+                        <Image
+                            source={userData?.image ? { uri: userData.image } : Images.user}
+                            style={styles.avatar}
+                        />
                         <View style={styles.editBadge}>
                             <Ionicons name="pencil" size={10} color={Colors.white} />
                         </View>
@@ -381,6 +373,6 @@ const styles = StyleSheet.create({
         marginLeft: 'auto',
     },
     bottomPadding: {
-        height: 100,
+        height:Platform.OS === 'ios' ? 100 : 130,
     },
 });

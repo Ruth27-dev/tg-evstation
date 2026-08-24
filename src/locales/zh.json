@@ -21,8 +21,8 @@
     "error": "错误",
     "success": "成功",
     "signInToContinue": "登录以继续",
-    "authChoiceTitle": "欢迎使用 TAN EV Charning",
-    "authChoiceSubtitle": "请选择继续方式",
+    "authChoiceTitle": "欢迎使用 TAN EV Charging",
+    "authChoiceSubtitle": "请输入您的电话号码以继续",
     "findStation": "查找充电站",
     "viewDetails": "查看详情",
     "chooseYourLanguage" : "选择您的语言",
@@ -37,7 +37,8 @@
     "searchStation": "搜索充电站...",
     "stationsFound": "个充电站",
     "searchLocation": "搜索位置...",
-    "approx": "大约"
+    "approx": "大约",
+    "all": "全部"
   },
   "auth": {
     "login": "登录",
@@ -151,7 +152,16 @@
     "activeSession": "活动充电会话",
     "noActiveSession": "无活动充电会话",
     "lastUpdate": "最后更新",
-    "viewDetails": "查看详情"
+    "viewDetails": "查看详情",
+    "timeElapsed": "已用时间",
+    "chargeStarted": "开始充电",
+    "estCompletion": "预计完成",
+    "amountCharged": "已充电量",
+    "currentChargingSpeed": "当前充电速度",
+    "accumulatedPrice": "累计费用",
+    "priceOverview": "价格明细",
+    "chargeAmount": "充电量",
+    "chargePrice": "充电价格"
   },
   "station": {
     "station": "充电站",
@@ -164,6 +174,9 @@
     "occupied": "占用",
     "public": "公共",
     "unavailable": "不可用",
+    "dcFast": "DC",
+    "ac": "AC",
+    "freeParking": "免费停车",
     "availableCount": "{{available}}/{{total}} 可用",
     "navigate": "导航",
     "call": "拨打",
@@ -208,7 +221,26 @@
     "contactUs": "联系我们",
     "accountSettings": "账户设置",
     "support": "支持与信息",
-    "deleteAccount": "删除账户"
+    "deleteAccount": "删除账户",
+    "email": "电子邮箱",
+    "enterEmail": "请输入您的电子邮箱",
+    "personalInformation": "个人信息",
+    "accountDetails": "账户详情",
+    "phoneNumber": "电话号码",
+    "phoneLockedNote": "已通过验证码验证 — 如需更改请联系客服",
+    "memberSince": "注册于",
+    "saveChanges": "保存更改",
+    "verified": "已验证",
+    "notSet": "未设置",
+    "updatePhoto": "更新头像",
+    "takePhoto": "拍照",
+    "chooseFromLibrary": "从相册选择",
+    "photoUpdated": "头像已更新",
+    "photoUpdateFailed": "头像更新失败，请重试",
+    "update": "更新",
+    "updateFailed": "更新个人资料失败，请重试",
+    "cameraPermissionDenied": "拍照需要相机权限",
+    "cameraPermissionBlocked": "相机权限已被禁用，请在设置中启用以拍照"
   },
   "deleteAccount": {
     "title": "删除账户",
@@ -286,7 +318,8 @@
   "location": {
     "enableLocationTitle": "启用定位",
     "enableLocationMessage": "我们需要访问您的位置信息，以查找您附近的电动汽车充电站。",
-    "enable": "启用定位"
+    "enable": "启用定位",
+    "unableToRetrieve": "无法获取您的当前位置"
   },
   "header": {
     "changeLanguage": "更改语言"

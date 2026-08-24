@@ -17,6 +17,7 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
     const { evConnect } = useEVStore();
     const hasActiveCharging = !isEmpty(evConnect);
     const { t } = useTranslation();
+    const activeRouteName = state.routes[state.index]?.name;
     
     const menuData = [
         { id: 1, name: t('menu.home'), icon: <Feather name="home" size={25}/> },
@@ -26,7 +27,7 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
         { id: 5, name: t('menu.profile'), icon: <FontAwesome5 name="user-cog" size={25} /> },
     ];
 
-    const renderButtonScan = useCallback((onPress: () => void, onLongPress: () => void, index: number, isFocused: boolean) => {
+    const renderButtonScan = useCallback((onPress: () => void, onLongPress: () => void) => {
         const handlePress = () => {
             if (hasActiveCharging) {
                 navigate('ChargingDetail');
@@ -66,6 +67,10 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
 
     const translateY = useRef(new Animated.Value(0)).current;
 
+    if (activeRouteName === 'Connector') {
+        return null;
+    }
+
     return (
         <>
             <ChargingMiniPlayer />
@@ -74,7 +79,6 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
             >
                 {state?.routes?.map((route: any, index: any) => {
                 const { options } = descriptors[route.key];
-                const label = options?.tabBarLabel ?? options.title ?? route.name;
                 const isFocused = state?.index === index;
                 
                 const onPress = () => {
@@ -102,7 +106,7 @@ const CustomBottomMenu: React.FC<BottomTabBarProps> = ({ state, descriptors, nav
                         onLongPress={onLongPress}
                         style={styles.iconViews}
                     >
-                        {index === 2 ? renderButtonScan(onPress, onLongPress, index, isFocused) :
+                        {index === 2 ? renderButtonScan(onPress, onLongPress) :
                             <View style={styles.iconButton}>
                                 {React.cloneElement(menuData[index].icon, { 
                                     color: isFocused ? Colors.secondaryColor : Colors.dividerColor, 

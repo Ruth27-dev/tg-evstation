@@ -166,7 +166,8 @@ const ConnectorScreen = () => {
 
                 <View style={[styles.overlay, { paddingTop: insets.top, paddingBottom: insets.bottom + 32 }]}>
                     <View style={styles.topSection}>
-                        <Text style={styles.screenTitle}>{t('connector.qrScanner')}</Text>
+                        {/* <Text style={styles.screenTitle}>{t('connector.qrScanner')}</Text> */}
+                        <View/>
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={goBack}
@@ -265,6 +266,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginTop:20
     },
     screenTitle: {
         color: Colors.white,

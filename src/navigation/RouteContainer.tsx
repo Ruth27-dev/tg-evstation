@@ -1,25 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import MainStackContainer from './MainStackContainer.tsx';
 import useLocationPermission from '@/hooks/useLocationPermission.ts';
-import { isEmpty } from 'lodash';
 
 const RouteContainer = () => {
-  const { permissionStatus, requestPermission ,getCurrentLocation } = useLocationPermission();
-  
-  useEffect(() => {
-    const handlePermissionFlow = async () => {
-      if (isEmpty(permissionStatus)) {
-        await requestPermission();
-      }
-  
-      await getCurrentLocation(); 
-    };
-  
-    handlePermissionFlow();
-}, []);
+  // Priming call: the hook itself owns the full permission + location flow
+  // (including retries on app resume), so it only needs to be mounted once here.
+  useLocationPermission();
 
-
-  return  <MainStackContainer />;
+  return <MainStackContainer />;
 };
 
 export default RouteContainer;

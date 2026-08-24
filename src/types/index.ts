@@ -48,6 +48,8 @@ export interface Charger {
     location:         string;
     location_id:      string;
     connector:        Connector[];
+    price_per_kwh?:   number;
+    has_password?:    boolean;
 }
 
 export interface Connector {
@@ -57,8 +59,8 @@ export interface Connector {
     updated_at:       Date;
     status:           string;
     charger_id:       string;
-    max_kw:           null;
-    type:             null;
+    max_kw:           number | null;
+    type:             string | null;
 }
 
 export interface Transaction {

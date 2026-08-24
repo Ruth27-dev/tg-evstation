@@ -21,8 +21,8 @@
         "error": "Lỗi",
         "success": "Thành công",
         "signInToContinue": "Đăng nhập để tiếp tục",
-        "authChoiceTitle": "Chào mừng đến với TAN EV Charning",
-        "authChoiceSubtitle": "Hãy chọn cách bạn muốn tiếp tục",
+        "authChoiceTitle": "Chào mừng đến với TAN EV Charging",
+        "authChoiceSubtitle": "Nhập số điện thoại của bạn để tiếp tục",
         "findStation": "Tìm trạm",
         "viewDetails": "Xem chi tiết",
         "chooseYourLanguage": "Chọn ngôn ngữ của bạn",
@@ -37,7 +37,8 @@
         "searchStation": "Tìm kiếm trạm...",
         "stationsFound": "trạm được tìm thấy",
         "searchLocation": "Tìm kiếm vị trí...",
-        "approx": "Khoảng"
+        "approx": "Khoảng",
+        "all": "Tất cả"
     },
     "auth": {
         "login": "Đăng nhập",
@@ -150,7 +151,16 @@
         "activeSession": "Phiên sạc đang hoạt động",
         "noActiveSession": "Không có phiên sạc đang hoạt động",
         "lastUpdate": "Cập nhật lần cuối",
-        "viewDetails": "Xem chi tiết"
+        "viewDetails": "Xem chi tiết",
+        "timeElapsed": "Thời gian đã sạc",
+        "chargeStarted": "Bắt đầu sạc",
+        "estCompletion": "Dự kiến hoàn thành",
+        "amountCharged": "Lượng điện đã sạc",
+        "currentChargingSpeed": "Tốc độ sạc hiện tại",
+        "accumulatedPrice": "Chi phí tích lũy",
+        "priceOverview": "Chi tiết giá",
+        "chargeAmount": "Lượng điện sạc",
+        "chargePrice": "Giá sạc"
     },
     "station": {
         "station": "Trạm",
@@ -163,6 +173,9 @@
         "occupied": "Đã chiếm dụng",
         "public": "Công cộng",
         "unavailable": "Không có sẵn",
+        "dcFast": "DC",
+        "ac": "AC",
+        "freeParking": "Đỗ xe miễn phí",
         "availableCount": "{{available}}/{{total}} Có sẵn",
         "navigate": "Chỉ đường",
         "call": "Gọi",
@@ -207,7 +220,26 @@
         "contactUs": "Liên hệ chúng tôi",
         "accountSettings": "Cài đặt tài khoản",
         "support": "Hỗ trợ & Thông tin",
-        "deleteAccount": "Xóa tài khoản"
+        "deleteAccount": "Xóa tài khoản",
+        "email": "Email",
+        "enterEmail": "Nhập địa chỉ email của bạn",
+        "personalInformation": "Thông tin cá nhân",
+        "accountDetails": "Chi tiết tài khoản",
+        "phoneNumber": "Số điện thoại",
+        "phoneLockedNote": "Đã xác minh qua OTP — liên hệ hỗ trợ để thay đổi",
+        "memberSince": "Thành viên từ",
+        "saveChanges": "Lưu thay đổi",
+        "verified": "Đã xác minh",
+        "notSet": "Chưa thiết lập",
+        "updatePhoto": "Cập nhật ảnh đại diện",
+        "takePhoto": "Chụp ảnh",
+        "chooseFromLibrary": "Chọn từ thư viện",
+        "photoUpdated": "Đã cập nhật ảnh đại diện",
+        "photoUpdateFailed": "Không thể cập nhật ảnh đại diện. Vui lòng thử lại.",
+        "update": "CẬP NHẬT",
+        "updateFailed": "Không thể cập nhật hồ sơ. Vui lòng thử lại.",
+        "cameraPermissionDenied": "Cần quyền truy cập camera để chụp ảnh.",
+        "cameraPermissionBlocked": "Camera đã bị chặn. Vui lòng bật quyền camera trong Cài đặt để chụp ảnh."
     },
     "deleteAccount": {
         "title": "Xóa tài khoản",
@@ -285,7 +317,8 @@
     "location": {
         "enableLocationTitle": "Bật vị trí",
         "enableLocationMessage": "Chúng tôi cần quyền truy cập vị trí của bạn để tìm các trạm sạc xe điện gần bạn.",
-        "enable": "Bật vị trí"
+        "enable": "Bật vị trí",
+        "unableToRetrieve": "Không thể lấy vị trí hiện tại của bạn"
     },
     "header": {
         "changeLanguage": "Thay đổi ngôn ngữ"

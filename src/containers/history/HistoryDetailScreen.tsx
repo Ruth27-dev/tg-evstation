@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 8,
-        elevation: 3,
+        elevation: 1,
     },
     heroIcon: {
         width: 46,
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
-        elevation: 2,
+        elevation: 1,
     },
     statIconBox: {
         width: 40,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
-        elevation: 2,
+        elevation: 1,
     },
     cardHeader: {
         flexDirection: 'row',

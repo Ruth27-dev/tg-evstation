@@ -32,7 +32,7 @@ const SplashScreen = () => {
             }
 
             if (!isAuthenticated) {
-                reset('AuthChoice');
+                reset('Auth');
                 return;
             }
 

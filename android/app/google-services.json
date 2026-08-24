@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "437520296446",
-    "project_id": "tgev-station",
-    "storage_bucket": "tgev-station.firebasestorage.app"
+    "project_number": "814216394210",
+    "project_id": "tan-evcharger",
+    "storage_bucket": "tan-evcharger.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:437520296446:android:63d4e6b4455542c117b8af",
+        "mobilesdk_app_id": "1:814216394210:android:99fcf8f610e6aa2c2375bb",
         "android_client_info": {
-          "package_name": "com.tg.evstation"
+          "package_name": "com.tan.evcharger"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDXXE4A_rAmCMbOiLg7aAVHJk2bb6GFT0k"
+          "current_key": "AIzaSyCekWobdSYt2BkpwcJ4nFIjl7hf6c6s9pA"
         }
       ],
       "services": {

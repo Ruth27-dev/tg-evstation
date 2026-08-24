@@ -1,19 +1,11 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors } from '@/theme';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Content } from '@/types';
-
-const isStationAvailable = (station: Content): boolean => {
-    const availableConnectors = station?.chargers?.reduce((available: number, charger: any) => {
-        const n = charger?.connector?.filter(
-            (c: any) => c.status === 'AVAILABLE' || c.status === 'PREPARING'
-        ).length || 0;
-        return available + n;
-    }, 0) || 0;
-    return availableConnectors > 0;
-};
+import { MIN_ZOOM, MAX_ZOOM } from '../hooks/useMapCamera';
+import { getStationMarkerColor, MARKER_ICON } from '../utils/stationMarker';
+import { Colors } from '@/theme';
 
 interface StationMapProps {
     mapRef: React.RefObject<MapView | null>;
@@ -50,10 +42,12 @@ const StationMap: React.FC<StationMapProps> = ({
             showsUserLocation
             showsMyLocationButton={false}
             showsCompass={true}
+            minZoomLevel={MIN_ZOOM}
+            maxZoomLevel={MAX_ZOOM}
         >
             {stations?.map((station) => {
                 const isSelected = selectedStation?.id === station.id;
-                const isAvailable = isStationAvailable(station);
+                const markerColor = getStationMarkerColor(station);
 
                 return (
                     <Marker
@@ -64,16 +58,14 @@ const StationMap: React.FC<StationMapProps> = ({
                         }}
                         onPress={() => onMarkerPress(station)}
                     >
-                        <View style={[
-                            styles.stationMarker,
-                            { backgroundColor: isAvailable ? Colors.secondaryColor : Colors.dangerColor },
-                            isSelected && styles.stationMarkerSelected
-                        ]}>
-                            <MaterialCommunityIcons
-                                name="ev-station"
-                                size={isSelected ? 24 : 18}
-                                color={Colors.white}
-                            />
+                        <View style={[styles.markerHalo, { backgroundColor: `${markerColor}26` }]}>
+                            <View style={[
+                                styles.markerDot,
+                                { backgroundColor: markerColor },
+                                isSelected && styles.markerDotSelected,
+                            ]}>
+                                <Ionicons name={MARKER_ICON} size={isSelected ? 18 : 15} color={Colors.white} />
+                            </View>
                         </View>
                     </Marker>
                 );
@@ -94,19 +86,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    stationMarker: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: Colors.white,
-    },
-    stationMarkerSelected: {
+    markerHalo: {
         width: 48,
         height: 48,
         borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    markerDot: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 4,
+    },
+    markerDotSelected: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         borderWidth: 2,
+        borderColor: Colors.white,
     },
 });

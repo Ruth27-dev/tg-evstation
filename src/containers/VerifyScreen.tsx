@@ -102,13 +102,15 @@ const VerifyScreen = ({ route }: VerifyScreenProps) => {
 
             const data = {
                 session_token: sessionToken,
-                otp: Number(code),
+                // Keep as a string — the code can start with "0" (e.g. "034521"),
+                // and Number(code) would silently drop that leading digit,
+                // producing a 5-digit value that never matches the real OTP.
+                otp: code,
             };
             const response =  isForget ?  await verifyLoginOTP(data) : await verifyOTP(data);
 
             if (response?.data?.code === SUCCESS_CODE) {
                 if (isForget) {
-                    // navigate('ChangePasswordScreen',{register_token: response?.data?.data?.register_token || '', isForget});
                     handleCompleteLogin(response?.data?.data?.register_token || '', cleanPhoneNumber(phoneNumber));
                 } else {
                     navigate('CreateAccount', { phoneNumber, register_token: response?.data?.data?.register_token || '' });

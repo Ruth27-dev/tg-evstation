@@ -21,8 +21,8 @@
     "error": "Error",
     "success": "Success",
     "signInToContinue": "Sign in to continue",
-    "authChoiceTitle": "Welcome to TAN EV Charning",
-    "authChoiceSubtitle": "Choose how you want to continue",
+    "authChoiceTitle": "Welcome to TAN EV Charging",
+    "authChoiceSubtitle": "Enter your phone number to continue",
     "findStation": "Find Station",
     "viewDetails": "View Details",
     "chooseYourLanguage" : "Choose Your Language",
@@ -37,7 +37,8 @@
     "searchStation": "Search stations...",
     "stationsFound": "stations found",
     "searchLocation": "Search location...",
-    "approx": "Approx."
+    "approx": "Approx.",
+    "all": "All"
   },
   "auth": {
     "login": "Login",
@@ -151,7 +152,16 @@
     "activeSession": "Active Charging Session",
     "noActiveSession": "No active charging session",
     "lastUpdate": "Last Update",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "timeElapsed": "Time elapsed",
+    "chargeStarted": "Charge started",
+    "estCompletion": "Est. completion",
+    "amountCharged": "Amount charged",
+    "currentChargingSpeed": "Current charging speed",
+    "accumulatedPrice": "Accumulated price",
+    "priceOverview": "Price overview",
+    "chargeAmount": "Charge amount",
+    "chargePrice": "Charge price"
   },
   "station": {
     "station": "Station",
@@ -164,6 +174,9 @@
     "occupied": "Occupied",
     "public": "Public",
     "unavailable": "Unavailable",
+    "dcFast": "DC",
+    "ac": "AC",
+    "freeParking": "Free Parking",
     "availableCount": "{{available}}/{{total}} Available",
     "navigate": "Navigate",
     "call": "Call",
@@ -208,7 +221,26 @@
     "contactUs": "Contact Us",
     "accountSettings": "Account Settings",
     "support" : "Support & Information",
-    "deleteAccount": "Delete Account"
+    "deleteAccount": "Delete Account",
+    "email": "Email",
+    "enterEmail": "Enter your email address",
+    "personalInformation": "Personal Information",
+    "accountDetails": "Account Details",
+    "phoneNumber": "Phone Number",
+    "phoneLockedNote": "Verified via OTP — contact support to change",
+    "memberSince": "Member Since",
+    "saveChanges": "Save Changes",
+    "verified": "Verified",
+    "notSet": "Not set",
+    "updatePhoto": "Update Profile Photo",
+    "takePhoto": "Take Photo",
+    "chooseFromLibrary": "Choose from Library",
+    "photoUpdated": "Profile photo updated",
+    "photoUpdateFailed": "Failed to update profile photo. Please try again.",
+    "update": "UPDATE",
+    "updateFailed": "Failed to update profile. Please try again.",
+    "cameraPermissionDenied": "Camera permission is required to take a photo.",
+    "cameraPermissionBlocked": "Camera access is disabled. Please enable it in Settings to take a photo."
   },
   "deleteAccount": {
     "title": "Delete Account",
@@ -286,7 +318,8 @@
   "location": {
     "enableLocationTitle": "Enable Location",
     "enableLocationMessage": "We need access to your location to find EV charging stations around you.",
-    "enable": "Enable Location"
+    "enable": "Enable Location",
+    "unableToRetrieve": "Unable to get your current location"
   },
   "header": {
     "changeLanguage": "Change Language"

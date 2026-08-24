@@ -9,7 +9,6 @@ import { Colors } from '@/theme';
 import { CustomFontConstant, FontSize } from '@/constants/GeneralConstants';
 import CustomButton from '@/components/CustomButton';
 import CustomInputText from '@/components/CustomInputText';
-import { navigate } from '@/navigation/NavigationService';
 import { useAuth } from '@/hooks/useAuth';
 import BaseComponent from '@/components/BaseComponent';
 import { cleanPhoneNumber, formatPhoneNumber } from '@/utils';
@@ -176,16 +175,6 @@ const CreateAccountScreen = ({ route }: { route?: { params?: { phoneNumber?: str
                                 disabled={!isFormValid}
                               />
                             </View>
-
-                            {/* Footer */}
-                            <View style={styles.footer}>
-                                <View style={styles.signInContainer}>
-                                    <Text style={styles.signInText}>{t('auth.alreadyHaveAccount')} </Text>
-                                    <TouchableOpacity onPress={() => navigate('Login')}>
-                                        <Text style={styles.signInLink}>{t('auth.signIn')}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
                         </View>
                     </View>
                 </ScrollView>
@@ -289,25 +278,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   checkboxLink: {
-    color: Colors.mainColor,
-    fontFamily: CustomFontConstant.EnBold,
-  },
-  footer: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  signInContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signInText: {
-    fontSize: FontSize.medium,
-    fontFamily: CustomFontConstant.EnRegular,
-    color: '#6B7280',
-  },
-  signInLink: {
-    fontSize: FontSize.medium,
     color: Colors.mainColor,
     fontFamily: CustomFontConstant.EnBold,
   },

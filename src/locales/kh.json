@@ -21,8 +21,8 @@
     "error": "កំហុស",
     "success": "ជោគជ័យ",
     "signInToContinue": "ចូលប្រើដើម្បីបន្ត",
-    "authChoiceTitle": "សូមស្វាគមន៍មកកាន់ TAN EV Charning",
-    "authChoiceSubtitle": "សូមជ្រើសរើសវិធីបន្ត",
+    "authChoiceTitle": "សូមស្វាគមន៍មកកាន់ TAN EV Charging",
+    "authChoiceSubtitle": "សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នកដើម្បីបន្ត",
     "findStation": "ស្វែងរកស្ថានីយ",
     "viewDetails": "មើលព័ត៌មានលម្អិត",
     "chooseYourLanguage" : "ជ្រើសរើសភាសា",
@@ -37,7 +37,8 @@
     "searchStation": "ស្វែងរកស្ថានីយ...",
     "stationsFound": "ស្ថានីយរកឃើញ",
     "searchLocation": "ស្វែងរកទីតាំង...",
-    "approx": "ប្រហែល"
+    "approx": "ប្រហែល",
+    "all": "ទាំងអស់"
     },
   "auth": {
     "login": "ចូលប្រើ",
@@ -151,7 +152,16 @@
     "activeSession": "វគ្គបញ្ចូលថ្មកំពុងដំណើរការ",
     "noActiveSession": "គ្មានវគ្គបញ្ចូលថ្មកំពុងដំណើរការ",
     "lastUpdate": "ការអាប់ដេតចុងក្រោយ",
-    "viewDetails": "មើលព័ត៌មានលម្អិត"
+    "viewDetails": "មើលព័ត៌មានលម្អិត",
+    "timeElapsed": "រយៈពេលបានប្រើ",
+    "chargeStarted": "ចាប់ផ្តើមបញ្ចូលថ្ម",
+    "estCompletion": "ការបញ្ចប់ប៉ាន់ស្មាន",
+    "amountCharged": "ចំនួនអគ្គិសនីបានបញ្ចូល",
+    "currentChargingSpeed": "ល្បឿនបញ្ចូលថ្មបច្ចុប្បន្ន",
+    "accumulatedPrice": "តម្លៃសរុប",
+    "priceOverview": "ព័ត៌មានតម្លៃ",
+    "chargeAmount": "ចំនួនអគ្គិសនី",
+    "chargePrice": "តម្លៃអគ្គិសនី"
   },
   "station": {
     "station": "ស្ថានីយ៍",
@@ -164,6 +174,9 @@
     "occupied": "កំពុងប្រើ",
     "public": "សាធារណៈ",
     "unavailable": "មិនអាចប្រើបាន",
+    "dcFast": "DC",
+    "ac": "AC",
+    "freeParking": "ចតរថយន្តឥតគិតថ្លៃ",
     "availableCount": "{{available}}/{{total}} មាន",
     "navigate": "នាំផ្លូវ",
     "call": "ហៅទូរសព្ទ",
@@ -208,7 +221,26 @@
     "contactUs": "ទាក់ទងមកយើង",
     "accountSettings": "ការកំណត់គណនី",
     "support": "ការគាំទ្រ និងព័ត៌មាន",
-    "deleteAccount": "លុបគណនី"
+    "deleteAccount": "លុបគណនី",
+    "email": "អ៊ីមែល",
+    "enterEmail": "បញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក",
+    "personalInformation": "ព័ត៌មានផ្ទាល់ខ្លួន",
+    "accountDetails": "ព័ត៌មានលម្អិតគណនី",
+    "phoneNumber": "លេខទូរស័ព្ទ",
+    "phoneLockedNote": "បានផ្ទៀងផ្ទាត់តាម OTP — សូមទាក់ទងផ្នែកជំនួយដើម្បីផ្លាស់ប្តូរ",
+    "memberSince": "ជាសមាជិកតាំងពី",
+    "saveChanges": "រក្សាទុកការផ្លាស់ប្តូរ",
+    "verified": "បានផ្ទៀងផ្ទាត់",
+    "notSet": "មិនទាន់កំណត់",
+    "updatePhoto": "ប្តូររូបភាពប្រវត្តិរូប",
+    "takePhoto": "ថតរូប",
+    "chooseFromLibrary": "ជ្រើសរើសពីវិចិត្រសាល",
+    "photoUpdated": "បានធ្វើបច្ចុប្បន្នភាពរូបភាពប្រវត្តិរូប",
+    "photoUpdateFailed": "មិនអាចធ្វើបច្ចុប្បន្នភាពរូបភាពប្រវត្តិរូបបានទេ សូមព្យាយាមម្តងទៀត",
+    "update": "ធ្វើបច្ចុប្បន្នភាព",
+    "updateFailed": "មិនអាចធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបបានទេ សូមព្យាយាមម្តងទៀត",
+    "cameraPermissionDenied": "ត្រូវការសិទ្ធិកាមេរ៉ាដើម្បីថតរូប",
+    "cameraPermissionBlocked": "សិទ្ធិកាមេរ៉ាត្រូវបានបិទ។ សូមបើកវានៅក្នុងការកំណត់ដើម្បីថតរូប"
   },
   "deleteAccount": {
     "title": "លុបគណនី",
@@ -286,7 +318,8 @@
   "location": {
     "enableLocationTitle": "បើកទីតាំង",
     "enableLocationMessage": "យើងត្រូវការចូលប្រើទីតាំងរបស់អ្នក ដើម្បីស្វែងរកស្ថានីយ៍សាកថ្មនៅជុំវិញអ្នក។",
-    "enable": "បើកទីតាំង"
+    "enable": "បើកទីតាំង",
+    "unableToRetrieve": "មិនអាចទទួលបានទីតាំងបច្ចុប្បន្នរបស់អ្នកបានទេ"
   },
   "header": {
     "changeLanguage": "ផ្លាស់ប្តូរភាសា"

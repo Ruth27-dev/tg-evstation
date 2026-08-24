@@ -59,7 +59,7 @@ const MainHeader: React.FC = () => {
         <View style={[styles.headerContainer,{paddingTop: insets.top,height:55 + insets.top}]}>
             <View style={{flex:1,flexDirection:'row',alignItems:'center'}}>
                 {/* <HeaderLogo width={55} height={55} /> */}
-                <Image source={Images.headerLogo} style={{width:80,height:35}} />
+                <Image source={Images.headerLogo} style={{width:120,height:30}} />
             </View>
             <View style={{flexDirection:'row',alignItems:'center',justifyContent:'center'}}>
                 {renderTranslateIcon()}

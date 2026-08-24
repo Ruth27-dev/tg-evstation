@@ -122,13 +122,13 @@ const styles = StyleSheet.create({
     card: {
         width: screenSizes.width * 0.9,
         backgroundColor: Colors.white,
-        borderRadius: 16,
+        borderRadius: 10,
         padding: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.07,
         shadowRadius: 6,
-        elevation: 3,
+        elevation: 1,
         overflow: 'hidden',
     },
     cardSelected: {
